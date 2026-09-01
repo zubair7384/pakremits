@@ -30,6 +30,16 @@ const nextConfig: NextConfig = {
         source: '/ur/:currency-to-pkr',
         destination: '/ur/rate/:currency',
       },
+      // Method pages. The RDA one gets its own source because the natural URL
+      // for it is not "send money to a Roshan Digital Account".
+      {
+        source: '/send-money-to-:slug',
+        destination: '/method/:slug',
+      },
+      {
+        source: '/roshan-digital-account-transfer',
+        destination: '/method/rda',
+      },
     ]
   },
 }

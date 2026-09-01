@@ -3,6 +3,7 @@ import { eq } from 'drizzle-orm'
 import { CORRIDORS } from '@/lib/corridors'
 import { db } from '@/lib/db'
 import { providers, rateQuotes } from '@/lib/db/schema'
+import { METHOD_CONTENT, methodPath } from '@/lib/content/methods'
 
 /**
  * Dynamic sitemap.
@@ -75,5 +76,48 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.error('[sitemap] could not list providers:', error)
   }
 
-  return [...staticPages, ...corridorPages, ...ratePages, ...providerPages]
+  const methodPages: MetadataRoute.Sitemap = METHOD_CONTENT.map((entry) => ({
+    url: `${SITE}${methodPath(entry.slug)}`,
+    lastModified: now,
+    changeFrequency: 'daily' as const,
+    priority: 0.7,
+  }))
+
+  /**
+   * Head-to-head pages, one per unordered pair of quotable providers. The
+   * alphabetically-first slug always leads — emitting both orders would create
+   * duplicates competing for the same query.
+   */
+  let comparePages: MetadataRoute.Sitemap = []
+  try {
+    const rows = await db
+      .selectDistinct({ slug: providers.slug })
+      .from(rateQuotes)
+      .innerJoin(providers, eq(rateQuotes.providerId, providers.id))
+      .where(eq(providers.active, true))
+
+    const slugs = rows.map((r) => r.slug).sort()
+    for (let i = 0; i < slugs.length; i++) {
+      for (let j = i + 1; j < slugs.length; j++) {
+        comparePages.push({
+          url: `${SITE}/compare/${slugs[i]}-vs-${slugs[j]}`,
+          lastModified: now,
+          changeFrequency: 'daily' as const,
+          priority: 0.5,
+        })
+      }
+    }
+  } catch (error) {
+    console.error('[sitemap] could not build comparison pairs:', error)
+    comparePages = []
+  }
+
+  return [
+    ...staticPages,
+    ...corridorPages,
+    ...ratePages,
+    ...methodPages,
+    ...providerPages,
+    ...comparePages,
+  ]
 }

@@ -19,6 +19,7 @@ export default function robots(): MetadataRoute.Robots {
           // forms would split the ranking signal between duplicates.
           '/corridor/',
           '/rate/',
+          '/method/',
         ],
       },
     ],
