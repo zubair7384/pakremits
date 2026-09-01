@@ -1,0 +1,114 @@
+import type { Metadata } from 'next'
+import Link from 'next/link'
+import { eq } from 'drizzle-orm'
+import { SiteFooter, SiteHeader } from '@/components/site-chrome'
+import { db } from '@/lib/db'
+import { providers } from '@/lib/db/schema'
+
+export const revalidate = 3600
+
+export const metadata: Metadata = {
+  title: 'Every service we compare — Bhejo',
+  description:
+    'The money transfer services Bhejo tracks for Pakistan, what each supports, and which ' +
+    'ones we cannot quote and why.',
+  alternates: { canonical: '/providers' },
+}
+
+const RAILS = [
+  { key: 'supportsBank', label: 'Bank account' },
+  { key: 'supportsWallet', label: 'JazzCash / Easypaisa' },
+  { key: 'supportsNeobank', label: 'Sadapay / Nayapay' },
+  { key: 'supportsCash', label: 'Cash pickup' },
+  { key: 'supportsRda', label: 'Roshan Digital Account' },
+] as const
+
+export default async function ProvidersPage() {
+  const rows = await db
+    .select()
+    .from(providers)
+    .where(eq(providers.active, true))
+    .orderBy(providers.name)
+
+  const real = rows.filter((row) => !row.isBenchmark)
+
+  return (
+    <>
+      <SiteHeader />
+
+      <main className="mx-auto max-w-[1120px] px-6 py-14">
+        <nav aria-label="Breadcrumb" className="text-[13px] text-muted">
+          <ol className="flex items-center gap-2">
+            <li>
+              <Link href="/" className="no-underline hover:text-leaf">
+                Bhejo
+              </Link>
+            </li>
+            <li aria-hidden="true">/</li>
+            <li className="text-ink">Providers</li>
+          </ol>
+        </nav>
+
+        <h1 className="mt-5 text-[clamp(34px,4.6vw,52px)] leading-[1.05] font-semibold">
+          Every service we compare
+        </h1>
+        <p className="mt-4 max-w-[62ch] text-[17px] text-muted">
+          We list a provider only where we can fetch a genuine live quote without working around
+          their site. Some well-known services are missing for that reason —{' '}
+          <Link href="/how-we-rank" className="text-leaf underline underline-offset-2">
+            how we rank
+          </Link>{' '}
+          explains which and why.
+        </p>
+
+        <div className="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {real.map((provider) => (
+            <Link
+              key={provider.slug}
+              href={`/providers/${provider.slug}`}
+              className="rounded-panel border border-line bg-white p-6 no-underline transition-all
+                         hover:-translate-y-px hover:border-leaf"
+            >
+              <div className="flex items-center gap-3.5">
+                <span
+                  className="grid h-11 w-11 place-items-center rounded-[12px] font-display text-[15px] font-bold"
+                  style={{ background: provider.brandColor, color: provider.brandTextColor }}
+                  aria-hidden="true"
+                >
+                  {provider.name.charAt(0)}
+                </span>
+                <span className="text-[17px] font-medium text-ink">{provider.name}</span>
+              </div>
+
+              <ul className="mt-4 grid gap-1.5 text-[13.5px] text-muted">
+                {RAILS.filter((rail) => provider[rail.key]).map((rail) => (
+                  <li key={rail.key} className="flex items-center gap-2">
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      className="h-3 w-3 flex-none text-leaf"
+                      aria-hidden="true"
+                    >
+                      <path d="M4 12l6 6L20 6" />
+                    </svg>
+                    {rail.label}
+                  </li>
+                ))}
+              </ul>
+
+              {provider.commissionNote && (
+                <p className="mt-4 border-t border-line-2 pt-3 text-xs text-faint">
+                  {provider.commissionNote}
+                </p>
+              )}
+            </Link>
+          ))}
+        </div>
+      </main>
+
+      <SiteFooter />
+    </>
+  )
+}

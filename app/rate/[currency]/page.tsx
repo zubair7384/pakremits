@@ -1,0 +1,306 @@
+/**
+ * Rate pages — /gbp-to-pkr and friends, via a rewrite in next.config.ts.
+ *
+ * These are the daily-repeat-visit pages: someone checking whether today is a
+ * good day to send. So the rate itself is the entire top of the page, and the
+ * comparison is one scroll below it rather than the other way round.
+ */
+import type { Metadata } from 'next'
+import Link from 'next/link'
+import { notFound } from 'next/navigation'
+import { RateChart } from '@/components/rate-chart'
+import { SiteFooter, SiteHeader } from '@/components/site-chrome'
+import { CORRIDORS, CURRENCY_SYMBOLS, corridorByCurrency } from '@/lib/corridors'
+import { SEND_CURRENCIES, type SendCurrency } from '@/lib/db/schema'
+import { formatPkr, round } from '@/lib/ranking/compute'
+import { getComparison, getMidMarketSeries } from '@/lib/quotes'
+import { corridorPath } from '@/app/corridor/[slug]/page'
+
+export const revalidate = 900
+
+export function generateStaticParams() {
+  return SEND_CURRENCIES.map((currency) => ({ currency: currency.toLowerCase() }))
+}
+
+const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
+const TODAY = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+
+/** Parse the URL segment back into a currency code, or null if unknown. */
+function parseCurrency(segment: string): SendCurrency | null {
+  const upper = segment.toUpperCase() as SendCurrency
+  return SEND_CURRENCIES.includes(upper) ? upper : null
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ currency: string }>
+}): Promise<Metadata> {
+  const { currency: segment } = await params
+  const currency = parseCurrency(segment)
+  if (!currency) return {}
+
+  const path = `/${currency.toLowerCase()}-to-pkr`
+
+  return {
+    title: `${currency} to PKR rate today — ${TODAY.format(new Date())} | Bhejo`,
+    description:
+      `Today's ${currency} to PKR mid-market rate, a 30-day chart, and the service paying the ` +
+      'most rupees right now. Updated every 15 minutes.',
+    alternates: { canonical: path, languages: { 'en-GB': path, ur: `/ur${path}` } },
+    openGraph: { url: `${SITE}${path}`, type: 'website' },
+  }
+}
+
+export default async function RatePage({ params }: { params: Promise<{ currency: string }> }) {
+  const { currency: segment } = await params
+  const currency = parseCurrency(segment)
+  if (!currency) notFound()
+
+  const corridor = corridorByCurrency(currency)
+  if (!corridor) notFound()
+
+  const symbol = CURRENCY_SYMBOLS[currency]
+
+  const [series90, comparison] = await Promise.all([
+    getMidMarketSeries(currency, 90),
+    getComparison({ corridorSlug: corridor.slug, method: 'bank' }),
+  ])
+
+  const latest = series90.latest
+  const best = comparison?.rows.find((r) => r.isBest)
+
+  /**
+   * Change over a window, or null when we do not have enough history to
+   * answer honestly.
+   *
+   * Falling back to the oldest point we happen to hold would label 30 days of
+   * data as a 90-day change, which is a made-up number on a page whose entire
+   * job is accurate rates. A window is only reported when the series reaches
+   * back over at least 80% of it; otherwise the reader sees a dash.
+   */
+  function changeOver(days: number): number | null {
+    const points = series90.points
+    if (points.length < 2) return null
+
+    const windowMs = days * 24 * 60 * 60 * 1000
+    const oldest = points[0]
+    const to = points[points.length - 1]
+
+    const coveredMs = to.date.getTime() - oldest.date.getTime()
+    if (coveredMs < windowMs * 0.8) return null
+
+    const cutoff = to.date.getTime() - windowMs
+    const from = points.find((p) => p.date.getTime() >= cutoff) ?? oldest
+    if (from.rate <= 0) return null
+
+    return round(((to.rate - from.rate) / from.rate) * 100, 2)
+  }
+
+  const windows = [
+    { label: '7 days', value: changeOver(7) },
+    { label: '30 days', value: changeOver(30) },
+    { label: '90 days', value: changeOver(90) },
+  ]
+
+  // Label the chart with the history we actually have, not what we asked for.
+  const daysCovered =
+    series90.points.length >= 2
+      ? Math.round(
+          (series90.points[series90.points.length - 1].date.getTime() -
+            series90.points[0].date.getTime()) /
+            (24 * 60 * 60 * 1000),
+        )
+      : 0
+
+  return (
+    <>
+      <SiteHeader />
+
+      <main>
+        <div className="bg-green px-0 pt-10 pb-24 text-mist">
+          <div className="mx-auto max-w-[1120px] px-6">
+            <nav aria-label="Breadcrumb" className="text-[13px] text-[#7FA090]">
+              <ol className="flex items-center gap-2">
+                <li>
+                  <Link href="/" className="no-underline hover:text-white">
+                    Bhejo
+                  </Link>
+                </li>
+                <li aria-hidden="true">/</li>
+                <li className="text-[#C9D9D0]">{currency} to PKR</li>
+              </ol>
+            </nav>
+
+            <h1 className="mt-5 text-[clamp(30px,4vw,44px)] leading-[1.05] font-semibold">
+              {currency} to PKR rate today
+            </h1>
+
+            <div className="mt-7 flex flex-wrap items-end gap-x-12 gap-y-6">
+              <div>
+                <div className="font-display text-[clamp(48px,8vw,84px)] leading-none font-semibold tabular-nums text-white">
+                  {latest?.toFixed(2) ?? '—'}
+                </div>
+                <p className="mt-2 text-[15px] text-[#A9BFB4]">
+                  Mid-market reference for 1 {currency}. No provider gives you this rate — it is the
+                  line they are measured against.
+                </p>
+              </div>
+
+              <dl className="flex gap-8">
+                {windows.map((window) => (
+                  <div key={window.label}>
+                    <dt className="text-[13px] text-[#7FA090]">{window.label}</dt>
+                    <dd
+                      className="mt-1 font-display text-xl font-semibold tabular-nums"
+                      style={{
+                        color:
+                          window.value === null
+                            ? '#A9BFB4'
+                            : window.value >= 0
+                              ? 'var(--color-up)'
+                              : 'var(--color-down)',
+                      }}
+                    >
+                      {window.value === null
+                        ? '—'
+                        : `${window.value >= 0 ? '+' : ''}${window.value.toFixed(2)}%`}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          </div>
+        </div>
+
+        <div className="mx-auto max-w-[1120px] px-6">
+          {/* Best right now */}
+          {best && comparison && (
+            <section className="relative -mt-14 rounded-panel-lg border border-line bg-white p-7 shadow-[0_40px_80px_-40px_rgba(11,61,46,.35)]">
+              <h2 className="text-[13px] font-medium text-faint">Best right now</h2>
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-5">
+                <div className="flex items-center gap-4">
+                  <span
+                    className="grid h-12 w-12 place-items-center rounded-[12px] font-display text-lg font-bold"
+                    style={{
+                      background: best.quote.brandColor,
+                      color: best.quote.brandTextColor,
+                    }}
+                    aria-hidden="true"
+                  >
+                    {best.quote.providerName.charAt(0)}
+                  </span>
+                  <div>
+                    <div className="text-lg font-medium">{best.quote.providerName}</div>
+                    <div className="text-[13.5px] text-muted">
+                      {best.quote.rate.toFixed(2)} per {symbol} · {best.quote.deliverySpeedText}
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="font-display text-[28px] leading-none font-semibold tabular-nums">
+                    {formatPkr(best.quote.amountReceived)}
+                  </div>
+                  <div className="mt-1 text-[13px] text-muted">
+                    on {symbol}
+                    {comparison.amount.toLocaleString('en-GB')}
+                  </div>
+                </div>
+
+                <Link
+                  href={corridorPath(corridor.slug)}
+                  className="flex h-11 items-center rounded-control bg-leaf px-5 font-medium text-white no-underline hover:bg-leaf-dark"
+                >
+                  Compare all services
+                </Link>
+              </div>
+            </section>
+          )}
+
+          <section className="mt-14">
+            <RateChart
+              points={series90.points}
+              currency={currency}
+              label={`${currency} to PKR, last ${daysCovered} days`}
+              height={280}
+            />
+          </section>
+
+          <section className="mt-14 max-w-[68ch]">
+            <h2 className="text-[26px] leading-tight font-semibold">
+              What moves the {currency} to PKR rate
+            </h2>
+            <div className="mt-3 space-y-4 text-[16.5px] text-muted">
+              {['AED', 'SAR', 'QAR'].includes(currency) ? (
+                <p>
+                  The {corridor.fromCountryName} currency is pegged to the US dollar, so this pair
+                  moves almost entirely with the rupee rather than with the {currency}. When you
+                  see this rate change, it is the rupee that moved. Watching the dollar-rupee rate
+                  tells you effectively everything about when to send.
+                </p>
+              ) : (
+                <p>
+                  Both sides of this pair float, so the rate moves for two independent reasons: the{' '}
+                  {currency} strengthening or weakening against the dollar, and the rupee doing the
+                  same. A good rate for you can come from either, which is why the 90-day chart is
+                  more useful here than a single day’s number.
+                </p>
+              )}
+              <p>
+                On the Pakistani side the rupee responds to the country’s foreign reserves, the
+                current account balance, and State Bank policy. Remittance inflows themselves are
+                one of the largest supports for the currency, which is part of why the State Bank
+                subsidises the channels this site compares.
+              </p>
+              <p>
+                The practical advice is unglamorous: the rate matters less than which service you
+                use. The spread between the best and worst option on any given day is routinely
+                larger than a month of rate movement, so comparing providers beats timing the
+                market for almost everyone.
+              </p>
+            </div>
+          </section>
+
+          <section className="mt-12 max-w-[68ch]">
+            <h2 className="text-[26px] leading-tight font-semibold">Other rates</h2>
+            <ul className="mt-4 grid grid-cols-2 gap-2 text-[15px] sm:grid-cols-3">
+              {CORRIDORS.filter((c) => c.fromCurrency !== currency).map((other) => (
+                <li key={other.slug}>
+                  <Link
+                    href={`/${other.fromCurrency.toLowerCase()}-to-pkr`}
+                    className="text-ink no-underline hover:text-leaf"
+                  >
+                    {other.fromCurrency} to PKR
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </div>
+      </main>
+
+      <SiteFooter />
+
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              { '@type': 'ListItem', position: 1, name: 'Bhejo', item: SITE },
+              {
+                '@type': 'ListItem',
+                position: 2,
+                name: `${currency} to PKR`,
+                item: `${SITE}/${currency.toLowerCase()}-to-pkr`,
+              },
+            ],
+          }),
+        }}
+      />
+    </>
+  )
+}
