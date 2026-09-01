@@ -326,3 +326,20 @@ value against a fee-deducted one silently favours the former.
 - **Phase 4** — affiliate redirects with click tracking, `/admin` dashboard.
 - **Phase 5** — trust and launch: stale badges, accessibility pass, Playwright
   e2e, Lighthouse.
+
+---
+
+## Local Postgres without Supabase
+
+For development you can skip Supabase entirely:
+
+```bash
+docker run -d --name bhejo-pg -e POSTGRES_PASSWORD=bhejo -e POSTGRES_DB=bhejo \
+  -p 55432:5432 postgres:16-alpine
+```
+
+Then set both URLs in `.env.local` to
+`postgresql://postgres:bhejo@localhost:55432/bhejo` and run `npm run db:migrate`,
+`npm run seed`, `npm run refresh`. The RLS migration is guarded on role
+existence, so it applies cleanly against a plain Postgres that has no `anon` or
+`authenticated` roles.

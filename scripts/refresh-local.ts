@@ -6,7 +6,7 @@
  *
  *   npm run refresh
  */
-import 'dotenv/config'
+import '../lib/load-env'
 import { CORRIDORS } from '../lib/corridors'
 import { db } from '../lib/db'
 import { midMarketRates } from '../lib/db/schema'

@@ -21,7 +21,7 @@ import {
   type Quote,
   type QuoteRequest,
 } from '../types'
-import type { DeliveryMethod } from '@/lib/db/schema'
+import type { DeliveryMethod, SendCurrency } from '@/lib/db/schema'
 
 interface RemitlyEstimate {
   exchange_rate: {
@@ -44,6 +44,19 @@ interface RemitlyResponse {
   error_key?: string
   message?: string
 }
+
+/**
+ * Corridors Remitly does not serve to Pakistan.
+ *
+ * Learned from the API itself: every SAR and QAR request comes back with
+ * `LEGACY_MERCHANDISING_BAD_REQUEST — "unsupported corridor"`. Declaring them
+ * here means we stop making 24 requests per refresh that we know will fail,
+ * which at 96 refreshes a day is ~2,300 pointless calls.
+ *
+ * Re-check with `npm run probe -- --from SAR` if Remitly announces Gulf
+ * coverage; removing an entry is all that is needed.
+ */
+const UNSUPPORTED_CORRIDORS = new Set<SendCurrency>(['SAR', 'QAR'])
 
 /** Remitly's payout vocabulary → ours. Anything unlisted is unsupported. */
 const PAY_OUT_METHODS: Record<string, DeliveryMethod> = {
@@ -156,7 +169,9 @@ export const remitlyAdapter: ProviderAdapter = {
   source: 'api',
 
   supports: (request) =>
-    request.to === 'PKR' && ['bank', 'cash', 'wallet'].includes(request.method),
+    request.to === 'PKR' &&
+    ['bank', 'cash', 'wallet'].includes(request.method) &&
+    !UNSUPPORTED_CORRIDORS.has(request.from),
 
   async getQuote(request) {
     const url = new URL('https://api.remitly.io/v3/calculator/estimate')

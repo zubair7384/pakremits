@@ -9,7 +9,7 @@
  *   npm run probe -- --from AED --amount 3000 --method wallet
  *   npm run probe -- --save          # rewrite test fixtures from live responses
  */
-import 'dotenv/config'
+import '../lib/load-env'
 import { mkdir, writeFile } from 'node:fs/promises'
 import { CORRIDORS, corridorByCurrency } from '../lib/corridors'
 import { getMidMarketRate } from '../lib/fx'

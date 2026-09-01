@@ -8,7 +8,8 @@
  */
 import type { DeliveryMethod, QuoteSource, SendCurrency } from '@/lib/db/schema'
 import type { FeeModel } from '@/lib/ranking/compute'
-import { RobotsDisallowedError, assertCrawlable } from './robots'
+import { RobotsDisallowedError, assertCrawlable, crawlDelayMs } from './robots'
+import { throttleHost } from './throttle'
 
 export interface QuoteRequest {
   from: SendCurrency
@@ -86,11 +87,20 @@ export interface ProviderAdapter {
  * that do not look like they came from the site — Remitly returns NOT_ALLOWED
  * without an `origin` header. Callers pass those in `headers`.
  */
+/** Retries apply only to 429/503, never to a 4xx that means we asked wrongly. */
+const MAX_RETRIES = 3
+
 export async function fetchJson<T>(
   url: string,
-  init: RequestInit & { timeoutMs?: number; providerSlug: string; skipRobots?: boolean },
+  init: RequestInit & {
+    timeoutMs?: number
+    providerSlug: string
+    skipRobots?: boolean
+    /** Internal: current retry attempt. Callers leave this unset. */
+    attempt?: number
+  },
 ): Promise<T> {
-  const { timeoutMs = 12_000, providerSlug, skipRobots = false, ...rest } = init
+  const { timeoutMs = 12_000, providerSlug, skipRobots = false, attempt = 0, ...rest } = init
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), timeoutMs)
 
@@ -98,6 +108,11 @@ export async function fetchJson<T>(
     // Enforced, not advisory. `skipRobots` is only for documented partner APIs
     // reached with a credential, where a contract governs access instead.
     if (!skipRobots) await assertCrawlable(url)
+
+    // Never two concurrent requests to the same provider, and never faster than
+    // its robots.txt Crawl-delay. Applies even to partner APIs.
+    const host = new URL(url).host
+    await throttleHost(host, skipRobots ? 0 : await crawlDelayMs(url))
 
     const response = await fetch(url, {
       ...rest,
@@ -115,6 +130,21 @@ export async function fetchJson<T>(
 
     if (!response.ok) {
       const body = await response.text().catch(() => '')
+
+      // 429 and 503 are "come back later", not "you are wrong". Back off and
+      // retry rather than burning the slot — Remitly enforces a burst quota
+      // that a steady throttle alone does not satisfy.
+      if ((response.status === 429 || response.status === 503) && attempt < MAX_RETRIES) {
+        const retryAfter = Number.parseFloat(response.headers.get('retry-after') ?? '')
+        const backoffMs = Number.isFinite(retryAfter)
+          ? retryAfter * 1000
+          : // Exponential with jitter: ~2s, ~4s, ~8s.
+            2 ** (attempt + 1) * 1000 * (0.75 + Math.random() * 0.5)
+
+        await new Promise((resolve) => setTimeout(resolve, Math.min(backoffMs, 30_000)))
+        return fetchJson<T>(url, { ...init, attempt: attempt + 1 })
+      }
+
       throw new AdapterError(
         providerSlug,
         `HTTP ${response.status} from ${new URL(url).host}: ${body.slice(0, 200)}`,

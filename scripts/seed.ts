@@ -8,7 +8,7 @@
  * random walk anchored to the current rate, clearly marked `source: 'synthetic'`
  * so it can be deleted once real history accumulates.
  */
-import 'dotenv/config'
+import '../lib/load-env'
 import { getMidMarketHistory, getMidMarketRate } from '../lib/fx'
 import { CORRIDORS, CURRENCY_SYMBOLS } from '../lib/corridors'
 import { db } from '../lib/db'

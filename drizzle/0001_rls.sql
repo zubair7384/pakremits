@@ -30,9 +30,22 @@ ALTER TABLE "corridors" ENABLE ROW LEVEL SECURITY;
 
 -- Belt and braces: revoke the blanket grants Supabase hands these roles, so a
 -- future table-level policy cannot accidentally re-open everything.
-REVOKE ALL ON ALL TABLES IN SCHEMA public FROM anon, authenticated;
---> statement-breakpoint
-REVOKE ALL ON ALL SEQUENCES IN SCHEMA public FROM anon, authenticated;
+--
+-- Guarded on role existence so the same migration runs against a plain Postgres
+-- (local Docker, or a non-Supabase host), where `anon` and `authenticated` are
+-- Supabase inventions that do not exist.
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') THEN
+    REVOKE ALL ON ALL TABLES IN SCHEMA public FROM anon;
+    REVOKE ALL ON ALL SEQUENCES IN SCHEMA public FROM anon;
+  END IF;
+
+  IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'authenticated') THEN
+    REVOKE ALL ON ALL TABLES IN SCHEMA public FROM authenticated;
+    REVOKE ALL ON ALL SEQUENCES IN SCHEMA public FROM authenticated;
+  END IF;
+END $$;
 
 -- Deliberately no CREATE POLICY statements. If you later add client-side reads
 -- (say, a public rates widget), add a narrow SELECT policy for that table only
