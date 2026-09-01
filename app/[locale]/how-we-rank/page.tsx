@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { setRequestLocale } from 'next-intl/server'
 import { SiteFooter, SiteHeader } from '@/components/site-chrome'
+import { toLocale } from '@/i18n/routing'
 
 /**
  * The methodology page.
@@ -18,10 +20,18 @@ export const metadata: Metadata = {
   alternates: { canonical: '/how-we-rank' },
 }
 
-export default function HowWeRankPage() {
+export default async function HowWeRankPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}) {
+  const { locale: localeParam } = await params
+  const locale = toLocale(localeParam)
+  setRequestLocale(locale)
+
   return (
     <>
-      <SiteHeader />
+      <SiteHeader locale={locale} />
 
       <main className="mx-auto max-w-[1120px] px-6 py-14">
         <nav aria-label="Breadcrumb" className="text-[13px] text-muted">
@@ -162,7 +172,7 @@ export default function HowWeRankPage() {
         </article>
       </main>
 
-      <SiteFooter />
+      <SiteFooter locale={locale} />
     </>
   )
 }

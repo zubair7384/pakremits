@@ -13,13 +13,15 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { eq, sql } from 'drizzle-orm'
+import { setRequestLocale } from 'next-intl/server'
 import { SiteFooter, SiteHeader } from '@/components/site-chrome'
+import { toLocale } from '@/i18n/routing'
 import { CORRIDORS, CURRENCY_SYMBOLS } from '@/lib/corridors'
 import { db } from '@/lib/db'
 import { providers, rateQuotes } from '@/lib/db/schema'
 import { formatPkr } from '@/lib/ranking/compute'
 import { getComparison } from '@/lib/quotes'
-import { corridorPath } from '@/app/corridor/[slug]/page'
+import { corridorPath } from '@/lib/routes'
 
 export const revalidate = 900
 
@@ -70,9 +72,10 @@ function parsePair(pair: string): [string, string] | null {
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ pair: string }>
+  params: Promise<{ locale: string; pair: string }>
 }): Promise<Metadata> {
-  const { pair } = await params
+  const { locale: localeParam, pair } = await params
+  const locale = toLocale(localeParam)
   const parsed = parsePair(pair)
   if (!parsed) return {}
 
@@ -98,9 +101,11 @@ export async function generateMetadata({
 export default async function ComparePairPage({
   params,
 }: {
-  params: Promise<{ pair: string }>
+  params: Promise<{ locale: string; pair: string }>
 }) {
-  const { pair } = await params
+  const { locale: localeParam, pair } = await params
+  const locale = toLocale(localeParam)
+  setRequestLocale(locale)
   const parsed = parsePair(pair)
   if (!parsed) notFound()
 
@@ -147,7 +152,7 @@ export default async function ComparePairPage({
 
   return (
     <>
-      <SiteHeader />
+      <SiteHeader locale={locale} />
 
       <main className="mx-auto max-w-[1120px] px-6 py-14">
         <nav aria-label="Breadcrumb" className="text-[13px] text-muted">
@@ -292,7 +297,7 @@ export default async function ComparePairPage({
         </div>
       </main>
 
-      <SiteFooter />
+      <SiteFooter locale={locale} />
 
       <script
         type="application/ld+json"

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { ComparePanel } from '@/components/compare-panel'
 import { SiteFooter, SiteHeader } from '@/components/site-chrome'
 import { Sparkline } from '@/components/sparkline'
@@ -7,13 +8,25 @@ import { CORRIDORS, CURRENCY_SYMBOLS } from '@/lib/corridors'
 import { formatPkr } from '@/lib/ranking/compute'
 import { getBestRatePerCorridor, getComparison, getMidMarketSeries } from '@/lib/quotes'
 import type { SendCurrency } from '@/lib/db/schema'
+import { alternatesFor, localePath, toLocale } from '@/i18n/routing'
+import { corridorPath } from '@/lib/routes'
 
-export const metadata: Metadata = {
-  title: 'Bhejo — compare rates before you send money to Pakistan',
-  description:
-    'Compare every major service sending money to Pakistan, ranked by the exact amount that ' +
-    'lands in the account. Live rates for the UK, UAE, Saudi Arabia, USA and more.',
-  alternates: { canonical: '/', languages: { 'en-GB': '/', ur: '/ur' } },
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}): Promise<Metadata> {
+  const { locale: localeParam } = await params
+  const locale = toLocale(localeParam)
+  const t = await getTranslations({ locale, namespace: 'home' })
+
+  return {
+    title: `Bhejo — ${t('heroTagline')}`,
+    description: t('heroLede'),
+    // hreflang for both locales plus x-default, generated from one helper so
+    // the URL shape is defined in a single place.
+    alternates: alternatesFor('/'),
+  }
 }
 
 // Quotes change every 15 minutes; the GitHub Actions job pings /api/cron/revalidate
@@ -34,26 +47,20 @@ const CURRENCY_NAMES: Record<SendCurrency, string> = {
   EUR: 'Euro',
 }
 
-const FAQS = [
-  {
-    q: 'Is the rate shown the rate I will actually get?',
-    a: 'It is the provider’s live quote at the time shown on the page, refreshed every 15 minutes. The provider confirms the final rate on their site before you pay, and it can move slightly in between. That is why we show a timestamp on every quote.',
-  },
-  {
-    q: 'How does Bhejo make money?',
-    a: 'Some providers pay us a fixed commission when a new customer signs up through our link. It does not change your rate and it never changes the order of results, which is always by amount received.',
-  },
-  {
-    q: 'Can I send directly to JazzCash or Easypaisa?',
-    a: 'Yes. Choose “JazzCash or Easypaisa” under “Recipient gets it in” and we only show services that pay out to mobile wallets, with the wallet-specific rate and delivery time.',
-  },
-  {
-    q: 'What is the State Bank remittance incentive?',
-    a: 'Pakistan’s central bank subsidises transfers through approved channels, which is why licensed services often show zero fees and slightly better rates than the mid-market. We mark providers where the scheme applies.',
-  },
-]
 
-export default async function HomePage() {
+export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale: localeParam } = await params
+  const locale = toLocale(localeParam)
+  setRequestLocale(locale)
+  const t = await getTranslations({ locale, namespace: 'home' })
+
+  const faqs = [
+    { q: t('faq1Q'), a: t('faq1A') },
+    { q: t('faq2Q'), a: t('faq2A') },
+    { q: t('faq3Q'), a: t('faq3A') },
+    { q: t('faq4Q'), a: t('faq4A') },
+  ]
+
   const [comparison, chips, ticker] = await Promise.all([
     getComparison({ corridorSlug: 'uk', method: 'bank', amount: 500 }),
     getBestRatePerCorridor(),
@@ -79,7 +86,7 @@ export default async function HomePage() {
 
   return (
     <>
-      <SiteHeader />
+      <SiteHeader locale={locale} />
 
       <header className="bg-green px-0 pt-10 pb-32 text-mist">
         <div className="mx-auto grid max-w-[1120px] items-center gap-14 px-6 lg:grid-cols-[1.05fr_.95fr]">
@@ -93,45 +100,46 @@ export default async function HomePage() {
                 aria-hidden="true"
               />
               {providerCount > 0 && capturedMinutesAgo !== null
-                ? `Live · ${providerCount} provider${providerCount === 1 ? '' : 's'} checked ${
-                    capturedMinutesAgo < 1 ? 'just now' : `${capturedMinutesAgo} minutes ago`
-                  }`
-                : 'Live rates'}
+                ? capturedMinutesAgo < 1
+                  ? t('liveJustNow', { count: providerCount })
+                  : t('liveChecked', { count: providerCount, minutes: capturedMinutesAgo })
+                : t('liveFallback')}
             </span>
 
             <h1 className="mt-5.5 max-w-[13ch] text-[clamp(40px,5.4vw,68px)] leading-[1.02] font-semibold">
-              Send more rupees home. Same money.
+              {t('heroTitle')}
             </h1>
 
             <p className="mt-5 max-w-[46ch] text-lg text-[#C9D9D0]">
-              Compare every major service sending to Pakistan, ranked by the exact amount that lands
-              in the account. Not by rate, not by fee, not by who pays us.
+              {t('heroLede')}
             </p>
 
-            {/* TODO: native review — "check the rate before you send money" */}
+            {/* The Urdu tagline is part of the brand and shows on both locales;
+                on the Urdu page it is simply the same string from the catalogue. */}
             <span className="urdu mt-6.5 inline-block text-2xl leading-[1.9] text-gold" lang="ur">
               پیسے بھیجنے سے پہلے ریٹ چیک کریں
             </span>
 
             <div className="mt-8.5 grid grid-cols-2 gap-7 border-t border-green-3 pt-6 sm:grid-cols-3">
               <div className="text-[13px] text-[#A9BFB4]">
-                <strong className="block font-display text-[22px] font-semibold tracking-[-0.02em] text-white">
+                <strong className="money block font-display text-[22px] font-semibold tracking-[-0.02em] text-white">
                   {saving !== null ? formatPkr(saving) : '—'}
                 </strong>
-                typical saving on {comparison?.currencySymbol ?? '£'}
-                {comparison?.amount ?? 500} vs a bank
+                {t('statSaving', {
+                  amount: `${comparison?.currencySymbol ?? '£'}${comparison?.amount ?? 500}`,
+                })}
               </div>
               <div className="text-[13px] text-[#A9BFB4]">
                 <strong className="block font-display text-[22px] font-semibold tracking-[-0.02em] text-white">
-                  15 min
+                  {t('statRefreshValue')}
                 </strong>
-                rate refresh
+                {t('statRefresh')}
               </div>
               <div className="text-[13px] text-[#A9BFB4]">
                 <strong className="block font-display text-[22px] font-semibold tracking-[-0.02em] text-white">
                   {CORRIDORS.length}
                 </strong>
-                sending countries
+                {t('statCountries')}
               </div>
             </div>
           </div>
@@ -139,7 +147,7 @@ export default async function HomePage() {
           {/* Live ticker */}
           <div
             className="rounded-panel border border-green-3 bg-green-2 px-5.5 pt-2 pb-4"
-            aria-label="Live mid-market rates to Pakistani rupee"
+            aria-label={t('tickerLabel')}
           >
             {ticker.map((series) => {
               // Below 0.05% the label rounds to "0.0%", so showing a green up
@@ -196,10 +204,11 @@ export default async function HomePage() {
                         }}
                       >
                         {trend === 'flat'
-                          ? 'Flat this week'
-                          : `${trend === 'down' ? '▼' : '▲'} ${Math.abs(
-                              series.changePercent,
-                            ).toFixed(1)}% this week`}
+                          ? t('flatThisWeek')
+                          : t('changeThisWeek', {
+                              direction: trend === 'down' ? '▼' : '▲',
+                              percent: Math.abs(series.changePercent).toFixed(1),
+                            })}
                       </span>
                     )}
                   </div>
@@ -208,7 +217,7 @@ export default async function HomePage() {
             })}
 
             <div className="mt-2.5 flex flex-col justify-between gap-1 border-t border-green-3 pt-3 text-xs text-[#7FA090] sm:flex-row">
-              <span>Mid-market reference, 7-day trend</span>
+              <span>{t('tickerFootnote')}</span>
               <span>
                 {new Intl.DateTimeFormat('en-GB', {
                   timeZone: 'Asia/Karachi',
@@ -241,13 +250,15 @@ export default async function HomePage() {
         {/* What you lose */}
         <div className="mt-7 grid gap-4 lg:grid-cols-[1.4fr_1fr_1fr]">
           <div className="rounded-panel border border-line bg-white p-7">
-            <div className="font-display text-[40px] leading-none font-semibold tracking-[-0.025em] text-green">
-              {annualSaving !== null ? `${formatPkr(annualSaving)} a year` : '—'}
+            <div className="money font-display text-[40px] leading-none font-semibold tracking-[-0.025em] text-green">
+              {annualSaving !== null
+                ? t('statLostTitle', { amount: formatPkr(annualSaving) })
+                : '—'}
             </div>
             <p className="mt-2.5 max-w-[40ch] text-[14.5px] text-muted">
-              What a family sending {comparison?.currencySymbol ?? '£'}
-              {comparison?.amount ?? 500} a month through a high-street bank loses compared with the
-              best-rate service.
+              {t('statLostBody', {
+                monthly: `${comparison?.currencySymbol ?? '£'}${comparison?.amount ?? 500}`,
+              })}
             </p>
           </div>
 
@@ -256,8 +267,7 @@ export default async function HomePage() {
               {providerCount}
             </div>
             <p className="mt-2.5 text-[14.5px] text-muted">
-              Services compared on this corridor. We add providers only where we can get a live
-              quote without working around their site.
+              {t('statComparedBody')}
             </p>
           </div>
 
@@ -266,8 +276,7 @@ export default async function HomePage() {
               0
             </div>
             <p className="mt-2.5 text-[14.5px] text-muted">
-              Sponsored positions. Providers pay us the same whether they rank first or last, and we
-              say so on every page.
+              {t('statSponsoredBody')}
             </p>
           </div>
         </div>
@@ -280,14 +289,18 @@ export default async function HomePage() {
         >
           <div>
             <h2 className="text-[clamp(30px,4vw,38px)] leading-[1.08] font-semibold">
-              Tell me when the pound hits{' '}
-              <span className="tabular-nums text-gold">
-                {ticker[0]?.latest ? formatPkr(Math.ceil(ticker[0].latest / 5) * 5) : '₨ 380'}
-              </span>
+              {t.rich('alertsTitle', {
+                // `rate` is the tag, `rateValue` the value it wraps. Urdu puts
+                // the figure mid-sentence rather than at the end, which is the
+                // whole reason this is a placeholder and not a concatenation.
+                rate: (chunks) => <span className="tabular-nums text-gold">{chunks}</span>,
+                rateValue: ticker[0]?.latest
+                  ? formatPkr(Math.ceil(ticker[0].latest / 5) * 5)
+                  : '₨ 380',
+              })}
             </h2>
             <p className="mt-3.5 max-w-[40ch] text-[17px] text-[#C9D9D0]">
-              Pick a target rate. We watch the market every 15 minutes and message you the moment it
-              crosses, with the best provider at that moment.
+              {t('alertsBody')}
             </p>
 
             <div className="relative mt-7 max-w-[380px] rounded-[14px_14px_14px_4px] bg-[#DCF8C6] p-4 text-[14.5px] leading-relaxed text-[#1E2B22]">
@@ -301,15 +314,14 @@ export default async function HomePage() {
               the Twilio/Resend notifier. */}
           <div className="rounded-panel border border-green-3 bg-green-2 p-6">
             <p className="text-[15px] text-[#C9D9D0]">
-              Rate alerts open shortly. They will send one message per alert, at most once every 12
-              hours, with one-tap unsubscribe.
+              {t('alertsComingSoon')}
             </p>
             <Link
-              href="/#compare"
+              href={`${localePath(locale, '/')}#compare`}
               className="mt-4.5 flex h-[54px] w-full items-center justify-center rounded-[12px]
                          bg-gold px-6 font-medium text-[#4A3608] no-underline hover:bg-[#D9A43E]"
             >
-              Compare rates now
+              {t('alertsCta')}
             </Link>
           </div>
         </section>
@@ -318,10 +330,10 @@ export default async function HomePage() {
         <section id="corridors" className="mt-24">
           <div className="max-w-[44ch]">
             <h2 className="text-[clamp(30px,4vw,36px)] leading-[1.1] font-semibold">
-              Where are you sending from?
+              {t('corridorsTitle')}
             </h2>
             <p className="mt-3 text-[17px] text-muted">
-              Every corridor has its own page with live rates, delivery times, and limits.
+              {t('corridorsLede')}
             </p>
           </div>
 
@@ -329,7 +341,7 @@ export default async function HomePage() {
             {chips.map((chip) => (
               <Link
                 key={chip.slug}
-                href={`/send-money-from-${chip.slug}-to-pakistan`}
+                href={corridorPath(chip.slug, locale)}
                 className="flex flex-col gap-3.5 rounded-[14px] border border-line bg-white p-4.5
                            no-underline transition-all hover:-translate-y-px hover:border-leaf"
               >
@@ -344,7 +356,7 @@ export default async function HomePage() {
                   {chip.countryName}
                 </span>
                 <span className="flex items-baseline justify-between border-t border-line-2 pt-3 text-[12.5px] text-muted">
-                  Best today
+                  {t('bestToday')}
                   <b className="font-display text-lg font-semibold tabular-nums text-ink">
                     {chip.bestRate?.toFixed(2) ?? '—'}
                   </b>
@@ -358,25 +370,25 @@ export default async function HomePage() {
         <section id="how" className="mt-24">
           <div className="max-w-[44ch]">
             <h2 className="text-[clamp(30px,4vw,36px)] leading-[1.1] font-semibold">
-              Why our ranking looks different from other comparison sites
+              {t('whyTitle')}
             </h2>
           </div>
 
           <div className="mt-9 grid gap-5 lg:grid-cols-3">
             {[
               {
-                title: 'Ranked by rupees received',
-                body: 'We compute the exact amount landing in the account after fees and the real exchange rate, then sort by that. Nothing else moves a provider up.',
+                title: t('cardRankedTitle'),
+                body: t('cardRankedBody'),
                 path: 'M4 19h16M6 15V9m4 6V5m4 10v-4m4 4V7',
               },
               {
-                title: 'Built for Pakistan only',
-                body: 'JazzCash, Easypaisa, Sadapay, Nayapay, Roshan Digital Accounts and cash pickup are all covered. Global comparison sites skip most of them.',
+                title: t('cardPakistanTitle'),
+                body: t('cardPakistanBody'),
                 path: 'M3 12h18M12 3a15 15 0 010 18M12 3a15 15 0 000 18M3 12a9 9 0 0018 0 9 9 0 00-18 0z',
               },
               {
-                title: 'Bonuses and incentives shown',
-                body: 'We flag first-transfer promos and the State Bank’s remittance incentive where they apply, so the number you see is the number that arrives.',
+                title: t('cardBonusTitle'),
+                body: t('cardBonusBody'),
                 path: 'M12 3l7 4v5c0 4.5-3 8-7 9-4-1-7-4.5-7-9V7z',
               },
             ].map((card) => (
@@ -404,12 +416,12 @@ export default async function HomePage() {
         <section id="faq" className="mt-24">
           <div className="max-w-[44ch]">
             <h2 className="text-[clamp(30px,4vw,36px)] leading-[1.1] font-semibold">
-              Common questions
+              {t('faqTitle')}
             </h2>
           </div>
 
           <div className="mt-7 border-t border-line">
-            {FAQS.map((faq, index) => (
+            {faqs.map((faq, index) => (
               <details key={faq.q} open={index === 0} className="group border-b border-line">
                 <summary
                   className="flex cursor-pointer list-none items-center justify-between gap-4 py-5
@@ -434,7 +446,7 @@ export default async function HomePage() {
         </section>
       </main>
 
-      <SiteFooter />
+      <SiteFooter locale={locale} />
 
       {/* FAQPage schema so the questions can win a rich result. */}
       <script
@@ -444,7 +456,7 @@ export default async function HomePage() {
           __html: JSON.stringify({
             '@context': 'https://schema.org',
             '@type': 'FAQPage',
-            mainEntity: FAQS.map((faq) => ({
+            mainEntity: faqs.map((faq) => ({
               '@type': 'Question',
               name: faq.q,
               acceptedAnswer: { '@type': 'Answer', text: faq.a },

@@ -230,8 +230,3 @@ export const METHOD_CONTENT: MethodContent[] = [
 export function methodBySlug(slug: string): MethodContent | undefined {
   return METHOD_CONTENT.find((entry) => entry.slug === slug)
 }
-
-/** The public URL for a method page. RDA does not follow the pattern. */
-export function methodPath(slug: string): string {
-  return slug === 'rda' ? '/roshan-digital-account-transfer' : `/send-money-to-${slug}`
-}

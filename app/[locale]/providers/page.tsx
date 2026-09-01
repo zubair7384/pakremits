@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { eq } from 'drizzle-orm'
+import { setRequestLocale } from 'next-intl/server'
 import { SiteFooter, SiteHeader } from '@/components/site-chrome'
+import { toLocale } from '@/i18n/routing'
 import { db } from '@/lib/db'
 import { providers } from '@/lib/db/schema'
 
@@ -23,7 +25,15 @@ const RAILS = [
   { key: 'supportsRda', label: 'Roshan Digital Account' },
 ] as const
 
-export default async function ProvidersPage() {
+export default async function ProvidersPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}) {
+  const { locale: localeParam } = await params
+  const locale = toLocale(localeParam)
+  setRequestLocale(locale)
+
   const rows = await db
     .select()
     .from(providers)
@@ -34,7 +44,7 @@ export default async function ProvidersPage() {
 
   return (
     <>
-      <SiteHeader />
+      <SiteHeader locale={locale} />
 
       <main className="mx-auto max-w-[1120px] px-6 py-14">
         <nav aria-label="Breadcrumb" className="text-[13px] text-muted">
@@ -108,7 +118,7 @@ export default async function ProvidersPage() {
         </div>
       </main>
 
-      <SiteFooter />
+      <SiteFooter locale={locale} />
     </>
   )
 }

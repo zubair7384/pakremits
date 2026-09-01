@@ -80,3 +80,27 @@ h3 {
     scroll-behavior: auto !important;
   }
 }
+
+/**
+ * Numbers inside right-to-left text.
+ *
+ * Urdu runs RTL, but a figure like "₨ 13,036" is a left-to-right run. Left to
+ * the bidi algorithm it reorders into "13,036 ₨", and "15 min" becomes
+ * "min 15" — technically correct bidi, visibly wrong to a reader.
+ *
+ * Isolating these runs keeps each figure internally LTR while letting the
+ * surrounding Urdu flow normally. `.tabular-nums` is already on most numeric
+ * displays; `.money` marks the rest.
+ */
+[dir='rtl'] .tabular-nums,
+[dir='rtl'] .money {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+/* Nastaliq sits low in its em box and clips descenders at tight line-heights. */
+[dir='rtl'] h1,
+[dir='rtl'] h2,
+[dir='rtl'] h3 {
+  line-height: 1.6;
+}

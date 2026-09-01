@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useId, useRef, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import type { Comparison } from '@/lib/quotes'
 import type { DeliveryMethod } from '@/lib/db/schema'
 import type { SortKey } from '@/lib/ranking/rank'
@@ -27,19 +28,16 @@ interface Props {
   corridors: CorridorOption[]
 }
 
-const METHODS: { value: DeliveryMethod; label: string }[] = [
-  { value: 'bank', label: 'Bank account' },
-  { value: 'wallet', label: 'JazzCash or Easypaisa' },
-  { value: 'neobank', label: 'Sadapay or Nayapay' },
-  { value: 'cash', label: 'Cash pickup' },
-  { value: 'rda', label: 'Roshan Digital Account' },
-]
+const METHOD_KEYS: DeliveryMethod[] = ['bank', 'wallet', 'neobank', 'cash', 'rda']
+const SORT_KEYS: SortKey[] = ['received', 'fastest', 'lowest-fee']
 
-const SORTS: { value: SortKey; label: string }[] = [
-  { value: 'received', label: 'Most rupees' },
-  { value: 'fastest', label: 'Fastest' },
-  { value: 'lowest-fee', label: 'Lowest fee' },
-]
+/** Sort key → catalogue key. Kept explicit so a new sort cannot silently
+ *  fall back to its raw key as a user-visible label. */
+const SORT_LABEL_KEY: Record<SortKey, 'sortReceived' | 'sortFastest' | 'sortLowestFee'> = {
+  received: 'sortReceived',
+  fastest: 'sortFastest',
+  'lowest-fee': 'sortLowestFee',
+}
 
 const PKT = new Intl.DateTimeFormat('en-GB', {
   timeZone: 'Asia/Karachi',
@@ -72,6 +70,8 @@ function BoltIcon() {
 }
 
 export function ComparePanel({ initial, corridors }: Props) {
+  const t = useTranslations('panel')
+  const tm = useTranslations('methods')
   const [corridor, setCorridor] = useState(initial.corridorSlug)
   const [method, setMethod] = useState<DeliveryMethod>(initial.deliveryMethod)
   const [amountText, setAmountText] = useState(String(initial.amount))
@@ -154,14 +154,14 @@ export function ComparePanel({ initial, corridors }: Props) {
                    shadow-[0_40px_80px_-40px_rgba(11,61,46,.45),0_2px_6px_rgba(11,61,46,.06)]"
       >
         <h2 id={headingId} className="sr-only">
-          Compare money transfer services
+          {t('heading')}
         </h2>
 
         {/* Controls */}
         <div className="grid items-end gap-3.5 bg-white p-7 sm:grid-cols-2 lg:grid-cols-[1.15fr_1.15fr_1.4fr_auto]">
           <div>
             <label htmlFor="from" className="mb-1.5 block text-[13px] text-muted">
-              Sending from
+              {t('sendingFrom')}
             </label>
             <div className="relative">
               <select
@@ -182,7 +182,7 @@ export function ComparePanel({ initial, corridors }: Props) {
 
           <div>
             <label htmlFor="method" className="mb-1.5 block text-[13px] text-muted">
-              Recipient gets it in
+              {t('recipientGets')}
             </label>
             <div className="relative">
               <select
@@ -191,9 +191,9 @@ export function ComparePanel({ initial, corridors }: Props) {
                 onChange={(event) => setMethod(event.target.value as DeliveryMethod)}
                 className={fieldClass}
               >
-                {METHODS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
+                {METHOD_KEYS.map((value) => (
+                  <option key={value} value={value}>
+                    {tm(value)}
                   </option>
                 ))}
               </select>
@@ -203,7 +203,7 @@ export function ComparePanel({ initial, corridors }: Props) {
 
           <div>
             <label htmlFor="amt" className="mb-1.5 block text-[13px] text-muted">
-              You send
+              {t('youSend')}
             </label>
             <div className="relative">
               <span
@@ -233,7 +233,7 @@ export function ComparePanel({ initial, corridors }: Props) {
                        px-6 text-base font-medium text-white transition-colors hover:bg-leaf-dark
                        active:scale-[.985]"
           >
-            Compare rates
+            {t('compareButton')}
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4.5 w-4.5">
               <path d="M5 12h14M13 6l6 6-6 6" />
             </svg>
@@ -253,35 +253,34 @@ export function ComparePanel({ initial, corridors }: Props) {
                 }`}
                 aria-hidden="true"
               />
-              {capturedLabel ? `Quotes captured ${capturedLabel} PKT` : 'No quotes yet'}
+              {capturedLabel ? t('capturedAt', { time: capturedLabel }) : t('noQuotesYet')}
               {data.stale && (
                 <span className="ml-1.5 rounded-full bg-gold-bg px-2 py-0.5 text-[11.5px] text-gold-dark">
-                  stale
+                  {t('stale')}
                 </span>
               )}
             </span>
             <span className="hidden sm:inline">
-              {realProviderCount} of {corridors.length > 0 ? realProviderCount : 0} providers deliver
-              this way
+              {t('deliversThisWay', { count: realProviderCount })}
             </span>
           </div>
 
           <div
             className="flex gap-1 rounded-full border border-line bg-white p-[3px]"
             role="group"
-            aria-label="Sort by"
+            aria-label={t('sortBy')}
           >
-            {SORTS.map((option) => (
+            {SORT_KEYS.map((value) => (
               <button
-                key={option.value}
+                key={value}
                 type="button"
-                onClick={() => setSort(option.value)}
-                aria-pressed={sort === option.value}
+                onClick={() => setSort(value)}
+                aria-pressed={sort === value}
                 className={`rounded-full px-3 py-[5px] text-[13px] transition-colors ${
-                  sort === option.value ? 'bg-ink text-white' : 'text-muted hover:text-ink'
+                  sort === value ? 'bg-ink text-white' : 'text-muted hover:text-ink'
                 }`}
               >
-                {option.label}
+                {t(SORT_LABEL_KEY[value])}
               </button>
             ))}
           </div>
@@ -294,10 +293,10 @@ export function ComparePanel({ initial, corridors }: Props) {
           aria-hidden="true"
         >
           <span />
-          <span>Provider</span>
-          <span className="text-right">Rate</span>
-          <span className="text-right">Fee</span>
-          <span>Recipient gets</span>
+          <span>{t('columnProvider')}</span>
+          <span className="text-right">{t('columnRate')}</span>
+          <span className="text-right">{t('columnFee')}</span>
+          <span>{t('columnReceives')}</span>
           <span />
         </div>
 
@@ -309,13 +308,13 @@ export function ComparePanel({ initial, corridors }: Props) {
         >
           {error && (
             <p className="py-4 text-[13px] text-[#A32D2D]" role="status">
-              {error}
+              {t('refreshError')}
             </p>
           )}
 
           {rows.length === 0 && !pending && (
             <p className="py-8 text-center text-muted">
-              No provider we track delivers to Pakistan this way from {data.fromCurrency} yet.
+              {t('emptyState', { currency: data.fromCurrency })}
             </p>
           )}
 
@@ -354,14 +353,14 @@ export function ComparePanel({ initial, corridors }: Props) {
                         <svg viewBox="0 0 24 24" fill="currentColor" className="h-[11px] w-[11px]">
                           <path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.2 5.9 20.6l1.4-6.8L2.2 9.1l6.9-.8z" />
                         </svg>
-                        Best deal
+                        {t('bestDeal')}
                       </span>
                     )}
                     {/* Sponsored placement sits below the winner, never above.
                         The label is not optional — see /how-we-rank. */}
                     {q.featured && !isBest && (
                       <span className="rounded-full bg-line-2 px-2.5 py-[3px] text-[11.5px] text-muted">
-                        Sponsored
+                        {t('sponsored')}
                       </span>
                     )}
                     {q.promo && q.promoNote && (
@@ -371,13 +370,13 @@ export function ComparePanel({ initial, corridors }: Props) {
                     )}
                     {q.stale && (
                       <span className="rounded-full bg-gold-bg px-2.5 py-[3px] text-[11.5px] text-gold-dark">
-                        stale
+                        {t('stale')}
                       </span>
                     )}
                   </div>
 
                   <div className="mt-[3px] flex flex-wrap items-center gap-2 text-[13px] text-muted">
-                    {q.isBenchmark ? 'SWIFT transfer' : 'Bank deposit'}
+                    {q.isBenchmark ? t('swiftTransfer') : t('bankDeposit')}
                     <span
                       className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs ${
                         (q.deliverySpeedMinutes ?? Number.POSITIVE_INFINITY) <= 600
@@ -393,7 +392,7 @@ export function ComparePanel({ initial, corridors }: Props) {
 
                 <div className="hidden text-right text-[15px] tabular-nums lg:block">
                   {q.rate.toFixed(2)}
-                  <small className="block text-xs text-faint">per {symbol}</small>
+                  <small className="block text-xs text-faint">{t('perUnit', { symbol })}</small>
                 </div>
 
                 <div className="hidden text-right text-[15px] tabular-nums lg:block">
@@ -428,10 +427,10 @@ export function ComparePanel({ initial, corridors }: Props) {
                     }`}
                   >
                     {isBest && data.savingVsBank !== null
-                      ? `${formatPkr(data.savingVsBank)} more than your bank`
+                      ? t('moreThanBank', { amount: formatPkr(data.savingVsBank) })
                       : row.diffFromBest === 0
-                        ? 'Best available'
-                        : `${formatPkr(Math.abs(row.diffFromBest))} less than best`}
+                        ? t('bestAvailable')
+                        : t('lessThanBest', { amount: formatPkr(Math.abs(row.diffFromBest)) })}
                   </div>
                 </div>
 
@@ -444,7 +443,7 @@ export function ComparePanel({ initial, corridors }: Props) {
                                  whitespace-nowrap text-ink no-underline transition-colors
                                  hover:border-ink hover:bg-ink hover:text-white lg:w-[166px]"
                     >
-                      Why so low?
+                      {t('whySoLow')}
                     </a>
                   ) : (
                     <a
@@ -459,7 +458,7 @@ export function ComparePanel({ initial, corridors }: Props) {
                                       : 'border-line bg-white text-ink hover:border-ink hover:bg-ink hover:text-white'
                                   }`}
                     >
-                      Send with {q.providerName.split(' ')[0]}
+                      {t('sendWith', { provider: q.providerName.split(' ')[0] })}
                       <svg
                         viewBox="0 0 24 24"
                         fill="none"
@@ -482,11 +481,13 @@ export function ComparePanel({ initial, corridors }: Props) {
                      text-[12.5px] text-faint sm:flex-row sm:gap-6"
         >
           <span>
-            Quotes are indicative. The provider confirms the final rate before you pay.
+            {t('disclaimerQuotes')}
             {data.amount !== data.quotedAtAmount &&
-              ` Rates captured at ${symbol}${data.quotedAtAmount.toLocaleString('en-GB')}.`}
+              ` ${t('disclaimerCaptured', {
+                amount: `${symbol}${data.quotedAtAmount.toLocaleString('en-GB')}`,
+              })}`}
           </span>
-          <span>Some links pay us a commission. Ranking is by amount received only.</span>
+          <span>{t('disclaimerCommission')}</span>
         </div>
       </div>
     </section>

@@ -9,13 +9,15 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { eq } from 'drizzle-orm'
+import { setRequestLocale } from 'next-intl/server'
 import { SiteFooter, SiteHeader } from '@/components/site-chrome'
+import { toLocale } from '@/i18n/routing'
 import { CORRIDORS, CURRENCY_SYMBOLS } from '@/lib/corridors'
 import { db } from '@/lib/db'
 import { providers } from '@/lib/db/schema'
 import { formatPkr } from '@/lib/ranking/compute'
 import { getComparison } from '@/lib/quotes'
-import { corridorPath } from '@/app/corridor/[slug]/page'
+import { corridorPath } from '@/lib/routes'
 
 export const revalidate = 900
 
@@ -37,9 +39,10 @@ async function getProvider(slug: string) {
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string }>
+  params: Promise<{ locale: string; slug: string }>
 }): Promise<Metadata> {
-  const { slug } = await params
+  const { locale: localeParam, slug } = await params
+  const locale = toLocale(localeParam)
   const provider = await getProvider(slug).catch(() => null)
   if (!provider) return {}
 
@@ -52,8 +55,10 @@ export async function generateMetadata({
   }
 }
 
-export default async function ProviderPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params
+export default async function ProviderPage({ params }: { params: Promise<{ locale: string; slug: string }> }) {
+  const { locale: localeParam, slug } = await params
+  const locale = toLocale(localeParam)
+  setRequestLocale(locale)
   const provider = await getProvider(slug)
   if (!provider || !provider.active || provider.isBenchmark) notFound()
 
@@ -83,7 +88,7 @@ export default async function ProviderPage({ params }: { params: Promise<{ slug:
 
   return (
     <>
-      <SiteHeader />
+      <SiteHeader locale={locale} />
 
       <main className="mx-auto max-w-[1120px] px-6 py-14">
         <nav aria-label="Breadcrumb" className="text-[13px] text-muted">
@@ -277,7 +282,7 @@ export default async function ProviderPage({ params }: { params: Promise<{ slug:
         </div>
       </main>
 
-      <SiteFooter />
+      <SiteFooter locale={locale} />
 
       <script
         type="application/ld+json"

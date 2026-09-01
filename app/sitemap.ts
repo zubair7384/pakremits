@@ -3,7 +3,8 @@ import { eq } from 'drizzle-orm'
 import { CORRIDORS } from '@/lib/corridors'
 import { db } from '@/lib/db'
 import { providers, rateQuotes } from '@/lib/db/schema'
-import { METHOD_CONTENT, methodPath } from '@/lib/content/methods'
+import { METHOD_CONTENT } from '@/lib/content/methods'
+import { methodPath } from '@/lib/routes'
 
 /**
  * Dynamic sitemap.
@@ -14,13 +15,36 @@ import { METHOD_CONTENT, methodPath } from '@/lib/content/methods'
  */
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
 
+/**
+ * Attach hreflang alternates to an entry.
+ *
+ * Only the page types that actually have an Urdu version get them — claiming an
+ * alternate that 404s or serves identical English is worse than omitting it,
+ * because Google treats a broken hreflang cluster as a signal problem across
+ * every page in it.
+ */
+function withUrdu(path: string) {
+  return {
+    languages: {
+      'en-GB': `${SITE}${path}`,
+      'ur-PK': `${SITE}/ur${path === '/' ? '' : path}`,
+    },
+  }
+}
+
 export const revalidate = 3600
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date()
 
   const staticPages: MetadataRoute.Sitemap = [
-    { url: `${SITE}/`, lastModified: now, changeFrequency: 'hourly', priority: 1 },
+    {
+      url: `${SITE}/`,
+      lastModified: now,
+      changeFrequency: 'hourly',
+      priority: 1,
+      alternates: withUrdu('/'),
+    },
     { url: `${SITE}/how-we-rank`, lastModified: now, changeFrequency: 'monthly', priority: 0.6 },
     { url: `${SITE}/providers`, lastModified: now, changeFrequency: 'weekly', priority: 0.6 },
     { url: `${SITE}/about`, lastModified: now, changeFrequency: 'yearly', priority: 0.3 },
@@ -39,6 +63,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: now,
     changeFrequency: 'hourly' as const,
     priority: 0.9,
+    alternates: withUrdu(`/send-money-from-${corridor.slug}-to-pakistan`),
   }))
 
   const ratePages: MetadataRoute.Sitemap = CORRIDORS.map((corridor) => ({
@@ -46,6 +71,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: now,
     changeFrequency: 'hourly' as const,
     priority: 0.8,
+    alternates: withUrdu(`/${corridor.fromCurrency.toLowerCase()}-to-pkr`),
   }))
 
   /**

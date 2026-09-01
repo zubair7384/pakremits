@@ -9,12 +9,14 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { RateChart } from '@/components/rate-chart'
+import { setRequestLocale } from 'next-intl/server'
 import { SiteFooter, SiteHeader } from '@/components/site-chrome'
+import { toLocale } from '@/i18n/routing'
 import { CORRIDORS, CURRENCY_SYMBOLS, corridorByCurrency } from '@/lib/corridors'
 import { SEND_CURRENCIES, type SendCurrency } from '@/lib/db/schema'
 import { formatPkr, round } from '@/lib/ranking/compute'
 import { getComparison, getMidMarketSeries } from '@/lib/quotes'
-import { corridorPath } from '@/app/corridor/[slug]/page'
+import { corridorPath } from '@/lib/routes'
 
 export const revalidate = 900
 
@@ -34,9 +36,10 @@ function parseCurrency(segment: string): SendCurrency | null {
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ currency: string }>
+  params: Promise<{ locale: string; currency: string }>
 }): Promise<Metadata> {
-  const { currency: segment } = await params
+  const { locale: localeParam, currency: segment } = await params
+  const locale = toLocale(localeParam)
   const currency = parseCurrency(segment)
   if (!currency) return {}
 
@@ -52,8 +55,10 @@ export async function generateMetadata({
   }
 }
 
-export default async function RatePage({ params }: { params: Promise<{ currency: string }> }) {
-  const { currency: segment } = await params
+export default async function RatePage({ params }: { params: Promise<{ locale: string; currency: string }> }) {
+  const { locale: localeParam, currency: segment } = await params
+  const locale = toLocale(localeParam)
+  setRequestLocale(locale)
   const currency = parseCurrency(segment)
   if (!currency) notFound()
 
@@ -115,7 +120,7 @@ export default async function RatePage({ params }: { params: Promise<{ currency:
 
   return (
     <>
-      <SiteHeader />
+      <SiteHeader locale={locale} />
 
       <main>
         <div className="bg-green px-0 pt-10 pb-24 text-mist">
@@ -280,7 +285,7 @@ export default async function RatePage({ params }: { params: Promise<{ currency:
         </div>
       </main>
 
-      <SiteFooter />
+      <SiteFooter locale={locale} />
 
       <script
         type="application/ld+json"

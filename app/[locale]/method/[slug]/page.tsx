@@ -1,80 +1,61 @@
 /**
- * Corridor pages — the SEO core.
+ * Delivery-method pages, reached via rewrites from /send-money-to-[slug] and
+ * /roshan-digital-account-transfer.
  *
- * Public URL is /send-money-from-[slug]-to-pakistan, mapped here by a rewrite
- * in next.config.ts because Next cannot express a partial dynamic segment.
- * Every canonical, sitemap entry and internal link uses the public form; this
- * path should never be linked directly.
+ * The comparison panel is pre-set to the relevant rail, so a reader who lands
+ * here from "send money to jazzcash" sees wallet rates immediately rather than
+ * bank rates they would have to switch away from.
  */
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ComparePanel } from '@/components/compare-panel'
-import { RateChart } from '@/components/rate-chart'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { SiteFooter, SiteHeader } from '@/components/site-chrome'
-import { CORRIDORS, CURRENCY_SYMBOLS, corridorBySlug } from '@/lib/corridors'
-import { CORRIDOR_CONTENT } from '@/lib/content/corridors'
-import { formatPkr } from '@/lib/ranking/compute'
-import { getComparison, getMidMarketSeries } from '@/lib/quotes'
+import { toLocale } from '@/i18n/routing'
+import { CORRIDORS, CURRENCY_SYMBOLS } from '@/lib/corridors'
+import { METHOD_CONTENT, methodBySlug } from '@/lib/content/methods'
+import { methodPath } from '@/lib/routes'
+import { getComparison } from '@/lib/quotes'
+import { corridorPath } from '@/lib/routes'
 
 export const revalidate = 900
 
-/** All eight corridors are known at build time, so prerender the lot. */
 export function generateStaticParams() {
-  return CORRIDORS.map((corridor) => ({ slug: corridor.slug }))
+  return METHOD_CONTENT.map((entry) => ({ slug: entry.slug }))
 }
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
 
-/** The public URL for a corridor, which is what everything must point at. */
-export function corridorPath(slug: string): string {
-  return `/send-money-from-${slug}-to-pakistan`
-}
-
-const TODAY = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
-
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string }>
+  params: Promise<{ locale: string; slug: string }>
 }): Promise<Metadata> {
-  const { slug } = await params
-  const corridor = corridorBySlug(slug)
-  if (!corridor) return {}
+  const { locale: localeParam, slug } = await params
+  const locale = toLocale(localeParam)
+  const content = methodBySlug(slug)
+  if (!content) return {}
 
-  const content = CORRIDOR_CONTENT[corridor.fromCurrency]
-  const path = corridorPath(slug)
-
+  const path = methodPath(slug)
   return {
-    // Dated title, as the brief specifies — it earns the click on a query
-    // where freshness is the whole point.
-    title: `${content.title} — live rates, ${TODAY.format(new Date())}`,
+    title: `${content.title} | Bhejo`,
     description: content.metaDescription,
-    alternates: {
-      canonical: path,
-      languages: { 'en-GB': path, ur: `/ur${path}` },
-    },
-    openGraph: {
-      title: content.title,
-      description: content.metaDescription,
-      url: `${SITE}${path}`,
-      type: 'article',
-    },
+    alternates: { canonical: path, languages: { 'en-GB': path, ur: `/ur${path}` } },
+    openGraph: { url: `${SITE}${path}`, type: 'article' },
   }
 }
 
-export default async function CorridorPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params
-  const corridor = corridorBySlug(slug)
-  if (!corridor) notFound()
+export default async function MethodPage({ params }: { params: Promise<{ locale: string; slug: string }> }) {
+  const { locale: localeParam, slug } = await params
+  const locale = toLocale(localeParam)
+  setRequestLocale(locale)
+  const tCommon = await getTranslations({ locale, namespace: 'common' })
+  const content = methodBySlug(slug)
+  if (!content) notFound()
 
-  const content = CORRIDOR_CONTENT[corridor.fromCurrency]
-  const symbol = CURRENCY_SYMBOLS[corridor.fromCurrency]
-
-  const [comparison, series] = await Promise.all([
-    getComparison({ corridorSlug: slug, method: 'bank' }),
-    getMidMarketSeries(corridor.fromCurrency, 30),
-  ])
+  // Default to the UK corridor, which has the deepest provider coverage.
+  const comparison = await getComparison({ corridorSlug: 'uk', method: content.method })
 
   const corridorOptions = CORRIDORS.map((c) => ({
     slug: c.slug,
@@ -83,29 +64,28 @@ export default async function CorridorPage({ params }: { params: Promise<{ slug:
     symbol: CURRENCY_SYMBOLS[c.fromCurrency],
   }))
 
-  const path = corridorPath(slug)
-  const saving = comparison?.savingVsBank ?? null
+  const hasQuotes = (comparison?.rows.filter((r) => !r.quote.isBenchmark).length ?? 0) > 0
 
   return (
     <>
-      <SiteHeader />
+      <SiteHeader locale={locale} />
 
       <main>
         <div className="bg-green px-0 pt-10 pb-28 text-mist">
           <div className="mx-auto max-w-[1120px] px-6">
             <nav aria-label="Breadcrumb" className="text-[13px] text-[#7FA090]">
-              <ol className="flex flex-wrap items-center gap-2">
+              <ol className="flex items-center gap-2">
                 <li>
                   <Link href="/" className="no-underline hover:text-white">
                     Bhejo
                   </Link>
                 </li>
                 <li aria-hidden="true">/</li>
-                <li className="text-[#C9D9D0]">{corridor.fromCountryName} to Pakistan</li>
+                <li className="text-[#C9D9D0]">{content.title}</li>
               </ol>
             </nav>
 
-            <h1 className="mt-5 max-w-[18ch] text-[clamp(34px,4.6vw,54px)] leading-[1.05] font-semibold">
+            <h1 className="mt-5 max-w-[18ch] text-[clamp(32px,4.4vw,50px)] leading-[1.05] font-semibold">
               {content.title}
             </h1>
 
@@ -114,42 +94,38 @@ export default async function CorridorPage({ params }: { params: Promise<{ slug:
                 <p key={paragraph.slice(0, 32)}>{paragraph}</p>
               ))}
             </div>
-
-            {saving !== null && (
-              <p className="mt-6 text-[15px] text-[#A9BFB4]">
-                Right now the best service on this page beats a typical high-street bank by{' '}
-                <b className="font-medium text-gold">{formatPkr(saving)}</b> on {symbol}
-                {comparison?.amount.toLocaleString('en-GB')}.
-              </p>
-            )}
           </div>
         </div>
 
         <div className="mx-auto max-w-[1120px] px-6">
-          {comparison ? (
+          {comparison && hasQuotes ? (
             <ComparePanel initial={comparison} corridors={corridorOptions} />
           ) : (
             <section className="relative -mt-20 rounded-panel-lg border border-line bg-white p-10">
-              <h2 className="font-display text-xl font-semibold">No quotes yet</h2>
-              <p className="mt-2 text-muted">
-                We have no live quotes for this corridor at the moment. The refresh runs every 15
-                minutes.
+              <h2 className="font-display text-xl font-semibold">
+                No live quotes for this method yet
+              </h2>
+              <p className="mt-2 max-w-[62ch] text-muted">
+                None of the services we can quote automatically currently pays out this way on the
+                corridors we track. Rather than show you an estimate, we show nothing. The{' '}
+                <Link href="/" className="text-leaf underline underline-offset-2">
+                  main comparison
+                </Link>{' '}
+                covers bank deposits, which every provider supports.
               </p>
             </section>
           )}
 
-          {/* 30-day chart */}
-          <section className="mt-16">
-            <RateChart
-              points={series.points}
-              currency={corridor.fromCurrency}
-              label={`${corridor.fromCurrency} to PKR, last 30 days`}
-            />
-          </section>
-
-          {/* Editorial */}
           <div className="mt-16 grid gap-12 lg:grid-cols-[1fr_300px]">
             <article className="max-w-[68ch]">
+              {locale === 'ur' && (
+                /* The long-form guidance is English-only for now. Machine
+                   translating several thousand words of financial guidance
+                   would be worse than saying so plainly. */
+                <p className="mb-6 rounded-panel border border-line bg-white p-4 text-[14.5px] text-muted">
+                  {tCommon('translationPending')}
+                </p>
+              )}
               {content.sections.map((section) => (
                 <section key={section.heading} className="mb-10">
                   <h2 className="text-[26px] leading-tight font-semibold">{section.heading}</h2>
@@ -189,50 +165,51 @@ export default async function CorridorPage({ params }: { params: Promise<{ slug:
               </section>
 
               <p className="mt-8 text-[13px] text-faint">
-                Guidance on this page was last reviewed on{' '}
-                {TODAY.format(new Date(content.lastReviewed))}. Rates above are live; the written
-                guidance is not, and rules change. Nothing here is financial advice.
+                Guidance last reviewed{' '}
+                {new Intl.DateTimeFormat('en-GB', {
+                  day: 'numeric',
+                  month: 'short',
+                  year: 'numeric',
+                }).format(new Date(content.lastReviewed))}
+                . Rates above are live; this guidance is not, and wallet limits in particular are
+                revised periodically.
               </p>
             </article>
 
-            {/* Other corridors */}
             <aside>
-              <h2 className="text-[13px] font-medium text-faint">Other corridors</h2>
+              <h2 className="text-[13px] font-medium text-faint">Other ways to receive</h2>
               <ul className="mt-3.5 grid gap-2 text-[15px]">
-                {CORRIDORS.filter((c) => c.slug !== slug).map((other) => (
-                  <li key={other.slug}>
+                {METHOD_CONTENT.filter((entry) => entry.slug !== slug).map((entry) => (
+                  <li key={entry.slug}>
                     <Link
-                      href={corridorPath(other.slug)}
+                      href={methodPath(entry.slug)}
                       className="text-ink no-underline hover:text-leaf"
                     >
-                      {other.fromCountryName} to Pakistan
+                      {entry.title}
                     </Link>
                   </li>
                 ))}
               </ul>
 
-              <h2 className="mt-8 text-[13px] font-medium text-faint">Rates</h2>
+              <h2 className="mt-8 text-[13px] font-medium text-faint">By country</h2>
               <ul className="mt-3.5 grid gap-2 text-[15px]">
-                <li>
-                  <Link
-                    href={`/${corridor.fromCurrency.toLowerCase()}-to-pkr`}
-                    className="text-ink no-underline hover:text-leaf"
-                  >
-                    {corridor.fromCurrency} to PKR rate today
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/how-we-rank" className="text-ink no-underline hover:text-leaf">
-                    How we rank providers
-                  </Link>
-                </li>
+                {CORRIDORS.slice(0, 4).map((corridor) => (
+                  <li key={corridor.slug}>
+                    <Link
+                      href={corridorPath(corridor.slug)}
+                      className="text-ink no-underline hover:text-leaf"
+                    >
+                      From {corridor.fromCountryName}
+                    </Link>
+                  </li>
+                ))}
               </ul>
             </aside>
           </div>
         </div>
       </main>
 
-      <SiteFooter />
+      <SiteFooter locale={locale} />
 
       <script
         type="application/ld+json"
@@ -256,8 +233,8 @@ export default async function CorridorPage({ params }: { params: Promise<{ slug:
                 {
                   '@type': 'ListItem',
                   position: 2,
-                  name: `${corridor.fromCountryName} to Pakistan`,
-                  item: `${SITE}${path}`,
+                  name: content.title,
+                  item: `${SITE}${methodPath(slug)}`,
                 },
               ],
             },
