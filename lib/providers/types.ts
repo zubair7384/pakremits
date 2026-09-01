@@ -8,6 +8,7 @@
  */
 import type { DeliveryMethod, QuoteSource, SendCurrency } from '@/lib/db/schema'
 import type { FeeModel } from '@/lib/ranking/compute'
+import { RobotsDisallowedError, assertCrawlable } from './robots'
 
 export interface QuoteRequest {
   from: SendCurrency
@@ -87,13 +88,17 @@ export interface ProviderAdapter {
  */
 export async function fetchJson<T>(
   url: string,
-  init: RequestInit & { timeoutMs?: number; providerSlug: string },
+  init: RequestInit & { timeoutMs?: number; providerSlug: string; skipRobots?: boolean },
 ): Promise<T> {
-  const { timeoutMs = 12_000, providerSlug, ...rest } = init
+  const { timeoutMs = 12_000, providerSlug, skipRobots = false, ...rest } = init
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), timeoutMs)
 
   try {
+    // Enforced, not advisory. `skipRobots` is only for documented partner APIs
+    // reached with a credential, where a contract governs access instead.
+    if (!skipRobots) await assertCrawlable(url)
+
     const response = await fetch(url, {
       ...rest,
       signal: controller.signal,
@@ -119,6 +124,11 @@ export async function fetchJson<T>(
     return (await response.json()) as T
   } catch (error) {
     if (error instanceof AdapterError) throw error
+    if (error instanceof RobotsDisallowedError) {
+      // Surfaced distinctly so /admin can show "blocked by robots.txt" rather
+      // than an outage, and so nobody debugs it as a network fault.
+      throw new AdapterError(providerSlug, `blocked by robots.txt: ${error.message}`, error)
+    }
     if (error instanceof Error && error.name === 'AbortError') {
       throw new AdapterError(providerSlug, `timed out after ${timeoutMs}ms`, error)
     }

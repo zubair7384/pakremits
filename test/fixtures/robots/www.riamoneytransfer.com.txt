@@ -1,0 +1,20 @@
+# Production robots for www.riamoneytransfer.com (flipped at domain cutover —
+# while this site was only reachable at rps-3.netlify.app behind the legacy
+# proxy, everything was disallowed to avoid duplicate indexing).
+# /sitemap.xml is the root sitemap index (app/(sitemap)/sitemap.xml) listing
+# the pages, blog and per-locale rates sitemaps.
+User-agent: *
+Allow: /
+# Next.js appends ?_rsc=<hash> to React Server Component prefetch requests.
+# These are duplicates of the real page URLs and must not be crawled/indexed.
+Disallow: /*?_rsc=
+
+# Meta's AI-training crawler ("train foundation AI models or improve products
+# by indexing content directly") — blocked site-wide. Token per Meta's docs:
+# https://developers.facebook.com/docs/sharing/webmasters/web-crawlers/
+# Scoped to this token only: facebookexternalhit (link previews) and Meta's
+# other crawlers match their own tokens / the * group and are unaffected.
+User-agent: meta-externalagent
+Disallow: /
+
+Sitemap: https://www.riamoneytransfer.com/sitemap.xml

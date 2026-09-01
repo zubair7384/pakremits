@@ -159,18 +159,69 @@ leaves the rotation immediately with no deploy.
 
 ---
 
-## Provider access, as verified on 2 Sep 2026
+## Provider access, as surveyed on 2 Sep 2026
 
-| Tier | Access | Providers |
+Every provider in the original brief was checked against two gates: what its
+`robots.txt` permits, and whether the quote flow sits behind bot protection.
+The result is that **the 14-provider target is not reachable by scraping.**
+
+### Live
+
+| Provider | robots.txt | Bot protection |
 | --- | --- | --- |
-| A | Public JSON, no key | **Wise** (`wise.com/gateway/v1/price`), **Remitly** (`api.remitly.io/v3/calculator/estimate`) |
-| B | Site XHR endpoints, probed but adapters not yet written | WorldRemit (GraphQL, responds), Xe (403 without browser headers), Taptap Send (rejects without app headers), Western Union, Ria, MoneyGram, Small World |
-| C | Needs Playwright | Paysend (server-rendered), ACE Money Transfer, Lycaremit |
-| D | Not send-side providers | Sadapay, Nayapay — receiving wallets, entered manually via `/admin/quotes`, as is the bank benchmark row |
+| **Wise** | Explicitly *allows* it: `Allow: *gateway*sourceCurrency=*` | None |
+| **Remitly** | No `robots.txt` on `api.remitly.io` (404 → unrestricted) | None |
 
-Wise's *documented* quote API (`POST /v3/quotes`) is not anonymous: the
+### Buildable, not yet written
+
+| Provider | Notes |
+| --- | --- |
+| Ria | `Allow: /`, no bot protection. The calculator is server-rendered — no quote XHR exists — so this is an HTML parse of an allowed page. Corridor URL still to be pinned down. |
+| Small World | `Disallow:` (allow-all), but returns 403 to a plain fetch. Likely geo or UA gating; worth a second look. |
+| ACE Money Transfer | robots only excludes `/?utm=` and `/cdn-cgi/`. Also 403 to a plain fetch. |
+| Paysend | No `robots.txt` at all. Server-rendered; needs URL discovery. |
+| Taptap Send | Mobile-app API. Returns `BAD_HEADER` without app headers I do not have. |
+
+### Excluded, and why
+
+| Provider | Reason |
+| --- | --- |
+| **Xe** | `robots.txt` disallows `/currencytransfers/` — which is exactly where the money-transfer quote flow lives. The currency *converter* is allowed, but that is a mid-market rate, not a send quote. |
+| **MoneyGram** | `robots.txt` names AI agents individually and disallows them site-wide, sets `Content-Signal: ai-train=no, use=reference`, and applies `Crawl-delay: 5`. The operator has opted out explicitly. |
+| **WorldRemit** | PerimeterX. GraphQL introspection is disabled and the API requires a bot-detection token. |
+| **Western Union** | Akamai bot protection. |
+| **Lycaremit** | Cloudflare challenge. |
+
+The last three are excluded on a rule, not a difficulty judgement: getting quotes
+from them means defeating bot detection, and this project does not do that. The
+legitimate routes to those providers are, in order of preference:
+
+1. **Affiliate network data feeds.** Impact and CJ often expose a product/rate
+   feed to approved publishers. This is the intended path and needs no scraping.
+2. **A partner API.** Wise, Western Union, and MoneyGram all run partner
+   programmes with real quote APIs behind a credential.
+3. **Manual entry** via `/admin/quotes`, refreshed on whatever cadence is
+   practical, clearly marked `source: 'manual'` and timestamped on the page.
+
+Until one of those lands, showing 14 providers is not achievable — the design's
+"14 providers checked" line and the `stats` panel should read from the live
+count rather than a constant.
+
+Wise's *documented* quote API (`POST /v3/quotes`) is not anonymous either: the
 "unauthenticated quote" still needs a client-credentials token from a Wise
-Platform partner account. The gateway pricing endpoint above needs nothing.
+Platform partner account. The gateway pricing endpoint above needs nothing, and
+Wise's own `robots.txt` invites bots to use it.
+
+### robots.txt is enforced in code
+
+`lib/providers/robots.ts` gates every outbound adapter request. It is not
+advisory — a disallowed path throws, the adapter fails, and `refresh()` degrades
+that row to a stale badge. `test/unit/robots.test.ts` runs against the real
+files captured from each provider, so the exclusions above are asserted rather
+than merely documented.
+
+Adapters against a documented partner API can pass `skipRobots: true` to
+`fetchJson`, since a signed contract governs access instead of a crawl policy.
 
 Tier B and C endpoints are unofficial and unversioned. The fixture tests in
 `test/unit/adapters.test.ts` are the early-warning system: when one starts
