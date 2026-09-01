@@ -4,9 +4,10 @@ Compares money-transfer services sending to Pakistan, ranked by the exact PKR
 amount that lands in the recipient's account. Not by rate, not by fee, not by
 who pays us.
 
-**Status: Phase 1 complete.** The rate engine works end-to-end against live
-provider APIs. The public site (Phase 2) is not built yet — `/` is still the
-Next.js starter page.
+**Status: Phase 1 complete, Phase 2 in progress.** The rate engine works
+end-to-end against live provider APIs, and the home page renders live data.
+Corridor, provider, comparison, rate and method pages are not built yet, and
+neither is the Urdu locale — links to them currently 404.
 
 ---
 
@@ -26,8 +27,11 @@ Probing GBP → PKR, bank, 500 GBP
 ```
 
 - Two live adapters (Wise, Remitly) across all eight corridors, no API keys.
+- Home page rendering live quotes, with the interactive comparison panel.
+- Affiliate redirects at `/go/[provider]` logging clicks.
+- robots.txt enforced on every outbound adapter request.
 - Mid-market rates and 30-day history from Wise's public rates endpoints.
-- `computeReceived` and the ranking rules, with 55 unit tests.
+- `computeReceived` and the ranking rules, with 76 unit tests.
 - Cron refresh endpoint plus a GitHub Actions schedule.
 - Password-protected manual quote override at `/admin/quotes`.
 
@@ -113,16 +117,22 @@ frequent expression at deploy time
 refresh therefore runs from GitHub Actions instead, which also gives us a place
 to run Playwright adapters later — Vercel functions have no Chromium.
 
+The job also does not call the site over HTTP. A full refresh across the grid
+takes about four minutes with polite per-host throttling, well past the 60s
+function limit, so `.github/workflows/refresh-rates.yml` runs `npm run refresh`
+directly against the database and then pings `/api/cron/revalidate` to drop the
+cached pages. `/api/cron/refresh-rates` still exists for manual triggering.
+
 In your GitHub repo:
 
-- **Settings → Secrets and variables → Actions → Secrets**: add `CRON_SECRET`,
-  matching the value in Vercel.
-- **→ Variables**: add `SITE_URL`, e.g. `https://bhejo.vercel.app`.
+- **Settings → Secrets and variables → Actions → Secrets**: add `DATABASE_URL`
+  (the pooled Supabase URL) and `CRON_SECRET`, matching the value in Vercel.
+- **→ Variables**: add `SITE_URL`, e.g. `https://bhejo.vercel.app`. Leave it
+  unset before the first deploy and the revalidate step skips itself.
 
-`.github/workflows/refresh-rates.yml` then hits
-`/api/cron/refresh-rates` every 15 minutes. Trigger it by hand from the Actions
-tab to check it before waiting for a tick. GitHub's scheduler is best-effort and
-lags under load, which is why `/admin` surfaces the last successful run.
+Trigger the workflow by hand from the Actions tab to check it before waiting for
+a tick. GitHub's scheduler is best-effort and lags under load, which is why
+`/admin` surfaces the last successful run.
 
 ---
 
