@@ -1,26 +1,82 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/**
+ * Design tokens, lifted verbatim from bhejo-design.html.
+ *
+ * Tailwind v4 reads these directly: `--color-leaf` becomes `bg-leaf`,
+ * `--radius-panel` becomes `rounded-panel`, and so on. Nothing here should be
+ * changed without changing the design file too.
+ */
+@theme {
+  --color-green: #0b3d2e;
+  --color-green-2: #0f4a38;
+  --color-green-3: #175a45;
+  --color-leaf: #1c7c54;
+  --color-leaf-dark: #166944;
+  --color-gold: #e9b44c;
+  --color-gold-dark: #8a6420;
+  --color-gold-bg: #fbf4e3;
+  --color-mist: #f3f6f4;
+  --color-ink: #14201b;
+  --color-line: #dce4df;
+  --color-line-2: #edf2ef;
+  --color-muted: #5c6b63;
+  --color-faint: #8a978f;
+  /* Sparkline up/down. Deliberately not red/green alone — the arrow glyph
+     carries the meaning too, for colour-blind readers. */
+  --color-up: #8fe0b3;
+  --color-down: #f5a3a3;
+
+  /* 10px on controls, 14–20px on panels. No other radii. */
+  --radius-control: 10px;
+  --radius-panel: 18px;
+  --radius-panel-lg: 22px;
+
+  --font-display: var(--font-bricolage), 'IBM Plex Sans', sans-serif;
+  --font-sans: var(--font-plex), system-ui, sans-serif;
+  --font-urdu: var(--font-nastaliq), serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-mist);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  letter-spacing: -0.022em;
+}
+
+/* Urdu is a first-class locale: RTL flows from the html dir attribute, and
+   Nastaliq needs the extra line-height to avoid clipping its descenders. */
+[dir='rtl'] body,
+.urdu {
+  font-family: var(--font-urdu);
+  line-height: 1.9;
+}
+
+/* Visible focus everywhere — the design specifies it, and AA requires it. */
+:focus-visible {
+  outline: 3px solid rgb(28 124 84 / 0.45);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

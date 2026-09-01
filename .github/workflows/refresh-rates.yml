@@ -1,0 +1,54 @@
+name: Refresh rates
+
+# Vercel's Hobby plan caps cron at once per day and rejects anything more
+# frequent at deploy time, so the 15-minute schedule lives here instead.
+# GitHub's scheduler is best-effort and can lag under load — the /admin
+# dashboard shows the last successful run so a silently dead schedule is visible.
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch: # lets you force a refresh from the Actions tab
+
+concurrency:
+  # Never let a slow run overlap the next tick.
+  group: refresh-rates
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Trigger refresh
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${SITE_URL:-}" ]; then
+            echo "::error::SITE_URL repository variable is not set"
+            exit 1
+          fi
+
+          response=$(mktemp)
+          status=$(curl -sS --max-time 120 \
+            -H "x-cron-secret: ${CRON_SECRET}" \
+            -o "$response" -w '%{http_code}' \
+            "${SITE_URL}/api/cron/refresh-rates")
+
+          echo "HTTP $status"
+          cat "$response"
+          echo
+
+          if [ "$status" != "200" ]; then
+            echo "::error::Refresh failed with HTTP $status"
+            exit 1
+          fi
+
+          # Surface partial failures without failing the run — one dead adapter
+          # is expected occasionally and must not mask a genuine outage.
+          failed=$(jq -r '.quotes.adaptersFailed // 0' "$response")
+          if [ "$failed" != "0" ]; then
+            echo "::warning::$failed adapter call(s) failed; served stale where possible"
+          fi

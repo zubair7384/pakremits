@@ -1,36 +1,277 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Bhejo — بھیجو
 
-## Getting Started
+Compares money-transfer services sending to Pakistan, ranked by the exact PKR
+amount that lands in the recipient's account. Not by rate, not by fee, not by
+who pays us.
 
-First, run the development server:
+**Status: Phase 1 complete.** The rate engine works end-to-end against live
+provider APIs. The public site (Phase 2) is not built yet — `/` is still the
+Next.js starter page.
+
+---
+
+## What works today
+
+```
+npm run probe
+```
+
+```
+Probing GBP → PKR, bank, 500 GBP
+  mid-market: 375.114 (wise)
+
+  provider   rate       fee     received        note
+  Wise       375.1140   3.66    ₨ 186,184.08    205ms · In hours · markup 0.00%
+  Remitly    377.1200   0.00    ₨ 188,560       757ms · 3–5 days · promo · markup -0.53%
+```
+
+- Two live adapters (Wise, Remitly) across all eight corridors, no API keys.
+- Mid-market rates and 30-day history from Wise's public rates endpoints.
+- `computeReceived` and the ranking rules, with 55 unit tests.
+- Cron refresh endpoint plus a GitHub Actions schedule.
+- Password-protected manual quote override at `/admin/quotes`.
+
+---
+
+## Local setup
+
+Requires Node 20+ (or 22+; Node 23 works but emits engine warnings from eslint).
+
+```bash
+git clone <your-repo> bhejo && cd bhejo
+npm install
+cp .env.example .env.local
+```
+
+### Supabase
+
+1. Create a project at [supabase.com](https://supabase.com) — the free tier is enough.
+2. **Project Settings → Database → Connection string**. Copy two URLs into `.env.local`:
+   - `DATABASE_URL` — the **Transaction** pooler URL (port `6543`). Used at runtime.
+   - `DIRECT_URL` — the **Session** URL (port `5432`). Used only for migrations,
+     because the pooler cannot run DDL transactions reliably.
+3. Apply the schema and the RLS policies:
+
+```bash
+npm run db:migrate
+```
+
+`0001_rls.sql` enables row-level security with no policies, which closes
+Supabase's auto-generated REST API. Without it, the `rate_alerts` table — email
+addresses and phone numbers — would be readable by anyone with the anon key.
+
+### Seed and first refresh
+
+```bash
+npm run seed      # providers, corridors, 30 days of mid-market history
+npm run refresh   # walks the full grid and writes live quotes
+```
+
+The seed pulls real 30-day history from Wise. If that call fails it writes a
+deterministic synthetic walk marked `source: 'synthetic'`, so the charts render
+on a fresh deploy and the fake data is trivially identifiable.
+
+### Run it
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- `/admin/quotes` — HTTP Basic auth, any username, `ADMIN_PASSWORD` as password.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Commands
 
-## Learn More
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | Dev server |
+| `npm test` | Unit tests (compute, ranking, adapter parsers) |
+| `npm run typecheck` | `tsc --noEmit` |
+| `npm run probe` | Call every adapter live and print a comparison table |
+| `npm run probe -- --from AED --amount 3000 --method wallet` | Probe one corridor |
+| `npm run probe -- --save` | Re-capture test fixtures from live responses |
+| `npm run refresh` | Full refresh locally, bypassing the HTTP route |
+| `npm run seed` | Idempotent seed |
+| `npm run db:generate` | Generate a migration from schema changes |
+| `npm run db:migrate` | Apply pending migrations |
+| `npm run db:studio` | Drizzle Studio |
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Deploying to Vercel
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Push to GitHub, import the repo at [vercel.com/new](https://vercel.com/new).
+2. Add every variable from `.env.example` under **Settings → Environment Variables**.
+3. Deploy.
 
-## Deploy on Vercel
+### The cron is not on Vercel
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Vercel's Hobby plan **caps cron jobs at once per day** and rejects any more
+frequent expression at deploy time
+([docs](https://vercel.com/docs/cron-jobs/usage-and-pricing)). A 15-minute
+refresh therefore runs from GitHub Actions instead, which also gives us a place
+to run Playwright adapters later — Vercel functions have no Chromium.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+In your GitHub repo:
+
+- **Settings → Secrets and variables → Actions → Secrets**: add `CRON_SECRET`,
+  matching the value in Vercel.
+- **→ Variables**: add `SITE_URL`, e.g. `https://bhejo.vercel.app`.
+
+`.github/workflows/refresh-rates.yml` then hits
+`/api/cron/refresh-rates` every 15 minutes. Trigger it by hand from the Actions
+tab to check it before waiting for a tick. GitHub's scheduler is best-effort and
+lags under load, which is why `/admin` surfaces the last successful run.
+
+---
+
+## Adding a provider adapter
+
+1. **Probe the site first.** Open the provider's calculator with devtools on the
+   Network tab, filter to XHR, and change the amount. Most of these sites call a
+   JSON endpoint you can call directly.
+2. `curl` that endpoint. If it fails, add `origin` and `referer` headers for the
+   provider's own domain — Remitly returns `{"error_key":"NOT_ALLOWED"}` with
+   HTTP 200 without them.
+3. Save the response to `test/fixtures/<slug>-gbp-pkr-500.json`.
+4. Create `lib/providers/http/<slug>.ts`. Export a pure `parse<Slug>(payload,
+   request): Quote` function and an adapter object implementing `ProviderAdapter`.
+5. Set `feeModel` correctly. `deducted` means the fee comes out of the amount
+   (Wise). `additional` means it is charged on top (Remitly). Getting this wrong
+   silently biases the whole table.
+6. Fill `supports()` honestly — only the rails the provider actually pays out to.
+7. Set `deliverySpeedMinutes` from the provider's published SLA, and leave a
+   comment saying it is an SLA rather than live data.
+8. Add the adapter to `ALL_ADAPTERS` in `lib/providers/registry.ts`.
+9. Add a row to `PROVIDERS` in `scripts/seed.ts` with brand colour and capability flags.
+10. Write parser tests in `test/unit/adapters.test.ts` against your fixture:
+    the happy path, a malformed payload, and an unsupported delivery method.
+
+Then `npm run probe` to see it live, and `npm run seed` to create its row.
+
+For a provider with no JSON endpoint, set `runtime: 'browser'` and put the
+adapter in `lib/providers/browser/`. Those are skipped on Vercel and only run in
+the GitHub Actions job, which sets `BHEJO_ALLOW_BROWSER=1`.
+
+If a provider asks us to stop, add its slug to `BHEJO_DISABLED_ADAPTERS` — it
+leaves the rotation immediately with no deploy.
+
+---
+
+## Provider access, as verified on 2 Sep 2026
+
+| Tier | Access | Providers |
+| --- | --- | --- |
+| A | Public JSON, no key | **Wise** (`wise.com/gateway/v1/price`), **Remitly** (`api.remitly.io/v3/calculator/estimate`) |
+| B | Site XHR endpoints, probed but adapters not yet written | WorldRemit (GraphQL, responds), Xe (403 without browser headers), Taptap Send (rejects without app headers), Western Union, Ria, MoneyGram, Small World |
+| C | Needs Playwright | Paysend (server-rendered), ACE Money Transfer, Lycaremit |
+| D | Not send-side providers | Sadapay, Nayapay — receiving wallets, entered manually via `/admin/quotes`, as is the bank benchmark row |
+
+Wise's *documented* quote API (`POST /v3/quotes`) is not anonymous: the
+"unauthenticated quote" still needs a client-credentials token from a Wise
+Platform partner account. The gateway pricing endpoint above needs nothing.
+
+Tier B and C endpoints are unofficial and unversioned. The fixture tests in
+`test/unit/adapters.test.ts` are the early-warning system: when one starts
+failing, run `npm run probe -- --save` and read the diff before touching the
+parser.
+
+### Two corridor-level quirks worth knowing
+
+- **Remitly outside the UK.** UK responses include a `pay_out_price_estimates`
+  breakdown per rail. USD, AED, and EUR return a single estimate with an empty
+  `pay_out_method` and no breakdown — and passing an explicit `pay_out_method`
+  parameter is ignored. The adapter accepts that corridor-level rate for any
+  rail `supports()` allows, since the rate genuinely is identical and only the
+  delivery speed differs.
+- **Wise pays out to bank accounts only** for PKR. No wallet, cash, or RDA rails.
+
+---
+
+## Mid-market rates
+
+Wise's public rate endpoints, no key:
+
+- `wise.com/rates/live?source=GBP&target=PKR`
+- `wise.com/rates/history+live?source=GBP&target=PKR&length=30&resolution=daily&unit=day`
+
+The obvious alternatives do not work for this corridor:
+
+- **Frankfurter** is ECB-only and the ECB does not publish PKR, so it has no PKR
+  at any endpoint.
+- **exchangerate.host** now requires a key, caps the free tier at 100
+  requests/month, and does not serve HTTPS there.
+
+`open.er-api.com` sits behind the same `FxSource` interface as a fallback. It
+needs no key but updates only daily and has no history route — if it is ever the
+active source, its attribution link is required in the footer.
+
+---
+
+## Affiliate programmes
+
+Ranking never depends on commission. `lib/ranking/rank.ts` has no parameter for
+it, deliberately, so it cannot be added by accident. A `featured` provider is
+pinned *below* the best deal with a "Sponsored" label and never above it, which
+the ranking tests assert.
+
+| Provider | Network | How to apply |
+| --- | --- | --- |
+| Wise | Impact | [impact.com](https://impact.com) → search "Wise" → apply to the Wise Affiliate Program |
+| Remitly | Impact | Same, "Remitly". Bounty per first completed transfer. |
+| WorldRemit | Impact | Same, "WorldRemit". |
+| Xe | CJ Affiliate | [cj.com](https://www.cj.com) publisher account → advertiser search "Xe" |
+| ACE Money Transfer | Direct | Email their partnerships team; no network involved |
+| Sadapay / Nayapay | None | No programme. Listed for completeness, never monetised. |
+
+Once approved, paste the tracking template into `providers.affiliate_url_template`
+with a `{clickId}` placeholder. `/go/[provider]` (Phase 4) logs the click and
+substitutes it before the 302.
+
+Note that `npm run seed` deliberately does **not** overwrite
+`affiliate_url_template` or `featured` on re-run, so production values survive a
+reseed.
+
+---
+
+## Architecture notes
+
+```
+lib/
+  providers/
+    types.ts        ProviderAdapter contract, fetchJson with timeouts
+    registry.ts     adapter list, runtime filter, BHEJO_DISABLED_ADAPTERS
+    refresh.ts      the loop; stale fallback; nothing throws past here
+    http/           tier A + B adapters — plain fetch, run anywhere
+    browser/        tier C adapters — Playwright, GitHub Actions only
+  ranking/
+    compute.ts      computeReceived and friends. Pure, no I/O.
+    rank.ts         sort order and sponsored placement. No commission input.
+  fx/               mid-market sources behind one interface
+  db/               Drizzle schema and a lazily-connected client
+  corridors.ts      the eight corridors as static config
+```
+
+Two rules hold the thing together:
+
+**Nothing throws past `refresh.ts`.** A provider changing its JSON shape at 3am
+degrades to a stale badge on one row, not an empty comparison table. Each slot
+falls back to the last known good quote, re-written with `stale: true`.
+
+**Every row answers the same question.** `canonicalReceived` always computes in
+the `deducted` model — "I have £500 to spend in total, what lands?" — regardless
+of how the provider frames its own fee. Comparing a fee-on-top provider at face
+value against a fee-deducted one silently favours the former.
+
+---
+
+## Roadmap
+
+- **Phase 2** — the public site: home page from the design file, 8 corridor
+  pages, provider and comparison pages, rate pages, Urdu locale with RTL.
+- **Phase 3** — rate alerts: double opt-in email, WhatsApp via Twilio,
+  once-per-12-hours rate limiting, one-click unsubscribe.
+- **Phase 4** — affiliate redirects with click tracking, `/admin` dashboard.
+- **Phase 5** — trust and launch: stale badges, accessibility pass, Playwright
+  e2e, Lighthouse.

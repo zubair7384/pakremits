@@ -1,0 +1,175 @@
+/**
+ * Parser tests against real captured responses.
+ *
+ * These fixtures were pulled live from each provider on 2 Sep 2026. They exist
+ * so that a change in an unofficial endpoint's shape fails here, loudly, rather
+ * than silently publishing a wrong rupee figure. When a test starts failing,
+ * re-capture the fixture with `npm run probe` and read the diff before touching
+ * the parser.
+ */
+import { describe, expect, it } from 'vitest'
+import remitlyFixture from '../fixtures/remitly-gbp-pkr-500.json'
+import remitlyUsdFixture from '../fixtures/remitly-usd-pkr-1000.json'
+import wiseFixture from '../fixtures/wise-gbp-pkr-500.json'
+import { parseRemitlyEstimate, remitlyAdapter } from '@/lib/providers/http/remitly'
+import { assertParseMatchesProvider, parseWisePrice, wiseAdapter } from '@/lib/providers/http/wise'
+import { canonicalReceived } from '@/lib/providers/refresh'
+import type { QuoteRequest } from '@/lib/providers/types'
+
+const gbpRequest: QuoteRequest = {
+  from: 'GBP',
+  fromCountry: 'GB',
+  fromCountry3: 'GBR',
+  to: 'PKR',
+  amount: 500,
+  method: 'bank',
+}
+
+describe('Wise parser', () => {
+  it('picks the bank-transfer → bank-transfer row from the price matrix', () => {
+    const quote = parseWisePrice(wiseFixture as never, gbpRequest)
+
+    expect(quote.providerSlug).toBe('wise')
+    expect(quote.rate).toBe(375.087)
+    expect(quote.fee).toBe(3.66)
+    expect(quote.feeModel).toBe('deducted')
+    expect(quote.source).toBe('api')
+    expect(quote.promo).toBe(false)
+  })
+
+  it('agrees with the receive amount Wise itself quoted', () => {
+    const quote = parseWisePrice(wiseFixture as never, gbpRequest)
+    expect(quote.providerQuotedReceive).toBe(186170.68)
+    expect(() => assertParseMatchesProvider(quote, gbpRequest)).not.toThrow()
+    expect(canonicalReceived(500, quote)).toBe(186170.68)
+  })
+
+  it('rejects a matrix with no bank-to-bank combination', () => {
+    const cardOnly = (wiseFixture as never as { payInMethod: string }[]).filter(
+      (r) => r.payInMethod !== 'BANK_TRANSFER',
+    )
+    expect(() => parseWisePrice(cardOnly as never, gbpRequest)).toThrow(/no BANK_TRANSFER/)
+  })
+
+  it('rejects a currency mismatch', () => {
+    const wrong = [{ ...(wiseFixture as never as Record<string, unknown>[])[0] }]
+    const bankRow = (wiseFixture as never as Record<string, unknown>[]).find(
+      (r) => r.payInMethod === 'BANK_TRANSFER' && r.payOutMethod === 'BANK_TRANSFER',
+    )
+    wrong[0] = { ...bankRow, targetCcy: 'INR' }
+    expect(() => parseWisePrice(wrong as never, gbpRequest)).toThrow(/currency mismatch/)
+  })
+
+  it('catches parse drift when the provider’s own number disagrees', () => {
+    const quote = parseWisePrice(wiseFixture as never, gbpRequest)
+    // Simulate Wise splitting out a new fee component we failed to add up.
+    const drifted = { ...quote, fee: 0 }
+    expect(() => assertParseMatchesProvider(drifted, gbpRequest)).toThrow(/parse drift/)
+  })
+
+  it('only claims support for bank delivery', () => {
+    expect(wiseAdapter.supports(gbpRequest)).toBe(true)
+    expect(wiseAdapter.supports({ ...gbpRequest, method: 'cash' })).toBe(false)
+    expect(wiseAdapter.supports({ ...gbpRequest, method: 'wallet' })).toBe(false)
+  })
+})
+
+describe('Remitly parser', () => {
+  it('reads the promotional rate and zero fee from a live estimate', () => {
+    const quote = parseRemitlyEstimate(remitlyFixture as never, gbpRequest)
+
+    expect(quote.providerSlug).toBe('remitly')
+    expect(quote.rate).toBe(377.12) // promo rate, above the 375.06 base
+    expect(quote.fee).toBe(0)
+    expect(quote.feeModel).toBe('additional')
+    expect(quote.promo).toBe(true)
+    expect(quote.promoNote).toBe('New-customer rate')
+  })
+
+  it('maps DIRECT_TO_PHONE to the wallet delivery method', () => {
+    const quote = parseRemitlyEstimate(remitlyFixture as never, {
+      ...gbpRequest,
+      method: 'wallet',
+    })
+    expect(quote.deliverySpeedText).toBe('Minutes')
+    expect(quote.rate).toBe(377.12)
+  })
+
+  it('falls back to the base rate above the promotional cap', () => {
+    // The fixture caps the promo at a 500 send amount.
+    const quote = parseRemitlyEstimate(remitlyFixture as never, {
+      ...gbpRequest,
+      amount: 2000,
+    })
+    expect(quote.rate).toBe(375.06)
+    expect(quote.promo).toBe(false)
+    expect(quote.promoNote).toBeNull()
+  })
+
+  it('accepts the corridor-level estimate that non-UK corridors return', () => {
+    // USD/AED/EUR answer with a single estimate whose pay_out_method is "" and
+    // no pay_out_price_estimates breakdown. Verified live: passing an explicit
+    // pay_out_method parameter changes nothing.
+    const usdRequest: QuoteRequest = {
+      from: 'USD',
+      fromCountry: 'US',
+      fromCountry3: 'USA',
+      to: 'PKR',
+      amount: 1000,
+      method: 'cash',
+    }
+    const quote = parseRemitlyEstimate(remitlyUsdFixture as never, usdRequest)
+
+    expect(quote.rate).toBe(277.57)
+    expect(quote.fee).toBe(0)
+    expect(quote.deliverySpeedText).toBe('Minutes')
+    expect(canonicalReceived(1000, quote)).toBe(277570)
+  })
+
+  it('uses the same corridor-level rate for every rail it supports', () => {
+    const base = { from: 'USD', fromCountry: 'US', fromCountry3: 'USA', to: 'PKR', amount: 1000 } as const
+    const bank = parseRemitlyEstimate(remitlyUsdFixture as never, { ...base, method: 'bank' })
+    const cash = parseRemitlyEstimate(remitlyUsdFixture as never, { ...base, method: 'cash' })
+
+    expect(bank.rate).toBe(cash.rate)
+    // Only the delivery estimate differs between rails.
+    expect(bank.deliverySpeedText).not.toBe(cash.deliverySpeedText)
+  })
+
+  it('surfaces the NOT_ALLOWED body the API returns without an origin header', () => {
+    // Captured verbatim: this comes back with HTTP 200, so status checks miss it.
+    const refused = [{ error_key: 'NOT_ALLOWED', message: 'We encountered an error' }]
+    expect(() => parseRemitlyEstimate(refused[0] as never, gbpRequest)).toThrow(/NOT_ALLOWED/)
+  })
+
+  it('reports which payout options exist when the requested one does not', () => {
+    expect(() => parseRemitlyEstimate(remitlyFixture as never, { ...gbpRequest, method: 'rda' }))
+      .toThrow(/no payout option for "rda"/)
+  })
+
+  it('rejects an empty response rather than returning a zero quote', () => {
+    expect(() => parseRemitlyEstimate({} as never, gbpRequest)).toThrow(/no estimates/)
+  })
+
+  it('does not claim support for RDA or neobank rails', () => {
+    expect(remitlyAdapter.supports(gbpRequest)).toBe(true)
+    expect(remitlyAdapter.supports({ ...gbpRequest, method: 'rda' })).toBe(false)
+    expect(remitlyAdapter.supports({ ...gbpRequest, method: 'neobank' })).toBe(false)
+  })
+})
+
+describe('cross-provider comparison', () => {
+  it('normalises both fee models onto the same £500 budget', () => {
+    const wise = parseWisePrice(wiseFixture as never, gbpRequest)
+    const remitly = parseRemitlyEstimate(remitlyFixture as never, gbpRequest)
+
+    const wiseReceived = canonicalReceived(500, wise)
+    const remitlyReceived = canonicalReceived(500, remitly)
+
+    // Both answer "I have £500 to spend" — Wise's fee comes out of it, and
+    // Remitly's zero fee means the whole £500 converts at the promo rate.
+    expect(wiseReceived).toBe(186170.68)
+    expect(remitlyReceived).toBe(188560)
+    expect(remitlyReceived).toBeGreaterThan(wiseReceived)
+  })
+})
