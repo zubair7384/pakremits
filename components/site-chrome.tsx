@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
+import { LocaleSwitcher } from '@/components/locale-switcher'
 import { type Locale, localePath } from '@/i18n/routing'
 import { corridorPath, methodPath, ratePath, staticPath } from '@/lib/routes'
 
@@ -45,35 +46,7 @@ export async function SiteHeader({ locale = 'en' }: { locale?: Locale }) {
         </nav>
 
         <div className="flex items-center gap-3.5">
-          {/* Language switcher. Both links point at the same page in the other
-              locale, which only works because every path goes through
-              lib/routes rather than being concatenated inline. */}
-          <div
-            className="hidden overflow-hidden rounded-full border border-green-3 text-[13px] sm:flex"
-            aria-label={t('language')}
-          >
-            <Link
-              href="/"
-              hrefLang="en-GB"
-              aria-current={locale === 'en' ? 'true' : undefined}
-              className={`px-3 py-1.5 no-underline ${
-                locale === 'en' ? 'bg-green-3 text-white' : 'text-[#A9BFB4]'
-              }`}
-            >
-              EN
-            </Link>
-            <Link
-              href="/ur"
-              hrefLang="ur-PK"
-              lang="ur"
-              aria-current={locale === 'ur' ? 'true' : undefined}
-              className={`urdu px-3 pt-2 no-underline ${
-                locale === 'ur' ? 'bg-green-3 text-white' : 'text-[#A9BFB4]'
-              }`}
-            >
-              اردو
-            </Link>
-          </div>
+          <LocaleSwitcher locale={locale} label={t('language')} />
 
           <Link
             href={`${localePath(locale, '/')}#alerts`}

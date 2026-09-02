@@ -38,6 +38,13 @@ export default async function AdminProvidersPage() {
                 <span className="mb-1 block text-[12.5px] text-muted">Featured provider</span>
                 <select
                   name="providerId"
+                  // Keyed on the current value so React remounts it when the
+                  // server data changes. Without this the select is
+                  // uncontrolled and keeps whatever the user picked, so after
+                  // Apply it snapped back to its stale initial value while the
+                  // badge below already showed the new one — the page
+                  // contradicting itself.
+                  key={featured ? String(featured.id) : 'none'}
                   defaultValue={featured ? String(featured.id) : 'none'}
                   className="h-10 rounded-control border-[1.5px] border-line bg-white px-3 text-[14px]"
                 >
