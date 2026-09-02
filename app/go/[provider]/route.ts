@@ -16,6 +16,7 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { db } from '@/lib/db'
 import { DELIVERY_METHODS, affiliateClicks, corridors, providers } from '@/lib/db/schema'
+import { buildAffiliateUrl } from '@/lib/admin/affiliate'
 
 export const dynamic = 'force-dynamic'
 
@@ -83,11 +84,11 @@ export async function GET(
     console.error('[go] click logging failed:', error)
   }
 
-  const destination = provider.affiliateUrlTemplate
-    ? provider.affiliateUrlTemplate
-        .replace('{clickId}', encodeURIComponent(clickId))
-        .replace('{destination}', encodeURIComponent(provider.homepageUrl))
-    : provider.homepageUrl
+  const destination = buildAffiliateUrl({
+    template: provider.affiliateUrlTemplate,
+    homepageUrl: provider.homepageUrl,
+    clickId,
+  })
 
   if (!destination) {
     return NextResponse.redirect(new URL('/providers', request.url), 302)

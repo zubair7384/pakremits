@@ -4,12 +4,13 @@ Compares money-transfer services sending to Pakistan, ranked by the exact PKR
 amount that lands in the recipient's account. Not by rate, not by fee, not by
 who pays us.
 
-**Status: Phases 1–3 complete.** The rate engine runs against live provider
+**Status: Phases 1–4 complete.** The rate engine runs against live provider
 APIs and the full public site renders from it — home, 8 corridor pages, 8 rate
 pages, provider and head-to-head pages, method pages, and the static set, in
 English and Urdu. 26 pages prerender.
 
-Phase 4 (admin dashboard) and Phase 5 (launch checklist) are not built. Two of the fourteen providers in the original brief are live; see
+Phase 5 (the launch checklist: Playwright e2e, Lighthouse, accessibility pass) is
+not built. Two of the fourteen providers in the original brief are live; see
 [Provider access](#provider-access-as-surveyed-on-2-sep-2026) for why the rest
 are not, which is the main open question for the project.
 
@@ -40,6 +41,8 @@ Probing GBP → PKR, bank, 500 GBP
 - Password-protected manual quote override at `/admin/quotes`.
 - Rate alerts: double opt-in email, WhatsApp/SMS behind a swappable notifier,
   12-hour rate limiting, weekly digest, one-click unsubscribe that deletes.
+- `/admin` dashboard: clicks by provider and corridor, alert volumes, adapter
+  freshness, cron run history, and affiliate template management.
 
 ### Alerts without a Resend or Twilio account
 
@@ -166,6 +169,47 @@ In your GitHub repo:
 Trigger the workflow by hand from the Actions tab to check it before waiting for
 a tick. GitHub's scheduler is best-effort and lags under load, which is why
 `/admin` surfaces the last successful run.
+
+---
+
+## The admin area
+
+Three pages behind HTTP Basic auth (any username, `ADMIN_PASSWORD` as the
+password):
+
+| Page | What it is for |
+| --- | --- |
+| `/admin` | Clicks by provider and corridor, alert volumes, adapter freshness, cron history |
+| `/admin/providers` | Affiliate templates and the sponsored placement |
+| `/admin/quotes` | Manual quote overrides |
+
+The dashboard's loudest signal is the banner that appears when no refresh has
+run in 45 minutes. It is worth trusting: the schedule is GitHub's, which is
+best-effort and does stop, and nothing else on the site would tell you — a
+stale quote still renders a number.
+
+### Setting an affiliate template
+
+Paste the network's tracking URL into `/admin/providers` with two placeholders:
+
+- `{clickId}` — becomes the `click_id` of the row written to `affiliate_clicks`,
+  which is what lets a conversion the network reports later be traced back to
+  the corridor and amount that produced it. **A template without it is rejected**,
+  because the click would still work and simply never earn anything.
+- `{destination}` — the provider's homepage, URL-encoded.
+
+A provider with no template still links to its homepage. That is the correct
+state before a programme is approved, not a broken link, and the dashboard
+counts how many clicks it cost you.
+
+### Sponsored placement
+
+One provider at a time can be featured. It is pinned directly below the best
+deal, never above, always carries a visible **Sponsored** label, and can never
+take the gold **Best deal** highlight. `test/unit/rank.test.ts` fails if
+sponsorship ever changes which row is best — the ranking function has no
+commission input at all, so this cannot be weakened without a visible code
+change.
 
 ---
 

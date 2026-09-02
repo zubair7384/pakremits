@@ -1,6 +1,7 @@
 import { desc, eq } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { corridors, providers, rateQuotes } from '@/lib/db/schema'
+import { AdminNav } from '@/components/admin-chrome'
 import { getFormOptions } from './actions'
 import { OverrideForm } from './override-form'
 
@@ -43,7 +44,9 @@ export default async function AdminQuotesPage() {
   const [options, quotes] = await Promise.all([getFormOptions(), recentQuotes()])
 
   return (
-    <main className="mx-auto max-w-[1120px] px-6 py-10">
+    <>
+      <AdminNav current="/admin/quotes" />
+      <main className="mx-auto max-w-[1200px] px-6 py-8">
       <h1 className="font-display text-3xl font-semibold">Quote overrides</h1>
       <p className="mt-2 max-w-[60ch] text-muted">
         Manual rows are written with source <code>manual</code> and rank exactly like live quotes.
@@ -109,6 +112,7 @@ export default async function AdminQuotesPage() {
           </tbody>
         </table>
       </div>
-    </main>
+      </main>
+    </>
   )
 }

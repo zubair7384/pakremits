@@ -1,57 +1,49 @@
 /**
- * Run a full refresh locally, without going through the HTTP route.
+ * The scheduled refresh.
  *
- * Useful for the first populate after seeding, and for debugging the loop with
- * a debugger attached. The cron route is a thin wrapper around the same calls.
+ * This is what .github/workflows/refresh-rates.yml runs every 15 minutes, and
+ * what you run locally after seeding. It calls the same `runFullRefresh` as the
+ * HTTP route, so the /admin run history is identical either way.
  *
  *   npm run refresh
  */
 import '../lib/load-env'
-import { CORRIDORS } from '../lib/corridors'
-import { db } from '../lib/db'
-import { midMarketRates } from '../lib/db/schema'
-import { getMidMarketRate } from '../lib/fx'
-import { pruneOldQuotes, refreshAllRates } from '../lib/providers/refresh'
+import { runFullRefresh } from '../lib/cron/run'
 
 async function main() {
-  console.log('Refreshing mid-market rates…')
-  for (const corridor of CORRIDORS) {
-    try {
-      const rate = await getMidMarketRate(corridor.fromCurrency)
-      await db.insert(midMarketRates).values({
-        fromCurrency: rate.fromCurrency,
-        toCurrency: 'PKR',
-        rate: String(rate.rate),
-        capturedAt: rate.capturedAt,
-        source: rate.source,
-      })
-      console.log(`  ${corridor.fromCurrency} → PKR  ${rate.rate}  (${rate.source})`)
-    } catch (error) {
-      console.warn(`  ${corridor.fromCurrency}: ${error instanceof Error ? error.message : error}`)
+  console.log('Refreshing…')
+  const result = await runFullRefresh('refresh-rates')
+
+  console.log(`\n  mid-market: ${result.midMarket.written}/8 currencies`)
+  for (const failure of result.midMarket.failed) console.log(`    ! ${failure}`)
+
+  console.log(`\n  quotes written: ${result.quotes.quotesWritten}`)
+  console.log(`  adapters ok:    ${result.quotes.adaptersOk}`)
+  console.log(`  adapters failed:${result.quotes.adaptersFailed}`)
+  console.log(`  stale served:   ${result.quotes.staleServed}`)
+  console.log(`  pruned quotes:  ${result.prunedQuotes}`)
+
+  if (result.alerts) {
+    console.log(
+      `\n  alerts: ${result.alerts.fired} fired, ${result.alerts.digestsSent} digests, ` +
+        `${result.alerts.failed} failed, of ${result.alerts.considered} considered`,
+    )
+    for (const [reason, count] of Object.entries(result.alerts.skipped)) {
+      console.log(`    skipped ${reason}: ${count}`)
     }
   }
 
-  console.log('\nRefreshing provider quotes… (this walks the full grid, give it a minute)')
-  const result = await refreshAllRates()
+  console.log(`\n  duration: ${(result.durationMs / 1000).toFixed(1)}s  (run #${result.runId})`)
 
-  console.log(`\n  written:  ${result.quotesWritten}`)
-  console.log(`  ok:       ${result.adaptersOk}`)
-  console.log(`  failed:   ${result.adaptersFailed}`)
-  console.log(`  stale:    ${result.staleServed}`)
-  console.log(`  duration: ${(result.durationMs / 1000).toFixed(1)}s`)
-
-  if (result.failures.length > 0) {
+  if (result.quotes.failures.length > 0) {
     console.log('\n  Failures:')
-    for (const f of result.failures.slice(0, 20)) {
-      console.log(`    ${f.provider} ${f.corridor}/${f.method}: ${f.error}`)
+    for (const failure of result.quotes.failures.slice(0, 20)) {
+      console.log(`    ${failure.provider} ${failure.corridor}/${failure.method}: ${failure.error}`)
     }
-    if (result.failures.length > 20) {
-      console.log(`    …and ${result.failures.length - 20} more`)
+    if (result.quotes.failures.length > 20) {
+      console.log(`    …and ${result.quotes.failures.length - 20} more`)
     }
   }
-
-  const pruned = await pruneOldQuotes()
-  if (pruned > 0) console.log(`\n  pruned ${pruned} quotes older than 45 days`)
 
   process.exit(0)
 }
