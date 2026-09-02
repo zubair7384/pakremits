@@ -16,7 +16,7 @@ import { eq, sql } from 'drizzle-orm'
 import { setRequestLocale } from 'next-intl/server'
 import { SiteFooter, SiteHeader } from '@/components/site-chrome'
 import { toLocale } from '@/i18n/routing'
-import { CORRIDORS, CURRENCY_SYMBOLS } from '@/lib/corridors'
+import { CORRIDORS, CURRENCY_SYMBOLS, formatSend } from '@/lib/corridors'
 import { db } from '@/lib/db'
 import { providers, rateQuotes } from '@/lib/db/schema'
 import { formatPkr } from '@/lib/ranking/compute'
@@ -216,8 +216,7 @@ export default async function ComparePairPage({
                         </Link>
                         {entry.amount !== null && (
                           <small className="block text-xs text-faint">
-                            on {symbol}
-                            {entry.amount.toLocaleString('en-GB')}
+                            on {formatSend(symbol, entry.amount)}
                           </small>
                         )}
                       </td>

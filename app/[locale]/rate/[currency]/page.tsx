@@ -12,7 +12,7 @@ import { RateChart } from '@/components/rate-chart'
 import { setRequestLocale } from 'next-intl/server'
 import { SiteFooter, SiteHeader } from '@/components/site-chrome'
 import { alternatesFor, toLocale } from '@/i18n/routing'
-import { CORRIDORS, CURRENCY_SYMBOLS, corridorByCurrency } from '@/lib/corridors'
+import { CORRIDORS, CURRENCY_SYMBOLS, corridorByCurrency, formatSend } from '@/lib/corridors'
 import { SEND_CURRENCIES, type SendCurrency } from '@/lib/db/schema'
 import { formatPkr, round } from '@/lib/ranking/compute'
 import { getComparison, getMidMarketSeries } from '@/lib/quotes'
@@ -208,8 +208,7 @@ export default async function RatePage({ params }: { params: Promise<{ locale: s
                     {formatPkr(best.quote.amountReceived)}
                   </div>
                   <div className="mt-1 text-[13px] text-muted">
-                    on {symbol}
-                    {comparison.amount.toLocaleString('en-GB')}
+                    on {formatSend(symbol, comparison.amount)}
                   </div>
                 </div>
 

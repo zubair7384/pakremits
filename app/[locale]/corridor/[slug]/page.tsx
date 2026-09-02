@@ -14,7 +14,13 @@ import { RateChart } from '@/components/rate-chart'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { SiteFooter, SiteHeader } from '@/components/site-chrome'
 import { alternatesFor, toLocale } from '@/i18n/routing'
-import { CORRIDORS, CURRENCY_SYMBOLS, defaultAmountFor, corridorBySlug } from '@/lib/corridors'
+import {
+  CORRIDORS,
+  CURRENCY_SYMBOLS,
+  defaultAmountFor,
+  corridorBySlug,
+  formatSend,
+} from '@/lib/corridors'
 import { CORRIDOR_CONTENT } from '@/lib/content/corridors'
 import { formatPkr } from '@/lib/ranking/compute'
 import { getComparison, getMidMarketSeries } from '@/lib/quotes'
@@ -128,8 +134,8 @@ export default async function CorridorPage({ params }: { params: Promise<{ local
             {saving !== null && (
               <p className="mt-6 text-[15px] text-[#B2C6BC]">
                 Right now the best service on this page beats a typical high-street bank by{' '}
-                <b className="font-medium text-gold">{formatPkr(saving)}</b> on {symbol}
-                {comparison?.amount.toLocaleString('en-GB')}.
+                <b className="font-medium text-gold">{formatPkr(saving)}</b> on{' '}
+                {formatSend(symbol, comparison?.amount ?? 0)}.
               </p>
             )}
           </div>

@@ -6,6 +6,7 @@ import type { Comparison } from '@/lib/quotes'
 import type { DeliveryMethod } from '@/lib/db/schema'
 import type { SortKey } from '@/lib/ranking/rank'
 import { formatPkr } from '@/lib/ranking/compute'
+import { formatSend } from '@/lib/corridors'
 
 /**
  * The comparison panel.
@@ -178,10 +179,23 @@ export function ComparePanel({ initial, corridors }: Props) {
   const realProviderCount = rows.filter((r) => !r.quote.isBenchmark).length
   const capturedLabel = data.capturedAt ? PKT.format(new Date(data.capturedAt)) : null
 
+  const fieldShell =
+    'h-[54px] w-full rounded-[12px] border-[1.5px] border-line bg-white ' +
+    'transition-colors hover:border-[#B9C7BF]'
+
   const fieldClass =
-    'h-[54px] w-full appearance-none rounded-[12px] border-[1.5px] border-line bg-white ' +
-    'pr-11 pl-4 text-base text-ink transition-colors hover:border-[#B9C7BF] ' +
+    `${fieldShell} appearance-none pr-11 pl-4 text-base text-ink ` +
     'focus:border-leaf focus:outline-none focus:ring-4 focus:ring-leaf/15'
+
+  /**
+   * The amount field is a flex row, not an input with a fixed left pad: symbols
+   * run from one character to three ("$", "C$", "SAR"), and at any single pad
+   * the wider ones either collided with the amount or left a gap. The border and
+   * focus ring move to the wrapper so it still reads as one control.
+   */
+  const amountShell =
+    `${fieldShell} flex items-center gap-1.5 px-4 ` +
+    'focus-within:border-leaf focus-within:ring-4 focus-within:ring-leaf/15'
 
   return (
     <section id="compare" className="relative -mt-22">
@@ -251,10 +265,9 @@ export function ComparePanel({ initial, corridors }: Props) {
             <label htmlFor="amt" className="mb-1.5 block text-[13px] text-muted">
               {t('youSend')}
             </label>
-            <div className="relative">
+            <div className={amountShell}>
               <span
-                className="absolute top-1/2 left-4 -translate-y-1/2 font-display text-[22px]
-                           font-semibold text-muted"
+                className="shrink-0 font-display text-[22px] font-semibold text-muted"
                 aria-hidden="true"
               >
                 {symbol}
@@ -265,7 +278,8 @@ export function ComparePanel({ initial, corridors }: Props) {
                 onChange={(event) => setAmountText(event.target.value.replace(/[^\d.]/g, ''))}
                 inputMode="decimal"
                 aria-label={`Amount in ${data.fromCurrency}`}
-                className={`${fieldClass} pl-[38px] font-display text-2xl font-semibold`}
+                className="min-w-0 flex-1 bg-transparent font-display text-2xl font-semibold
+                           text-ink focus:outline-none"
               />
             </div>
           </div>
@@ -350,8 +364,13 @@ export function ComparePanel({ initial, corridors }: Props) {
         </div>
 
         {/* Results */}
+        {/* min-height holds the panel steady across a refresh. Without it a
+            corridor with no quotes collapsed this area to nothing the moment
+            the request went out and snapped back when it landed. */}
         <div
-          className={`px-7 pb-2 transition-opacity ${pending ? 'opacity-60' : 'opacity-100'}`}
+          className={`min-h-[104px] px-7 pb-2 transition-opacity ${
+            pending ? 'opacity-60' : 'opacity-100'
+          }`}
           aria-live="polite"
           aria-busy={pending}
         >
@@ -361,7 +380,7 @@ export function ComparePanel({ initial, corridors }: Props) {
             </p>
           )}
 
-          {rows.length === 0 && !pending && (
+          {rows.length === 0 && (
             <p className={`py-8 text-center ${data.unavailable ? 'text-[#A32D2D]' : 'text-muted'}`}>
               {data.unavailable
                 ? t('unavailable')
@@ -449,8 +468,7 @@ export function ComparePanel({ initial, corridors }: Props) {
                 </div>
 
                 <div className="hidden text-right text-[15px] tabular-nums lg:block">
-                  {symbol}
-                  {q.fee.toFixed(2)}
+                  {formatSend(symbol, q.fee.toFixed(2))}
                 </div>
 
                 <div className="col-span-2 tabular-nums lg:col-span-1">
@@ -537,7 +555,7 @@ export function ComparePanel({ initial, corridors }: Props) {
             {t('disclaimerQuotes')}
             {data.amount !== data.quotedAtAmount &&
               ` ${t('disclaimerCaptured', {
-                amount: `${symbol}${data.quotedAtAmount.toLocaleString('en-GB')}`,
+                amount: formatSend(symbol, data.quotedAtAmount),
               })}`}
           </span>
           <span>{t('disclaimerCommission')}</span>

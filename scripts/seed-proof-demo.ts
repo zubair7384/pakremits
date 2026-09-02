@@ -25,7 +25,7 @@ import {
 } from '../lib/db/schema'
 import { rollUpSiteStats } from '../lib/proof/events'
 import { getProofStats } from '../lib/proof/stats'
-import { THRESHOLDS } from '../lib/proof/config'
+import { LAUNCH_DATE, THRESHOLDS } from '../lib/proof/config'
 import { formatProofPkrFull } from '../lib/proof/format'
 
 /** Marks every row this script writes, so --clear can find them again. */
@@ -82,11 +82,22 @@ async function seed() {
     process.exit(1)
   }
 
-  // Comparison events, spread over the current month and across distinct
-  // sessions so the (session, minute) dedup index does not collapse them.
+  /*
+    Both series have to land inside the window the stats actually count:
+    `savingsSinceLaunch` filters on LAUNCH_DATE and the monthly counters filter
+    on the first of the month. Spreading rows backwards by a fixed interval put
+    most of them before launch, so the ledger summed to a tenth of the target.
+    Spread across the available window instead, whatever its width.
+  */
   const now = new Date()
+  const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1))
+  const windowStart = new Date(Math.max(LAUNCH_DATE.getTime(), monthStart.getTime()))
+  const windowMs = Math.max(now.getTime() - windowStart.getTime(), 60_000)
+
+  const spread = (index: number, count: number) =>
+    new Date(now.getTime() - Math.floor((windowMs * index) / count))
   const eventRows = Array.from({ length: COMPARISONS }, (_, i) => {
-    const bucket = new Date(now.getTime() - i * 60_000)
+    const bucket = spread(i, COMPARISONS)
     bucket.setSeconds(0, 0)
     return {
       sessionId: `${DEMO_SESSION_PREFIX}${i}`,
@@ -104,7 +115,7 @@ async function seed() {
   const perClick = Math.round((TARGET_SAVINGS / CLICKS) * 100) / 100
 
   for (let i = 0; i < CLICKS; i += 1) {
-    const createdAt = new Date(now.getTime() - i * 3_600_000)
+    const createdAt = spread(i, CLICKS)
 
     const [click] = await db
       .insert(affiliateClicks)

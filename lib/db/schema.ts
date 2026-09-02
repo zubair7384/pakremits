@@ -105,7 +105,8 @@ export const corridors = pgTable(
     /** Display name used in copy: "United Kingdom". */
     fromCountryName: text('from_country_name').notNull(),
     toCurrency: text('to_currency').notNull().default('PKR'),
-    /** Symbol for the amount input prefix: £, $, د.إ ... */
+    /** Symbol for the amount input prefix: £, $, SAR ... Seeded for reference;
+     *  every render reads CURRENCY_SYMBOLS so the two cannot disagree on screen. */
     currencySymbol: text('currency_symbol').notNull(),
     active: boolean('active').notNull().default(true),
   },

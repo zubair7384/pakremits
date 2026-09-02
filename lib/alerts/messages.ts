@@ -1,6 +1,7 @@
 import type { Channel } from '@/lib/notify'
 import type { SendCurrency } from '@/lib/db/schema'
 import { formatPkr } from '@/lib/ranking/compute'
+import { formatSend } from '@/lib/corridors'
 
 /**
  * Alert message composition.
@@ -49,7 +50,7 @@ export function composeTriggerMessage(context: AlertContext, channel: Channel) {
 
   const best =
     `Best right now: ${context.bestProviderName} at ${context.currentRate.toFixed(2)}, ` +
-    `${context.currencySymbol}${context.amountSent.toLocaleString('en-GB')} lands as ` +
+    `${formatSend(context.currencySymbol, context.amountSent)} lands as ` +
     `${formatPkr(context.amountReceived)}.`
 
   const context_lines = [

@@ -88,16 +88,35 @@ export const CORRIDORS: readonly CorridorConfig[] = [
   },
 ] as const
 
-/** Symbols are per-currency, not per-corridor. */
+/**
+ * Symbols are per-currency, not per-corridor.
+ *
+ * The Gulf three carry their ISO code rather than a glyph. د.إ, ﷼ and ر.ق are
+ * Arabic-script, so they stay Arabic on the English pages, flip side under the
+ * bidi algorithm next to a Latin amount, and render unjoined in satori. "SAR
+ * 1,000" is unambiguous in both locales and in the OG images. Use `formatSend`
+ * to put one in front of a number — these need a space, the glyphs do not.
+ */
 export const CURRENCY_SYMBOLS: Record<SendCurrency, string> = {
   GBP: '£',
-  AED: 'د.إ',
-  SAR: '﷼',
+  AED: 'AED',
+  SAR: 'SAR',
   USD: '$',
   CAD: 'C$',
   AUD: 'A$',
-  QAR: 'ر.ق',
+  QAR: 'QAR',
   EUR: '€',
+}
+
+/**
+ * A sent amount with its symbol: "£500", "C$500", but "SAR 500".
+ *
+ * A code is a word and needs the space; a glyph does not. Tested on the last
+ * character so "C$" and "A$" stay tight against the number.
+ */
+export function formatSend(symbol: string, amount: number | string): string {
+  const value = typeof amount === 'number' ? amount.toLocaleString('en-GB') : amount
+  return /[A-Za-z]$/.test(symbol) ? `${symbol} ${value}` : `${symbol}${value}`
 }
 
 /**

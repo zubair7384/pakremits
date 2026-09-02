@@ -12,7 +12,7 @@ import { eq } from 'drizzle-orm'
 import { setRequestLocale } from 'next-intl/server'
 import { SiteFooter, SiteHeader } from '@/components/site-chrome'
 import { toLocale } from '@/i18n/routing'
-import { CORRIDORS, CURRENCY_SYMBOLS } from '@/lib/corridors'
+import { CORRIDORS, CURRENCY_SYMBOLS, formatSend } from '@/lib/corridors'
 import { db } from '@/lib/db'
 import { providers } from '@/lib/db/schema'
 import { formatPkr } from '@/lib/ranking/compute'
@@ -195,15 +195,13 @@ export default async function ProviderPage({ params }: { params: Promise<{ local
                             {entry.row.quote.rate.toFixed(2)}
                           </td>
                           <td className="p-4 text-right tabular-nums">
-                            {symbol}
-                            {entry.row.quote.fee.toFixed(2)}
+                            {formatSend(symbol, entry.row.quote.fee.toFixed(2))}
                           </td>
                           <td className="p-4 text-right font-medium tabular-nums">
                             {formatPkr(entry.row.quote.amountReceived)}
                             {entry.amount !== null && (
                               <small className="block text-xs font-normal text-faint">
-                                on {symbol}
-                                {entry.amount.toLocaleString('en-GB')}
+                                on {formatSend(symbol, entry.amount)}
                               </small>
                             )}
                           </td>

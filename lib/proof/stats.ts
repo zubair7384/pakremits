@@ -51,6 +51,17 @@ function monthStart(now = new Date()): Date {
   return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1))
 }
 
+/**
+ * `YYYY-MM-DD`, for comparing against `site_stats_daily.date` — a text column.
+ *
+ * Passing a Date straight into a raw `sql` template fails: postgres.js binds
+ * parameters itself and throws ERR_INVALID_ARG_TYPE on a Date in a position it
+ * cannot infer. The Drizzle query builder converts it, `db.execute` does not.
+ */
+function isoDay(date: Date): string {
+  return date.toISOString().slice(0, 10)
+}
+
 export async function getProofStats(options?: { fresh?: boolean }): Promise<ProofStats> {
   if (!options?.fresh && cached && cached.expires > Date.now()) return cached.value
 
@@ -80,7 +91,7 @@ export async function getProofStats(options?: { fresh?: boolean }): Promise<Proo
           coalesce(sum(comparisons_run), 0)::int      AS comparisons,
           coalesce(sum(best_provider_changes), 0)::int AS changes
         FROM site_stats_daily
-        WHERE date >= to_char(${since}::timestamptz, 'YYYY-MM-DD')
+        WHERE date >= ${isoDay(since)}
       `),
 
       db

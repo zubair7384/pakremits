@@ -41,9 +41,10 @@ export default async function OgImage({ params }: { params: Promise<{ slug: stri
     : null
 
   const best = comparison?.rows.find((r) => r.isBest)
-  // ISO code rather than the symbol: AED, SAR and QAR use Arabic-script symbols
-  // (د.إ, ﷼, ر.ق) which satori renders unjoined and in the wrong order, exactly
-  // as it does the Urdu wordmark. "AED 1000" is unambiguous and always renders.
+  // The ISO code, which for the Gulf three is now what CURRENCY_SYMBOLS holds
+  // anyway. Taken from the corridor rather than the symbol map so no future
+  // non-Latin glyph can reach satori, which renders those unjoined and in the
+  // wrong order, exactly as it does the Urdu wordmark.
   const code = corridor ? corridor.fromCurrency : ''
 
   return new ImageResponse(

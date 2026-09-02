@@ -5,7 +5,7 @@ import { ComparePanel } from '@/components/compare-panel'
 import { RateAlertForm } from '@/components/rate-alert-form'
 import { SiteFooter, SiteHeader } from '@/components/site-chrome'
 import { Sparkline } from '@/components/sparkline'
-import { CORRIDORS, CURRENCY_SYMBOLS, defaultAmountFor } from '@/lib/corridors'
+import { CORRIDORS, CURRENCY_SYMBOLS, defaultAmountFor, formatSend } from '@/lib/corridors'
 import { formatPkr } from '@/lib/ranking/compute'
 import { getBestRatePerCorridor, getComparison, getMidMarketSeries } from '@/lib/quotes'
 import type { SendCurrency } from '@/lib/db/schema'
@@ -88,7 +88,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   // payout minus bank benchmark payout, for whatever is currently in the widget.
   const saving = comparison?.savingVsBank ?? null
   const proofStats = await getProofStats()
-  const sendAmountLabel = `${comparison?.currencySymbol ?? '£'}${comparison?.amount ?? 500}`
+  const sendAmountLabel = formatSend(comparison?.currencySymbol ?? '£', comparison?.amount ?? 500)
   const heroStat = heroSavingStat({ stats: proofStats, liveGapOnStandardAmount: saving })
   const capturedMinutesAgo = comparison?.capturedAt
     ? Math.round((Date.now() - new Date(comparison.capturedAt).getTime()) / 60000)
