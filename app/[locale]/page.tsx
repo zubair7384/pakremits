@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { ComparePanel } from '@/components/compare-panel'
+import { RateAlertForm } from '@/components/rate-alert-form'
 import { SiteFooter, SiteHeader } from '@/components/site-chrome'
 import { Sparkline } from '@/components/sparkline'
 import { CORRIDORS, CURRENCY_SYMBOLS } from '@/lib/corridors'
@@ -305,25 +306,23 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
             <div className="relative mt-7 max-w-[380px] rounded-[14px_14px_14px_4px] bg-[#DCF8C6] p-4 text-[14.5px] leading-relaxed text-[#1E2B22]">
               <div className="mb-1 text-xs font-medium text-[#4E7A5B]">Bhejo alerts</div>
-              <b className="font-medium">GBP → PKR just crossed 380.</b> Best right now: the highest
-              rate we have seen this month. Open Bhejo to see who is paying it.
+              <b className="font-medium">
+                GBP → PKR just crossed{' '}
+                {ticker[0]?.latest ? (Math.ceil(ticker[0].latest / 5) * 5).toFixed(0) : '380'}.
+              </b>{' '}
+              Best right now:{' '}
+              {chips.find((chip) => chip.currency === 'GBP')?.bestRate?.toFixed(2) ?? '—'} — open
+              Bhejo to see who is paying it.
             </div>
           </div>
 
-          {/* The form itself lands in Phase 3, along with double opt-in and
-              the Twilio/Resend notifier. */}
-          <div className="rounded-panel border border-green-3 bg-green-2 p-6">
-            <p className="text-[15px] text-[#C9D9D0]">
-              {t('alertsComingSoon')}
-            </p>
-            <Link
-              href={`${localePath(locale, '/')}#compare`}
-              className="mt-4.5 flex h-[54px] w-full items-center justify-center rounded-[12px]
-                         bg-gold px-6 font-medium text-[#4A3608] no-underline hover:bg-[#D9A43E]"
-            >
-              {t('alertsCta')}
-            </Link>
-          </div>
+          {/* Seeded with the next round number above the current rate, which is
+              what someone setting a target actually wants as a starting point. */}
+          <RateAlertForm
+            defaultRate={
+              ticker[0]?.latest ? Math.ceil(ticker[0].latest / 5) * 5 : undefined
+            }
+          />
         </section>
 
         {/* Corridors */}

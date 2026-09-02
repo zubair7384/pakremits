@@ -159,6 +159,51 @@ export const ur: Messages = {
     alertsCta: 'ابھی ریٹ کا موازنہ کریں',
   },
 
+  alerts: {
+    // TODO: native review
+    pair: 'کرنسی جوڑا',
+    // TODO: native review
+    direction: 'مجھے بتائیں جب یہ',
+    // TODO: native review
+    above: 'اس سے اوپر جائے',
+    // TODO: native review
+    below: 'اس سے نیچے آئے',
+    // TODO: native review
+    targetRate: 'مطلوبہ ریٹ',
+    // TODO: native review
+    sendBy: 'کس ذریعے بھیجیں',
+    // TODO: native review — brand name, kept in Latin script as people write it
+    whatsapp: 'WhatsApp',
+    // TODO: native review
+    email: 'ای میل',
+    // TODO: native review
+    whatsappNumber: 'WhatsApp نمبر',
+    // TODO: native review
+    emailAddress: 'ای میل ایڈریس',
+    // TODO: native review
+    digestOptIn: 'مجھے ہر ہفتے اس ریٹ کا خلاصہ بھی بھیجیں',
+    // TODO: native review
+    createAlert: 'مفت الرٹ بنائیں',
+    // TODO: native review
+    creating: 'بنایا جا رہا ہے…',
+    // TODO: native review
+    fineprint: 'ہر الرٹ پر ایک پیغام، زیادہ سے زیادہ ہر 12 گھنٹے میں ایک بار۔ ایک ٹیپ سے بند کریں۔',
+    // TODO: native review
+    genericError: 'کچھ غلط ہو گیا۔ تھوڑی دیر بعد دوبارہ کوشش کریں۔',
+    // TODO: native review
+    checkInbox: 'اپنا ان باکس دیکھیں',
+    // TODO: native review
+    checkInboxBody:
+      'ہم نے آپ کو الرٹ کی تصدیق کے لیے ایک لنک بھیجا ہے۔ جب تک آپ اس پر کلک نہیں کرتے، کوئی ' +
+      'پیغام نہیں آئے گا، اور اگر آپ کلک نہ کریں تو ہم 48 گھنٹے میں آپ کا ایڈریس حذف کر دیتے ہیں۔',
+    // TODO: native review
+    alertSet: 'الرٹ لگ گیا',
+    // TODO: native review
+    alertSetBody:
+      'جیسے ہی ریٹ آپ کی مقررہ حد کو پار کرے گا، ہم آپ کو اس وقت کی بہترین سروس کے ساتھ پیغام ' +
+      'بھیج دیں گے۔ زیادہ سے زیادہ ہر 12 گھنٹے میں ایک بار۔',
+  },
+
   panel: {
     // TODO: native review
     heading: 'رقم بھیجنے والی سروسز کا موازنہ',

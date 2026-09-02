@@ -94,6 +94,32 @@ export const en = {
     alertsCta: 'Compare rates now',
   },
 
+  alerts: {
+    pair: 'Currency pair',
+    direction: 'Tell me when it',
+    above: 'rises above',
+    below: 'falls below',
+    targetRate: 'Target rate',
+    sendBy: 'Send it by',
+    whatsapp: 'WhatsApp',
+    email: 'Email',
+    whatsappNumber: 'WhatsApp number',
+    emailAddress: 'Email address',
+    digestOptIn: 'Also send me a weekly summary of this rate',
+    createAlert: 'Create free alert',
+    creating: 'Setting it up…',
+    fineprint: 'One message per alert, max once every 12 hours. Unsubscribe with one tap.',
+    genericError: 'Something went wrong. Try again in a moment.',
+    checkInbox: 'Check your inbox',
+    checkInboxBody:
+      'We have sent you a link to confirm the alert. Nothing arrives until you click it, and ' +
+      'if you never do, we delete the address within 48 hours.',
+    alertSet: 'Alert set',
+    alertSetBody:
+      'We will message you the moment the rate crosses your target, with the best provider at ' +
+      'that moment. At most once every 12 hours.',
+  },
+
   panel: {
     heading: 'Compare money transfer services',
     sendingFrom: 'Sending from',

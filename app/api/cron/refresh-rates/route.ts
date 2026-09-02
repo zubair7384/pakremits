@@ -15,6 +15,7 @@ import { CORRIDORS } from '@/lib/corridors'
 import { isAuthorisedCronRequest } from '@/lib/cron/auth'
 import { getMidMarketRate } from '@/lib/fx'
 import { pruneOldQuotes, refreshAllRates } from '@/lib/providers/refresh'
+import { evaluateAlerts, pruneUnconfirmedAlerts } from '@/lib/alerts/evaluate'
 
 export const dynamic = 'force-dynamic'
 // The full grid takes well over the 10s default. Hobby allows up to 60s.
@@ -63,6 +64,19 @@ export async function GET(request: Request) {
     const quotes = await refreshAllRates()
     const pruned = await pruneOldQuotes()
 
+    // Alerts are evaluated after quotes are committed, so they trigger on the
+    // rates this run just wrote rather than the previous run's. A failure here
+    // is a warning, not a run failure — losing an alert must not lose the
+    // refresh that preceded it.
+    let alerts: Awaited<ReturnType<typeof evaluateAlerts>> | null = null
+    let prunedAlerts = 0
+    try {
+      alerts = await evaluateAlerts()
+      prunedAlerts = await pruneUnconfirmedAlerts()
+    } catch (error) {
+      console.error('[cron] alert evaluation failed:', error)
+    }
+
     await db
       .update(cronRuns)
       .set({
@@ -86,7 +100,8 @@ export async function GET(request: Request) {
       },
       midMarket: fx,
       prunedQuotes: pruned,
-      // TODO(Phase 3): evaluate rate alerts here, after quotes are committed.
+      alerts,
+      prunedUnconfirmedAlerts: prunedAlerts,
     })
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)

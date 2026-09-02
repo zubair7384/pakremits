@@ -190,6 +190,12 @@ export const rateAlerts = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     /** Enforces the once-per-12-hours rule promised on the form. */
     lastTriggeredAt: timestamp('last_triggered_at', { withTimezone: true }),
+    /** Separate clock from lastTriggeredAt — a digest is not a trigger, and
+     *  receiving one must not suppress a real threshold crossing. */
+    lastDigestAt: timestamp('last_digest_at', { withTimezone: true }),
+    /** Set when the double opt-in link is used. Kept alongside `confirmed`
+     *  because "when did they consent" is the question a regulator asks. */
+    confirmedAt: timestamp('confirmed_at', { withTimezone: true }),
     unsubscribeToken: text('unsubscribe_token').notNull().unique(),
   },
   (t) => [index('rate_alerts_eval_idx').on(t.fromCurrency, t.active, t.confirmed)],

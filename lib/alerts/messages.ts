@@ -1,0 +1,144 @@
+import type { Channel } from '@/lib/notify'
+import type { SendCurrency } from '@/lib/db/schema'
+import { formatPkr } from '@/lib/ranking/compute'
+
+/**
+ * Alert message composition.
+ *
+ * Every message carries three things, in this order: what happened, who is
+ * best right now, and a link. That order is deliberate — the recipient is
+ * standing in a shop deciding whether to act, and the number is the point.
+ *
+ * Kept free of I/O so the exact wording is unit-testable. Copy rules apply:
+ * sentence case, PKR with the symbol and thousands separators, no marketing
+ * filler, and every figure passed in rather than hard-coded.
+ */
+const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://bhejo.pk'
+
+export interface AlertContext {
+  fromCurrency: SendCurrency
+  targetRate: number
+  direction: 'above' | 'below'
+  /** Best rate actually obtainable right now. */
+  currentRate: number
+  bestProviderName: string
+  bestProviderSlug: string
+  amountSent: number
+  currencySymbol: string
+  amountReceived: number
+  /** PKR beaten against the bank benchmark, when we have one. */
+  savingVsBank: number | null
+  /** Highest rate seen in the trailing window, for the "best in N days" line. */
+  highestInDays: number | null
+  token: string
+}
+
+/** Affiliate link, tagged so alert conversions are separable in reporting. */
+function goLink(context: AlertContext): string {
+  return (
+    `${SITE}/go/${context.bestProviderSlug}` +
+    `?amount=${context.amountSent}&method=bank&utm_source=alert&utm_medium=${'email'}`
+  )
+}
+
+export function composeTriggerMessage(context: AlertContext, channel: Channel) {
+  const crossed = context.direction === 'above' ? 'crossed' : 'dropped below'
+
+  const headline =
+    `${context.fromCurrency} → PKR just ${crossed} ${context.targetRate.toFixed(2)}.`
+
+  const best =
+    `Best right now: ${context.bestProviderName} at ${context.currentRate.toFixed(2)}, ` +
+    `${context.currencySymbol}${context.amountSent.toLocaleString('en-GB')} lands as ` +
+    `${formatPkr(context.amountReceived)}.`
+
+  const context_lines = [
+    context.highestInDays !== null
+      ? `This is the highest rate in ${context.highestInDays} days.`
+      : null,
+    context.savingVsBank !== null
+      ? `That is ${formatPkr(context.savingVsBank)} more than a typical high-street bank.`
+      : null,
+  ].filter(Boolean) as string[]
+
+  // WhatsApp and SMS are read on a lock screen; keep them to the three facts
+  // and one link. Email can carry the extra context and the manage link.
+  if (channel !== 'email') {
+    return {
+      subject: headline,
+      text: [headline, best, goLink(context)].join(' '),
+    }
+  }
+
+  return {
+    subject: `${context.fromCurrency} → PKR is at ${context.currentRate.toFixed(2)}`,
+    text: [
+      headline,
+      '',
+      best,
+      ...(context_lines.length ? ['', ...context_lines] : []),
+      '',
+      `Send now: ${goLink(context)}`,
+      '',
+      'Quotes move. The provider confirms the final rate before you pay.',
+      '',
+      `Manage or stop this alert: ${SITE}/alerts/manage/${context.token}`,
+      `Unsubscribe in one click: ${SITE}/alerts/unsubscribe/${context.token}`,
+    ].join('\n'),
+  }
+}
+
+/** Double opt-in email. Deliberately short — it has exactly one job. */
+export function composeConfirmMessage(context: {
+  fromCurrency: SendCurrency
+  targetRate: number
+  direction: 'above' | 'below'
+  token: string
+}) {
+  const condition = context.direction === 'above' ? 'rises above' : 'falls below'
+
+  return {
+    subject: 'Confirm your Bhejo rate alert',
+    text: [
+      `You asked us to tell you when ${context.fromCurrency} → PKR ${condition} ` +
+        `${context.targetRate.toFixed(2)}.`,
+      '',
+      `Confirm it here: ${SITE}/alerts/confirm/${context.token}`,
+      '',
+      'We will not send anything until you do. If this was not you, ignore this ' +
+        'message and nothing further will arrive — the unconfirmed alert is ' +
+        'deleted automatically.',
+    ].join('\n'),
+  }
+}
+
+/** Weekly digest for people who ticked the box. */
+export function composeDigestMessage(context: {
+  fromCurrency: SendCurrency
+  currentRate: number
+  weekChangePercent: number | null
+  bestProviderName: string | null
+  token: string
+}) {
+  const direction =
+    context.weekChangePercent === null
+      ? null
+      : context.weekChangePercent >= 0
+        ? `up ${context.weekChangePercent.toFixed(2)}% this week`
+        : `down ${Math.abs(context.weekChangePercent).toFixed(2)}% this week`
+
+  return {
+    subject: `${context.fromCurrency} → PKR this week: ${context.currentRate.toFixed(2)}`,
+    text: [
+      `${context.fromCurrency} → PKR is ${context.currentRate.toFixed(2)}` +
+        (direction ? `, ${direction}.` : '.'),
+      ...(context.bestProviderName
+        ? ['', `Paying the most right now: ${context.bestProviderName}.`]
+        : []),
+      '',
+      `Full comparison: ${SITE}/${context.fromCurrency.toLowerCase()}-to-pkr`,
+      '',
+      `Stop the digest: ${SITE}/alerts/manage/${context.token}`,
+    ].join('\n'),
+  }
+}

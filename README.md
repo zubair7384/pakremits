@@ -4,13 +4,12 @@ Compares money-transfer services sending to Pakistan, ranked by the exact PKR
 amount that lands in the recipient's account. Not by rate, not by fee, not by
 who pays us.
 
-**Status: Phases 1 and 2 complete.** The rate engine runs against live provider
+**Status: Phases 1–3 complete.** The rate engine runs against live provider
 APIs and the full public site renders from it — home, 8 corridor pages, 8 rate
 pages, provider and head-to-head pages, method pages, and the static set, in
 English and Urdu. 26 pages prerender.
 
-Phase 3 (rate alerts), Phase 4 (admin dashboard) and Phase 5 (launch checklist)
-are not built. Two of the fourteen providers in the original brief are live; see
+Phase 4 (admin dashboard) and Phase 5 (launch checklist) are not built. Two of the fourteen providers in the original brief are live; see
 [Provider access](#provider-access-as-surveyed-on-2-sep-2026) for why the rest
 are not, which is the main open question for the project.
 
@@ -39,6 +38,22 @@ Probing GBP → PKR, bank, 500 GBP
 - `computeReceived` and the ranking rules, with 76 unit tests.
 - Cron refresh endpoint plus a GitHub Actions schedule.
 - Password-protected manual quote override at `/admin/quotes`.
+- Rate alerts: double opt-in email, WhatsApp/SMS behind a swappable notifier,
+  12-hour rate limiting, weekly digest, one-click unsubscribe that deletes.
+
+### Alerts without a Resend or Twilio account
+
+`lib/notify/` falls back to a console notifier whenever credentials are absent,
+so the entire pipeline — evaluation, rate limiting, message composition, trigger
+recording — runs locally and prints the messages it would have sent. Sends are
+marked `simulated`, and a trigger is still recorded, otherwise a local run would
+re-fire the same alert every 15 minutes.
+
+**Alerts trigger on the best rate actually obtainable, not the mid-market rate.**
+Nobody can get the mid-market rate, so an alert firing when it crosses 380 would
+tell the recipient to act on a number they cannot have — and the message would
+then have to read "crossed 380, best available 378.90". If no provider quote
+exists for a corridor we do not fall back to mid-market; we simply do not fire.
 
 ---
 

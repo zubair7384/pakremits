@@ -15,6 +15,8 @@ export default function robots(): MetadataRoute.Robots {
           // crawling them would fill the clicks table with bot traffic and
           // corrupt the reporting the whole business model depends on.
           '/go/',
+          // Alert URLs are capability tokens. Indexing one would publish it.
+          '/alerts/',
           // The internal paths behind the pretty-URL rewrites. Indexing both
           // forms would split the ranking signal between duplicates.
           '/corridor/',
