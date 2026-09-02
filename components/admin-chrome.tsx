@@ -11,6 +11,7 @@ const NAV = [
   { href: '/admin', label: 'Dashboard' },
   { href: '/admin/providers', label: 'Providers & affiliate links' },
   { href: '/admin/quotes', label: 'Quote overrides' },
+  { href: '/admin/proof', label: 'Proof & savings' },
 ]
 
 export function AdminNav({ current }: { current: string }) {

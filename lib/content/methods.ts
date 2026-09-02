@@ -5,7 +5,7 @@
  * already knows they want the money in a JazzCash wallet and needs to know who
  * does that, rather than someone comparing services from a country. So the
  * copy answers "how does this rail work and what are its limits", not "which
- * provider is cheapest" — the table answers that.
+ * provider costs least" — the table answers that.
  *
  * Same caveat as the corridor content: facts here age, `lastReviewed` says
  * when they were last checked, and NEEDS VERIFICATION marks figures that must

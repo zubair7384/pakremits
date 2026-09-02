@@ -6,11 +6,14 @@
  * returns is already computed — the client does no ranking or arithmetic, so
  * there is exactly one implementation of the ranking rules.
  */
+import { randomUUID } from 'node:crypto'
+import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { DELIVERY_METHODS } from '@/lib/db/schema'
 import { CORRIDORS } from '@/lib/corridors'
 import { getComparison } from '@/lib/quotes'
+import { SESSION_COOKIE, recordComparisonRun } from '@/lib/proof/events'
 
 export const dynamic = 'force-dynamic'
 
@@ -48,13 +51,38 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Unknown corridor' }, { status: 404 })
     }
 
-    return NextResponse.json(comparison, {
+    // Count the comparison. Deduplicated to one per session per minute inside
+    // recordComparisonRun, so dragging the amount field is one event, not forty.
+    const jar = await cookies()
+    let sessionId = jar.get(SESSION_COOKIE)?.value
+    const isNewSession = !sessionId
+    if (!sessionId) sessionId = randomUUID()
+
+    await recordComparisonRun(sessionId, comparison.corridorId ?? null)
+
+    const response = NextResponse.json(comparison, {
       headers: {
-        // Quotes refresh every 15 minutes; a short shared cache absorbs the
-        // burst from someone dragging the amount field without going stale.
-        'cache-control': 'public, s-maxage=60, stale-while-revalidate=300',
+        // Per-session counting makes this response session-specific, so it can
+        // no longer sit in a shared CDN cache. `private` keeps the browser
+        // cache — which still absorbs a dragged slider — without one visitor's
+        // response being served to another.
+        'cache-control': 'private, max-age=60',
       },
     })
+
+    if (isNewSession) {
+      response.cookies.set(SESSION_COOKIE, sessionId, {
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production',
+        path: '/',
+        // Long enough to deduplicate a visit, short enough not to be a
+        // durable identifier. Nothing personal is stored against it.
+        maxAge: 60 * 60 * 24,
+      })
+    }
+
+    return response
   } catch (error) {
     console.error('[api/quotes] failed:', error)
     return NextResponse.json({ error: 'Could not load quotes' }, { status: 500 })

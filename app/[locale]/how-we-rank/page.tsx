@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { setRequestLocale } from 'next-intl/server'
 import { SiteFooter, SiteHeader } from '@/components/site-chrome'
+import { SavingsMethodology } from '@/components/savings-methodology'
 import { toLocale } from '@/i18n/routing'
 
 /**
@@ -19,6 +20,14 @@ export const metadata: Metadata = {
     'How the figure is calculated, where our money comes from, and what we do not cover.',
   alternates: { canonical: '/how-we-rank' },
 }
+
+/**
+ * The savings total and the benchmark table are read from the database, so this
+ * page cannot be fully static — it would bake in whatever the numbers were at
+ * build time and never move. Same 15-minute window as the corridor pages, and
+ * the cron pings /api/cron/revalidate after each refresh.
+ */
+export const revalidate = 900
 
 export default async function HowWeRankPage({
   params,
@@ -123,10 +132,15 @@ export default async function HowWeRankPage({
               </p>
               <p>
                 It is clearly labelled, always sorts last, and never carries an affiliate link — we
-                make nothing from it. Because it is computed from the live mid-market rate rather
-                than stored, the saving figure moves with the market rather than being a number we
-                picked once and left there. If your own bank does better than the benchmark, good;
-                the row is a typical case, not a worst case.
+                make nothing from it. Each benchmark is stored with the date it was set and
+                refreshed weekly from the live mid-market rate, so it tracks the market without
+                being a number we picked once and left there. The current figures, and when each
+                was last updated, are in the table under{' '}
+                <Link href="#savings" className="text-leaf underline underline-offset-2">
+                  how we count savings
+                </Link>
+                . If your own bank does better than the benchmark, good; the row is a typical case,
+                not a worst case.
               </p>
             </div>
           </section>
@@ -156,6 +170,8 @@ export default async function HowWeRankPage({
               </p>
             </div>
           </section>
+
+          <SavingsMethodology />
 
           <section className="mt-10">
             <h2 className="text-[26px] leading-tight font-semibold">Corrections</h2>

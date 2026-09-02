@@ -13,11 +13,15 @@
  */
 import { eq } from 'drizzle-orm'
 import { db } from '@/lib/db'
-import { cronRuns, midMarketRates } from '@/lib/db/schema'
+import { type SendCurrency, cronRuns, midMarketRates } from '@/lib/db/schema'
 import { CORRIDORS } from '@/lib/corridors'
 import { getMidMarketRate } from '@/lib/fx'
 import { pruneOldQuotes, refreshAllRates } from '@/lib/providers/refresh'
 import { evaluateAlerts, pruneUnconfirmedAlerts } from '@/lib/alerts/evaluate'
+import { refreshBenchmarks } from '@/lib/proof/benchmarks'
+import { pruneComparisonEvents, rollUpSiteStats } from '@/lib/proof/events'
+import { detectLeaderChanges } from '@/lib/proof/leaders'
+import { invalidateProofStats } from '@/lib/proof/stats'
 
 export interface FullRefreshResult {
   runId: number | null
@@ -26,12 +30,24 @@ export interface FullRefreshResult {
   prunedQuotes: number
   alerts: Awaited<ReturnType<typeof evaluateAlerts>> | null
   prunedUnconfirmedAlerts: number
+  proof: {
+    benchmarksWritten: number
+    benchmarksPinned: number
+    leaderChanges: number
+    statsDaysRolled: number
+    prunedEvents: number
+  }
   durationMs: number
 }
 
 /** Refresh the mid-market line for all eight currencies, in parallel. */
-async function refreshMidMarket(): Promise<{ written: number; failed: string[] }> {
+async function refreshMidMarket(): Promise<{
+  written: number
+  failed: string[]
+  rates: Map<SendCurrency, number>
+}> {
   const failed: string[] = []
+  const rates = new Map<SendCurrency, number>()
 
   const results = await Promise.all(
     CORRIDORS.map(async (corridor) => {
@@ -44,6 +60,7 @@ async function refreshMidMarket(): Promise<{ written: number; failed: string[] }
           capturedAt: rate.capturedAt,
           source: rate.source,
         })
+        rates.set(rate.fromCurrency, rate.rate)
         return true
       } catch (error) {
         failed.push(
@@ -54,7 +71,7 @@ async function refreshMidMarket(): Promise<{ written: number; failed: string[] }
     }),
   )
 
-  return { written: results.filter(Boolean).length, failed }
+  return { written: results.filter(Boolean).length, failed, rates }
 }
 
 /**
@@ -94,6 +111,35 @@ export async function runFullRefresh(job = 'refresh-rates'): Promise<FullRefresh
     console.error('[cron] alert evaluation failed:', error)
   }
 
+  /**
+   * Proof layer. Runs after the quotes are written so the leader comparison
+   * sees this pass's rankings, and every step is individually guarded: a
+   * failure here must not mark an otherwise healthy refresh as failed.
+   */
+  const proof = {
+    benchmarksWritten: 0,
+    benchmarksPinned: 0,
+    leaderChanges: 0,
+    statsDaysRolled: 0,
+    prunedEvents: 0,
+  }
+
+  try {
+    const benchmarks = await refreshBenchmarks(midMarket.rates)
+    proof.benchmarksWritten = benchmarks.written
+    proof.benchmarksPinned = benchmarks.skippedPinned
+
+    proof.leaderChanges = (await detectLeaderChanges()).length
+    proof.statsDaysRolled = await rollUpSiteStats()
+    proof.prunedEvents = await pruneComparisonEvents()
+
+    // The 5-minute memo would otherwise keep serving pre-refresh numbers to
+    // this instance for another five minutes.
+    invalidateProofStats()
+  } catch (error) {
+    console.error('[cron] proof layer failed:', error)
+  }
+
   const durationMs = Date.now() - started
 
   if (runId !== null) {
@@ -118,6 +164,7 @@ export async function runFullRefresh(job = 'refresh-rates'): Promise<FullRefresh
     prunedQuotes,
     alerts,
     prunedUnconfirmedAlerts,
+    proof,
     durationMs,
   }
 }

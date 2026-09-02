@@ -56,7 +56,7 @@ export const ur: Messages = {
     // TODO: native review
     liveFallback: 'لائیو ریٹ',
     // TODO: native review
-    statSaving: '{amount} پر بینک کے مقابلے میں عام بچت',
+    statSaving: '{amount} پر عام بینک کے مقابلے میں اس وقت زیادہ',
     // TODO: native review
     statRefreshValue: '15 منٹ',
     // TODO: native review
@@ -83,12 +83,6 @@ export const ur: Messages = {
     // TODO: native review
     faqTitle: 'عام سوالات',
 
-    // TODO: native review
-    statLostTitle: 'سالانہ {amount}',
-    // TODO: native review
-    statLostBody:
-      'جو خاندان ہر مہینے {monthly} کسی عام بینک کے ذریعے بھیجتا ہے، وہ بہترین ریٹ والی سروس ' +
-      'کے مقابلے میں اتنا نقصان اٹھاتا ہے۔',
     // TODO: native review
     statComparedBody:
       'اس ملک کے لیے موازنہ کی گئی سروسز۔ ہم صرف وہی سروسز شامل کرتے ہیں جن کا لائیو ریٹ ہم ' +
@@ -157,6 +151,32 @@ export const ur: Messages = {
       'ایک بار، اور ایک ٹیپ سے بند کرنے کی سہولت۔',
     // TODO: native review
     alertsCta: 'ابھی ریٹ کا موازنہ کریں',
+  },
+
+  proof: {
+    // TODO: native review — every string in this namespace
+    pakistanOnly: 'صرف پاکستان کے کوریڈورز کے لیے بنایا گیا۔',
+    // TODO: native review
+    providersRefreshed: '{providers} سروسز کا موازنہ، ہر {minutes} منٹ بعد تازہ۔',
+    // TODO: native review
+    liveGap: '{sendAmount} پر عام بینک کے مقابلے میں اس وقت {amount} زیادہ۔',
+    // TODO: native review
+    rankedByRupees: 'درجہ بندی وصول ہونے والے روپوں پر۔ کبھی اس پر نہیں کہ ہمیں کون ادا کرتا ہے۔',
+    // TODO: native review
+    monthlyActivity:
+      'اس مہینے {comparisons} موازنے کیے گئے۔ بہترین ریٹ {changes} بار تبدیل ہوا۔',
+    // TODO: native review
+    savingsSinceLaunch: 'آغاز سے اب تک PakRemits صارفین نے {amount} بچائے۔',
+    // TODO: native review
+    savingsSinceLaunchLabel: 'آغاز سے صارفین نے بچائے',
+    // TODO: native review
+    savingsSinceLaunchLink: 'دیکھیں ہم اسے کیسے شمار کرتے ہیں۔',
+    // TODO: native review — do not enable without a competitor check
+    firstPakistanOnlySite: 'پاکستان کی پہلی صرف پاکستان کے لیے ریمٹنس موازنہ سائٹ',
+    // TODO: native review
+    howWeCount: 'ہم اسے کیسے شمار کرتے ہیں',
+    // TODO: native review
+    stripLabel: 'ہمارے اپنے ڈیٹا سے جو ہم دکھا سکتے ہیں',
   },
 
   alerts: {

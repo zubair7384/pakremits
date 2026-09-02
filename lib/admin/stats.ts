@@ -118,7 +118,7 @@ export async function alertStats(): Promise<AlertStats> {
         count,
       })),
       // Contact details are deliberately absent — the dashboard needs volumes,
-      // not addresses, and not displaying them is the cheapest way to keep them
+      // not addresses, and not displaying them is the simplest way to keep them
       // out of a screenshot.
       recent: rows.slice(0, 15).map((r) => ({
         createdAt: r.createdAt,
@@ -240,6 +240,47 @@ export async function monetisationGap() {
     return rows
   } catch (error) {
     console.error('[admin] monetisationGap failed:', error)
+    return []
+  }
+}
+
+export interface ProofDay {
+  date: string
+  comparisonsRun: number
+  clicks: number
+  savingPkrTotal: number
+  bestProviderChanges: number
+}
+
+/**
+ * The daily proof series for the admin chart.
+ *
+ * Reads `site_stats_daily` rather than aggregating the raw tables, so the chart
+ * and the public claims are looking at the same rollup. A day with no row is
+ * returned as zeroes rather than skipped, otherwise the chart would compress
+ * quiet days out of existence and misrepresent the shape.
+ */
+export async function proofByDay(days = 30): Promise<ProofDay[]> {
+  try {
+    const rows = (await db.execute(sql`
+      SELECT
+        d.day::text                            AS date,
+        coalesce(s.comparisons_run, 0)         AS "comparisonsRun",
+        coalesce(s.clicks, 0)                  AS clicks,
+        coalesce(s.saving_pkr_total, 0)::float AS "savingPkrTotal",
+        coalesce(s.best_provider_changes, 0)   AS "bestProviderChanges"
+      FROM generate_series(
+             (current_date - make_interval(days => ${days}))::date,
+             current_date,
+             interval '1 day'
+           ) AS d(day)
+      LEFT JOIN site_stats_daily s ON s.date = d.day::text
+      ORDER BY 1
+    `)) as unknown as ProofDay[]
+
+    return rows
+  } catch (error) {
+    console.error('[admin] proofByDay failed:', error)
     return []
   }
 }

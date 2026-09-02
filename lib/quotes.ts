@@ -22,26 +22,18 @@ import {
   defaultAmountFor,
 } from '@/lib/corridors'
 import { computeReceived, round } from '@/lib/ranking/compute'
+import { type Benchmark, getBenchmark } from '@/lib/proof/benchmarks'
 import { type RankedQuote, type SortKey, rankQuotes, savingVsBenchmark } from '@/lib/ranking/rank'
 
 /**
- * Typical high-street bank pricing, as a markup off mid-market plus a wire fee.
+ * The bank benchmark now lives in the `bank_benchmarks` table, not in this
+ * file. It moved because the savings ledger measures against it, and a figure
+ * that a user-facing total depends on needs a row, a date and a provenance
+ * note rather than a constant nobody can audit.
  *
- * The brief calls for a stored typical-bank benchmark per corridor, and this is
- * it. These are documented assumptions, not live data — the row is labelled
- * "Typical high-street bank", sorts last, and never carries an affiliate link.
- * Revisit the numbers if the major banks move; they change slowly.
+ * The markup assumptions that generate it, and the weekly refresh, are in
+ * lib/proof/benchmarks.ts. /how-we-rank#savings renders the live table.
  */
-const BANK_BENCHMARK: Record<SendCurrency, { markupPercent: number; fee: number }> = {
-  GBP: { markupPercent: 3.5, fee: 15 },
-  EUR: { markupPercent: 3.2, fee: 15 },
-  USD: { markupPercent: 3.8, fee: 25 },
-  CAD: { markupPercent: 3.5, fee: 20 },
-  AUD: { markupPercent: 3.5, fee: 20 },
-  AED: { markupPercent: 2.8, fee: 40 },
-  SAR: { markupPercent: 2.8, fee: 40 },
-  QAR: { markupPercent: 2.8, fee: 40 },
-}
 
 /** A quote as the UI needs it: provider branding included, numbers pre-computed. */
 export interface ComparisonRow {
@@ -76,6 +68,8 @@ export interface Comparison {
    */
   unavailable?: boolean
   corridorSlug: string
+  /** Needed by the proof layer to attribute a comparison event to a corridor. */
+  corridorId: number | null
   fromCurrency: SendCurrency
   currencySymbol: string
   deliveryMethod: DeliveryMethod
@@ -146,28 +140,25 @@ export async function latestMidMarket(currency: SendCurrency): Promise<number | 
 }
 
 /**
- * Build the bank benchmark row from the live mid-market rate.
+ * Build the bank benchmark row from the stored benchmark for this corridor.
  *
- * Computed rather than stored so the saving figure moves with the market, which
- * the copy rules require — only the markup and fee are constants.
+ * Returns null when the corridor has no benchmark recorded. That is a real
+ * state, not an error: the table simply shows no comparison row, and
+ * `savingVsBank` stays null rather than being measured against a guess.
  */
 function benchmarkRow(
-  currency: SendCurrency,
+  benchmark: Benchmark,
   amount: number,
-  midMarket: number,
   method: DeliveryMethod,
 ): ComparisonRow {
-  const { markupPercent, fee } = BANK_BENCHMARK[currency]
-  const rate = round(midMarket * (1 - markupPercent / 100), 6)
-
   return {
     providerSlug: 'typical-bank',
     providerName: 'Typical high-street bank',
     brandColor: '#8A8F8C',
     brandTextColor: '#FFFFFF',
-    rate,
-    fee,
-    amountReceived: computeReceived(amount, rate, fee),
+    rate: benchmark.rate,
+    fee: benchmark.fee,
+    amountReceived: computeReceived(amount, benchmark.rate, benchmark.fee),
     deliverySpeedText: '2–4 days',
     deliverySpeedMinutes: 4320,
     promo: false,
@@ -175,7 +166,7 @@ function benchmarkRow(
     deliveryMethod: method,
     source: 'benchmark',
     stale: false,
-    capturedAt: new Date(),
+    capturedAt: benchmark.updatedAt,
     featured: false,
     isBenchmark: true,
     hasAffiliateLink: false,
@@ -206,6 +197,7 @@ export async function getComparison(options: {
   const outage = (): Comparison => ({
     unavailable: true,
     corridorSlug,
+    corridorId: null,
     fromCurrency: config?.fromCurrency ?? 'GBP',
     currencySymbol: CURRENCY_SYMBOLS[config?.fromCurrency ?? 'GBP'],
     deliveryMethod: method,
@@ -289,7 +281,14 @@ export async function getComparison(options: {
 
   if (rows === null) return outage()
 
-  const midMarket = await latestMidMarket(currency)
+  // Fetched together: both are needed before the rows can be ranked, and the
+  // benchmark is a single indexed lookup.
+  const [midMarket, benchmark] = await Promise.all([
+    latestMidMarket(currency),
+    safeRead(`getBenchmark(${corridor.id}/${method})`, null, () =>
+      getBenchmark(corridor.id, method),
+    ),
+  ])
 
   const comparisonRows: ComparisonRow[] = rows
     // The stored benchmark provider is replaced by a live-computed row below.
@@ -321,8 +320,8 @@ export async function getComparison(options: {
       }
     })
 
-  if (includeBenchmark && midMarket !== null && comparisonRows.length > 0) {
-    comparisonRows.push(benchmarkRow(currency, amount, midMarket, method))
+  if (includeBenchmark && benchmark !== null && comparisonRows.length > 0) {
+    comparisonRows.push(benchmarkRow(benchmark, amount, method))
   }
 
   const ranked = rankQuotes(comparisonRows, sortBy)
@@ -334,6 +333,7 @@ export async function getComparison(options: {
 
   return {
     corridorSlug: corridor.slug,
+    corridorId: corridor.id,
     fromCurrency: currency,
     currencySymbol: CURRENCY_SYMBOLS[currency],
     deliveryMethod: method,

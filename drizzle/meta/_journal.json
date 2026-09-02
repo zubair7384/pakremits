@@ -22,6 +22,20 @@
       "when": 1788332765026,
       "tag": "0002_alert_digest_columns",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1788342931673,
+      "tag": "0003_proof_layer",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1788342932673,
+      "tag": "0004_proof_rls",
+      "breakpoints": true
     }
   ]
 }

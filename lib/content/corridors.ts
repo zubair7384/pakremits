@@ -54,7 +54,7 @@ const INCENTIVE_ANSWER =
   'sent through approved channels, which is why so many licensed services show a zero fee on ' +
   'transfers to Pakistan rather than the two or three percent you would expect. The subsidy goes ' +
   'to the provider, not to you, so it shows up as a lower headline cost rather than a payment. ' +
-  'It also means the cheapest-looking option is not automatically the one that delivers the most ' +
+  'It also means the option with the lowest headline cost is not automatically the one that delivers the most ' +
   'rupees — the exchange rate still does most of the work.'
 
 const WALLET_ANSWER =
@@ -122,7 +122,7 @@ export const CORRIDOR_CONTENT: Record<SendCurrency, CorridorContent> = {
     ],
     faqs: [
       {
-        q: 'What is the cheapest way to send money from the UK to Pakistan?',
+        q: 'Which service delivers the most rupees when sending from the UK to Pakistan?',
         a: 'Whichever service is at the top of the table above at the moment you look, because it changes. Promotional first-transfer rates mean a provider can lead one week and not the next, which is exactly why the ranking is recomputed every 15 minutes rather than written into the page.',
       },
       { q: 'Can I send straight to JazzCash or Easypaisa?', a: WALLET_ANSWER },
@@ -339,7 +339,7 @@ export const CORRIDOR_CONTENT: Record<SendCurrency, CorridorContent> = {
       {
         heading: 'Funding a transfer from Canada',
         body: [
-          'Interac e-Transfer and direct debit from a Canadian account are the cheapest ways to ' +
+          'Interac e-Transfer and direct debit from a Canadian account cost the least to ' +
             'fund a transfer, and both are widely supported. Card funding is available almost ' +
             'everywhere and costs more, in the usual pattern.',
           'Canadian bank transfers can be slow to leave the country compared with the UK, so ' +
@@ -402,7 +402,7 @@ export const CORRIDOR_CONTENT: Record<SendCurrency, CorridorContent> = {
           'Send in the Australian morning if you want same-day arrival. By the Australian ' +
             'evening the Pakistani banking day is ending, and a transfer will usually queue until ' +
             'the next morning even if the provider accepted it instantly.',
-          'PayID and direct debit from an Australian bank account are the cheapest funding ' +
+          'PayID and direct debit from an Australian bank account are the lowest-cost funding ' +
             'routes. Card funding costs more here in the same way it does everywhere.',
         ],
       },
@@ -512,7 +512,7 @@ export const CORRIDOR_CONTENT: Record<SendCurrency, CorridorContent> = {
       {
         heading: 'SEPA and funding',
         body: [
-          'Funding by SEPA transfer from a euro account is the cheapest route and is supported by ' +
+          'Funding by SEPA transfer from a euro account costs the least and is supported by ' +
             'every digital provider serving this corridor. SEPA Instant, where your bank offers ' +
             'it, removes most of the European delay entirely and gets the transfer to the ' +
             'provider within seconds.',

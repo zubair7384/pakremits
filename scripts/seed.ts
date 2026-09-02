@@ -9,10 +9,12 @@
  * so it can be deleted once real history accumulates.
  */
 import '../lib/load-env'
+import { desc } from 'drizzle-orm'
 import { getMidMarketHistory, getMidMarketRate } from '../lib/fx'
 import { CORRIDORS, CURRENCY_SYMBOLS } from '../lib/corridors'
 import { db } from '../lib/db'
-import { corridors, midMarketRates, providers } from '../lib/db/schema'
+import { type SendCurrency, corridors, midMarketRates, providers } from '../lib/db/schema'
+import { refreshBenchmarks } from '../lib/proof/benchmarks'
 
 /**
  * Provider catalogue.
@@ -245,11 +247,36 @@ async function seedMidMarketHistory(days = 30) {
   console.log(`✓ mid-market history: ${real} real, ${synthetic} synthetic`)
 }
 
+/**
+ * Seed the bank benchmarks from the latest mid-market rate.
+ *
+ * Without these the comparison table has no benchmark row and the savings
+ * ledger records every click with a null saving, so a fresh install would count
+ * nothing. The cron regenerates them weekly; this just means the site works on
+ * the first run rather than after the first Sunday.
+ */
+async function seedBankBenchmarks() {
+  const rows = await db
+    .select({ currency: midMarketRates.fromCurrency, rate: midMarketRates.rate })
+    .from(midMarketRates)
+    .orderBy(desc(midMarketRates.capturedAt))
+
+  // Newest row wins; the query is already in descending capture order.
+  const latest = new Map<SendCurrency, number>()
+  for (const row of rows) {
+    if (!latest.has(row.currency)) latest.set(row.currency, Number(row.rate))
+  }
+
+  const { written } = await refreshBenchmarks(latest)
+  console.log(`✓ bank benchmarks: ${written} written`)
+}
+
 async function main() {
   console.log('Seeding PakRemits…')
   await seedProviders()
   await seedCorridors()
   await seedMidMarketHistory()
+  await seedBankBenchmarks()
   console.log('Done. Run `npm run refresh` to pull the first live quotes.')
   process.exit(0)
 }

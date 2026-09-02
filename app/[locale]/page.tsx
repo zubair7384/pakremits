@@ -10,7 +10,10 @@ import { formatPkr } from '@/lib/ranking/compute'
 import { getBestRatePerCorridor, getComparison, getMidMarketSeries } from '@/lib/quotes'
 import type { SendCurrency } from '@/lib/db/schema'
 import { alternatesFor, localePath, toLocale } from '@/i18n/routing'
-import { corridorPath } from '@/lib/routes'
+import { corridorPath, staticPath } from '@/lib/routes'
+import { ProofStrip, heroSavingStat } from '@/components/proof-strip'
+import { CLAIM_FIRST_PAKISTAN_ONLY_SITE } from '@/lib/proof/config'
+import { getProofStats } from '@/lib/proof/stats'
 
 export async function generateMetadata({
   params,
@@ -54,6 +57,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   const locale = toLocale(localeParam)
   setRequestLocale(locale)
   const t = await getTranslations({ locale, namespace: 'home' })
+  const tProof = await getTranslations({ locale, namespace: 'proof' })
 
   const faqs = [
     { q: t('faq1Q'), a: t('faq1A') },
@@ -80,8 +84,12 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   // hard-coded saving figure, so each of these is null-guarded rather than
   // filled with a placeholder when the database is empty.
   const providerCount = comparison?.rows.filter((r) => !r.quote.isBenchmark).length ?? 0
+  // `savingVsBank` is the brief's `liveGapOnStandardAmount`: best provider
+  // payout minus bank benchmark payout, for whatever is currently in the widget.
   const saving = comparison?.savingVsBank ?? null
-  const annualSaving = saving !== null ? Math.round((saving * 12) / 1000) * 1000 : null
+  const proofStats = await getProofStats()
+  const sendAmountLabel = `${comparison?.currencySymbol ?? '£'}${comparison?.amount ?? 500}`
+  const heroStat = heroSavingStat({ stats: proofStats, liveGapOnStandardAmount: saving })
   const capturedMinutesAgo = comparison?.capturedAt
     ? Math.round((Date.now() - new Date(comparison.capturedAt).getTime()) / 60000)
     : null
@@ -93,6 +101,14 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       <header className="bg-green px-0 pt-10 pb-32 text-mist">
         <div className="mx-auto grid max-w-[1120px] items-center gap-14 px-6 lg:grid-cols-[1.05fr_.95fr]">
           <div>
+            {/* Off by default. See CLAIM_FIRST_PAKISTAN_ONLY_SITE — it must not
+                be enabled until someone has actually run the competitor check. */}
+            {CLAIM_FIRST_PAKISTAN_ONLY_SITE && (
+              <p className="mb-3 text-[13px] tracking-wide text-gold uppercase">
+                {tProof('firstPakistanOnlySite')}
+              </p>
+            )}
+
             <span
               className="inline-flex items-center gap-2 rounded-full border border-green-3
                          py-1.5 pr-3 pl-2.5 text-[13px] text-[#B2C6BC]"
@@ -116,27 +132,31 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               {t('heroLede')}
             </p>
 
-            {/* The Urdu tagline is part of the brand and shows on both locales;
-                on the Urdu page it is simply the same string from the catalogue. */}
+            {/* Tagline follows the active locale: English on /en, Urdu only
+                once the reader has switched, where it needs the Urdu face. */}
             <span
-              className={`${locale === 'ur' ? 'urdu' : 'urdu-fixed'} mt-6.5 inline-block text-2xl leading-[1.9] text-gold`}
-              lang="ur"
+              className={`${locale === 'ur' ? 'urdu ' : ''}mt-6.5 inline-block text-2xl leading-[1.9] text-gold`}
+              lang={locale === 'ur' ? 'ur' : undefined}
             >
-              پیسے بھیجنے سے پہلے ریٹ چیک کریں
+              {t('heroTagline')}
             </span>
 
             <div className="mt-8.5 grid grid-cols-2 gap-7 border-t border-green-3 pt-6 sm:grid-cols-3">
-              <div className="text-[13px] text-[#B2C6BC]">
-                <strong className="money block font-display text-[22px] font-semibold tracking-[-0.02em] text-white">
-                  {saving !== null ? formatPkr(saving) : '—'}
-                </strong>
-                {t('statSaving', {
-                  amount: `${comparison?.currencySymbol ?? '£'}${comparison?.amount ?? 500}`,
-                })}
-              </div>
+              {/* Below both thresholds this card renders nothing rather than a
+                  dash: an empty slot is honest, "—" implies a number exists. */}
+              {heroStat !== null && (
+                <div className="text-[13px] text-[#B2C6BC]">
+                  <strong className="money block font-display text-[22px] font-semibold tracking-[-0.02em] text-white">
+                    {heroStat.value}
+                  </strong>
+                  {heroStat.mode === 'sinceLaunch'
+                    ? tProof('savingsSinceLaunchLabel')
+                    : t('statSaving', { amount: sendAmountLabel })}
+                </div>
+              )}
               <div className="text-[13px] text-[#B2C6BC]">
                 <strong className="block font-display text-[22px] font-semibold tracking-[-0.02em] text-white">
-                  {t('statRefreshValue')}
+                  {proofStats.refreshMinutes} min
                 </strong>
                 {t('statRefresh')}
               </div>
@@ -252,21 +272,19 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           </section>
         )}
 
-        {/* What you lose */}
-        <div className="mt-7 grid gap-4 lg:grid-cols-[1.4fr_1fr_1fr]">
-          <div className="rounded-panel border border-line bg-white p-7">
-            <div className="money font-display text-[40px] leading-none font-semibold tracking-[-0.025em] text-green">
-              {annualSaving !== null
-                ? t('statLostTitle', { amount: formatPkr(annualSaving) })
-                : '—'}
-            </div>
-            <p className="mt-2.5 max-w-[40ch] text-[14.5px] text-muted">
-              {t('statLostBody', {
-                monthly: `${comparison?.currencySymbol ?? '£'}${comparison?.amount ?? 500}`,
-              })}
-            </p>
-          </div>
+        {/*
+          Proof strip. Replaces a card that showed `saving * 12` rounded to the
+          nearest thousand — a projection of a projection, and exactly the kind
+          of figure the proof rules forbid. Everything here is a live sum.
+        */}
+        <ProofStrip
+          locale={locale}
+          stats={proofStats}
+          liveGapOnStandardAmount={saving}
+          sendAmountLabel={sendAmountLabel}
+        />
 
+        <div className="mt-4 grid gap-4 lg:grid-cols-2">
           <div className="rounded-panel border border-line bg-white p-7">
             <div className="font-display text-[40px] leading-none font-semibold tracking-[-0.025em] text-green">
               {providerCount}

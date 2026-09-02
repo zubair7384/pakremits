@@ -25,7 +25,7 @@ export const en = {
     liveChecked: 'Live · {count} providers checked {minutes} minutes ago',
     liveJustNow: 'Live · {count} providers checked just now',
     liveFallback: 'Live rates',
-    statSaving: 'typical saving on {amount} vs a bank',
+    statSaving: 'more on {amount} than a typical bank, right now',
     statRefreshValue: '15 min',
     statRefresh: 'rate refresh',
     statCountries: 'sending countries',
@@ -40,10 +40,6 @@ export const en = {
     whyTitle: 'Why our ranking looks different from other comparison sites',
     faqTitle: 'Common questions',
 
-    statLostTitle: '{amount} a year',
-    statLostBody:
-      'What a family sending {monthly} a month through a high-street bank loses compared with ' +
-      'the best-rate service.',
     statComparedBody:
       'Services compared on this corridor. We add providers only where we can get a live quote ' +
       'without working around their site.',
@@ -92,6 +88,28 @@ export const en = {
       'Rate alerts open shortly. They will send one message per alert, at most once every 12 ' +
       'hours, with one-tap unsubscribe.',
     alertsCta: 'Compare rates now',
+  },
+
+  proof: {
+    // Day-one claims. True from the first deploy, no threshold attached.
+    pakistanOnly: 'Built only for Pakistan corridors.',
+    providersRefreshed:
+      '{providers} providers compared, refreshed every {minutes} minutes.',
+    liveGap: '{amount} more on {sendAmount} than a typical bank, right now.',
+    rankedByRupees: 'Ranked by rupees received. Never by who pays us.',
+
+    // Threshold-gated. Hidden entirely until the number behind them is real.
+    monthlyActivity:
+      '{comparisons} comparisons run this month. Best rate changed hands {changes} times.',
+    savingsSinceLaunch: '{amount} saved by PakRemits users since launch.',
+    // The hero card shows the figure separately, so it needs the caption alone.
+    savingsSinceLaunchLabel: 'saved by users since launch',
+    savingsSinceLaunchLink: 'See how we count it.',
+    firstPakistanOnlySite: "Pakistan's first Pakistan-only remittance comparison site",
+
+    // Sits beside every statistic on the page.
+    howWeCount: 'How we count this',
+    stripLabel: 'What we can show you, from our own data',
   },
 
   alerts: {

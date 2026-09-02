@@ -242,3 +242,139 @@ export type Corridor = typeof corridors.$inferSelect
 export type RateQuote = typeof rateQuotes.$inferSelect
 export type MidMarketRate = typeof midMarketRates.$inferSelect
 export type RateAlert = typeof rateAlerts.$inferSelect
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * Proof layer
+ *
+ * Every trust claim on the site is computed from these tables. Nothing here is
+ * ever estimated, backfilled or rounded up: a number we cannot derive from a
+ * row is not shown at all. See lib/proof/ and /how-we-rank#savings.
+ * ──────────────────────────────────────────────────────────────────────────── */
+
+/**
+ * Typical high-street bank pricing per corridor and rail.
+ *
+ * Previously a hard-coded constant in lib/quotes.ts. It moves into the database
+ * because the savings figure is only defensible if the benchmark it is measured
+ * against has a visible provenance and an update date — both of which are shown
+ * on /how-we-rank#savings.
+ */
+export const bankBenchmarks = pgTable(
+  'bank_benchmarks',
+  {
+    id: serial('id').primaryKey(),
+    corridorId: integer('corridor_id')
+      .notNull()
+      .references(() => corridors.id, { onDelete: 'cascade' }),
+    deliveryMethod: text('delivery_method', { enum: DELIVERY_METHODS }).notNull(),
+    rate: numeric('rate', { precision: 18, scale: 6 }).notNull(),
+    fee: numeric('fee', { precision: 14, scale: 2 }).notNull(),
+    /** Where the figure came from, shown verbatim in the methodology table. */
+    note: text('note'),
+    /**
+     * Set when a human enters a real quote in /admin. The weekly cron refresh
+     * skips pinned rows — otherwise it would silently overwrite the one figure
+     * somebody actually verified with a generated approximation.
+     */
+    pinned: boolean('pinned').notNull().default(false),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex('bank_benchmarks_slot_idx').on(t.corridorId, t.deliveryMethod)],
+)
+
+/**
+ * One row per affiliate click, recording what the user avoided paying.
+ *
+ * `savingPkr` is null when no benchmark existed for the corridor at click time.
+ * Those rows are kept — the click still happened — but excluded from every
+ * total, which is why the sums in lib/proof/stats.ts all filter on NOT NULL.
+ */
+export const savingsLedger = pgTable(
+  'savings_ledger',
+  {
+    id: serial('id').primaryKey(),
+    /** FK to the click that produced it. Unique: one ledger row per click. */
+    affiliateClickId: integer('affiliate_click_id')
+      .notNull()
+      .references(() => affiliateClicks.id, { onDelete: 'cascade' })
+      .unique(),
+    corridorId: integer('corridor_id').references(() => corridors.id, {
+      onDelete: 'set null',
+    }),
+    providerId: integer('provider_id')
+      .notNull()
+      .references(() => providers.id, { onDelete: 'cascade' }),
+    amountSent: numeric('amount_sent', { precision: 14, scale: 2 }).notNull(),
+    providerReceivedPkr: numeric('provider_received_pkr', { precision: 18, scale: 2 }).notNull(),
+    /** Null together with `savingPkr` when the corridor had no benchmark. */
+    bankReceivedPkr: numeric('bank_received_pkr', { precision: 18, scale: 2 }),
+    savingPkr: numeric('saving_pkr', { precision: 18, scale: 2 }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('savings_ledger_report_idx').on(t.createdAt, t.corridorId)],
+)
+
+/**
+ * Pre-aggregated daily counters for the admin chart.
+ *
+ * A rollup rather than a live GROUP BY because the ledger and event tables grow
+ * by thousands of rows a day and the dashboard reads them on every load.
+ * Rebuilt idempotently by `rollUpSiteStats` at the end of each cron run.
+ */
+export const siteStatsDaily = pgTable('site_stats_daily', {
+  /** Calendar day in UTC. Primary key: exactly one row per day. */
+  date: text('date').primaryKey(),
+  comparisonsRun: integer('comparisons_run').notNull().default(0),
+  clicks: integer('clicks').notNull().default(0),
+  savingPkrTotal: numeric('saving_pkr_total', { precision: 18, scale: 2 }).notNull().default('0'),
+  bestProviderChanges: integer('best_provider_changes').notNull().default(0),
+})
+
+/**
+ * Raw comparison-widget hits, deduplicated to one per session per minute.
+ *
+ * The dedup is a unique index on (session, minute) plus ON CONFLICT DO NOTHING,
+ * rather than a read-then-write: two concurrent requests from one session would
+ * both pass a read check and double-count. Rolled into `site_stats_daily` and
+ * pruned, so this table stays small.
+ */
+export const comparisonEvents = pgTable(
+  'comparison_events',
+  {
+    id: serial('id').primaryKey(),
+    /** Opaque per-browser id from the `prq_sid` cookie. Not linked to a person. */
+    sessionId: text('session_id').notNull(),
+    /** Truncated to the minute — the dedup window. */
+    minuteBucket: timestamp('minute_bucket', { withTimezone: true }).notNull(),
+    corridorId: integer('corridor_id').references(() => corridors.id, {
+      onDelete: 'set null',
+    }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('comparison_events_dedup_idx').on(t.sessionId, t.minuteBucket),
+    index('comparison_events_created_idx').on(t.createdAt),
+  ],
+)
+
+/**
+ * The current top-ranked provider per corridor.
+ *
+ * Needed because "the best rate changed hands N times" is a claim about a
+ * transition, and a transition cannot be derived from rate_quotes without
+ * replaying the whole history. The refresh compares against this row, counts a
+ * change, then overwrites it.
+ */
+export const corridorLeaders = pgTable('corridor_leaders', {
+  corridorId: integer('corridor_id')
+    .primaryKey()
+    .references(() => corridors.id, { onDelete: 'cascade' }),
+  providerId: integer('provider_id')
+    .notNull()
+    .references(() => providers.id, { onDelete: 'cascade' }),
+  since: timestamp('since', { withTimezone: true }).notNull().defaultNow(),
+})
+
+export type BankBenchmark = typeof bankBenchmarks.$inferSelect
+export type SavingsLedgerRow = typeof savingsLedger.$inferSelect
+export type SiteStatsDaily = typeof siteStatsDaily.$inferSelect
