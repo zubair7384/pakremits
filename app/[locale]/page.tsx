@@ -95,7 +95,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           <div>
             <span
               className="inline-flex items-center gap-2 rounded-full border border-green-3
-                         py-1.5 pr-3 pl-2.5 text-[13px] text-[#A9BFB4]"
+                         py-1.5 pr-3 pl-2.5 text-[13px] text-[#B2C6BC]"
             >
               <i
                 className="inline-block h-2 w-2 rounded-full bg-up shadow-[0_0_0_3px_rgba(143,224,179,.25)]"
@@ -118,12 +118,15 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
             {/* The Urdu tagline is part of the brand and shows on both locales;
                 on the Urdu page it is simply the same string from the catalogue. */}
-            <span className="urdu mt-6.5 inline-block text-2xl leading-[1.9] text-gold" lang="ur">
+            <span
+              className={`${locale === 'ur' ? 'urdu' : 'urdu-fixed'} mt-6.5 inline-block text-2xl leading-[1.9] text-gold`}
+              lang="ur"
+            >
               پیسے بھیجنے سے پہلے ریٹ چیک کریں
             </span>
 
             <div className="mt-8.5 grid grid-cols-2 gap-7 border-t border-green-3 pt-6 sm:grid-cols-3">
-              <div className="text-[13px] text-[#A9BFB4]">
+              <div className="text-[13px] text-[#B2C6BC]">
                 <strong className="money block font-display text-[22px] font-semibold tracking-[-0.02em] text-white">
                   {saving !== null ? formatPkr(saving) : '—'}
                 </strong>
@@ -131,13 +134,13 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                   amount: `${comparison?.currencySymbol ?? '£'}${comparison?.amount ?? 500}`,
                 })}
               </div>
-              <div className="text-[13px] text-[#A9BFB4]">
+              <div className="text-[13px] text-[#B2C6BC]">
                 <strong className="block font-display text-[22px] font-semibold tracking-[-0.02em] text-white">
                   {t('statRefreshValue')}
                 </strong>
                 {t('statRefresh')}
               </div>
-              <div className="text-[13px] text-[#A9BFB4]">
+              <div className="text-[13px] text-[#B2C6BC]">
                 <strong className="block font-display text-[22px] font-semibold tracking-[-0.02em] text-white">
                   {CORRIDORS.length}
                 </strong>
@@ -179,7 +182,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                       <b className="text-[15px] font-medium text-[#E6EFE9]">
                         {CURRENCY_NAMES[series.currency]}
                       </b>
-                      <small className="block text-xs text-[#7FA090]">
+                      <small className="block text-xs text-[#99B3A6]">
                         {series.currency} → PKR
                       </small>
                     </div>
@@ -202,7 +205,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                               ? 'var(--color-down)'
                               : trend === 'up'
                                 ? 'var(--color-up)'
-                                : '#7FA090',
+                                : '#99B3A6',
                         }}
                       >
                         {trend === 'flat'
@@ -218,7 +221,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               )
             })}
 
-            <div className="mt-2.5 flex flex-col justify-between gap-1 border-t border-green-3 pt-3 text-xs text-[#7FA090] sm:flex-row">
+            <div className="mt-2.5 flex flex-col justify-between gap-1 border-t border-green-3 pt-3 text-xs text-[#99B3A6] sm:flex-row">
               <span>{t('tickerFootnote')}</span>
               <span>
                 {new Intl.DateTimeFormat('en-GB', {
@@ -306,7 +309,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             </p>
 
             <div className="relative mt-7 max-w-[380px] rounded-[14px_14px_14px_4px] bg-[#DCF8C6] p-4 text-[14.5px] leading-relaxed text-[#1E2B22]">
-              <div className="mb-1 text-xs font-medium text-[#4E7A5B]">Bhejo alerts</div>
+              <div className="mb-1 text-xs font-medium text-[#436B50]">Bhejo alerts</div>
               <b className="font-medium">
                 GBP → PKR just crossed{' '}
                 {ticker[0]?.latest ? (Math.ceil(ticker[0].latest / 5) * 5).toFixed(0) : '380'}.

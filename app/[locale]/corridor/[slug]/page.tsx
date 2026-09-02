@@ -103,7 +103,7 @@ export default async function CorridorPage({ params }: { params: Promise<{ local
       <main>
         <div className="bg-green px-0 pt-10 pb-28 text-mist">
           <div className="mx-auto max-w-[1120px] px-6">
-            <nav aria-label="Breadcrumb" className="text-[13px] text-[#7FA090]">
+            <nav aria-label="Breadcrumb" className="text-[13px] text-[#99B3A6]">
               <ol className="flex flex-wrap items-center gap-2">
                 <li>
                   <Link href="/" className="no-underline hover:text-white">
@@ -126,7 +126,7 @@ export default async function CorridorPage({ params }: { params: Promise<{ local
             </div>
 
             {saving !== null && (
-              <p className="mt-6 text-[15px] text-[#A9BFB4]">
+              <p className="mt-6 text-[15px] text-[#B2C6BC]">
                 Right now the best service on this page beats a typical high-street bank by{' '}
                 <b className="font-medium text-gold">{formatPkr(saving)}</b> on {symbol}
                 {comparison?.amount.toLocaleString('en-GB')}.

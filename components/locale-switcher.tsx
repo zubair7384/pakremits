@@ -54,7 +54,7 @@ export function LocaleSwitcher({ locale, label }: { locale: Locale; label: strin
         hrefLang="en-GB"
         aria-current={locale === 'en' ? 'true' : undefined}
         className={`px-3 py-1.5 no-underline ${
-          locale === 'en' ? 'bg-green-3 text-white' : 'text-[#A9BFB4]'
+          locale === 'en' ? 'bg-green-3 text-white' : 'text-[#B2C6BC]'
         }`}
       >
         EN
@@ -64,8 +64,8 @@ export function LocaleSwitcher({ locale, label }: { locale: Locale; label: strin
         hrefLang="ur-PK"
         lang="ur"
         aria-current={locale === 'ur' ? 'true' : undefined}
-        className={`urdu px-3 pt-2 no-underline ${
-          locale === 'ur' ? 'bg-green-3 text-white' : 'text-[#A9BFB4]'
+        className={`${locale === 'ur' ? 'urdu' : 'urdu-fixed'} px-3 pt-2 no-underline ${
+          locale === 'ur' ? 'bg-green-3 text-white' : 'text-[#B2C6BC]'
         }`}
       >
         اردو

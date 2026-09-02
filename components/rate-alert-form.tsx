@@ -77,7 +77,7 @@ export function RateAlertForm({ defaultRate }: { defaultRate?: number }) {
   return (
     <form onSubmit={onSubmit} className="rounded-panel border border-green-3 bg-green-2 p-6">
       <div>
-        <label htmlFor="alert-pair" className="mb-1.5 block text-[13px] text-[#A9BFB4]">
+        <label htmlFor="alert-pair" className="mb-1.5 block text-[13px] text-[#B2C6BC]">
           {t('pair')}
         </label>
         <select id="alert-pair" name="fromCurrency" className={fieldClass} defaultValue="GBP">
@@ -91,7 +91,7 @@ export function RateAlertForm({ defaultRate }: { defaultRate?: number }) {
 
       <div className="mt-3.5 grid gap-3.5 sm:grid-cols-[auto_1fr]">
         <div>
-          <label htmlFor="alert-direction" className="mb-1.5 block text-[13px] text-[#A9BFB4]">
+          <label htmlFor="alert-direction" className="mb-1.5 block text-[13px] text-[#B2C6BC]">
             {t('direction')}
           </label>
           <select id="alert-direction" name="direction" className={fieldClass} defaultValue="above">
@@ -100,7 +100,7 @@ export function RateAlertForm({ defaultRate }: { defaultRate?: number }) {
           </select>
         </div>
         <div>
-          <label htmlFor="alert-rate" className="mb-1.5 block text-[13px] text-[#A9BFB4]">
+          <label htmlFor="alert-rate" className="mb-1.5 block text-[13px] text-[#B2C6BC]">
             {t('targetRate')}
           </label>
           <input
@@ -115,7 +115,7 @@ export function RateAlertForm({ defaultRate }: { defaultRate?: number }) {
       </div>
 
       <div className="mt-3.5">
-        <span className="mb-1.5 block text-[13px] text-[#A9BFB4]">{t('sendBy')}</span>
+        <span className="mb-1.5 block text-[13px] text-[#B2C6BC]">{t('sendBy')}</span>
         <div
           className="grid grid-cols-2 gap-1 rounded-[12px] border-[1.5px] border-green-3 bg-green p-1"
           role="group"
@@ -128,7 +128,7 @@ export function RateAlertForm({ defaultRate }: { defaultRate?: number }) {
               onClick={() => setChannel(option)}
               aria-pressed={channel === option}
               className={`h-10 rounded-[9px] text-sm ${
-                channel === option ? 'bg-green-3 font-medium text-white' : 'text-[#A9BFB4]'
+                channel === option ? 'bg-green-3 font-medium text-white' : 'text-[#B2C6BC]'
               }`}
             >
               {option === 'whatsapp' ? t('whatsapp') : t('email')}
@@ -138,7 +138,7 @@ export function RateAlertForm({ defaultRate }: { defaultRate?: number }) {
       </div>
 
       <div className="mt-3.5">
-        <label htmlFor="alert-contact" className="mb-1.5 block text-[13px] text-[#A9BFB4]">
+        <label htmlFor="alert-contact" className="mb-1.5 block text-[13px] text-[#B2C6BC]">
           {channel === 'whatsapp' ? t('whatsappNumber') : t('emailAddress')}
         </label>
         <input
@@ -174,7 +174,7 @@ export function RateAlertForm({ defaultRate }: { defaultRate?: number }) {
         {status.kind === 'error' ? (
           <span className="text-[#F5A3A3]">{status.message}</span>
         ) : (
-          <span className="text-[#7FA090]">{t('fineprint')}</span>
+          <span className="text-[#99B3A6]">{t('fineprint')}</span>
         )}
       </p>
     </form>

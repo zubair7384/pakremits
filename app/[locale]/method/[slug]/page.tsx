@@ -74,7 +74,7 @@ export default async function MethodPage({ params }: { params: Promise<{ locale:
       <main>
         <div className="bg-green px-0 pt-10 pb-28 text-mist">
           <div className="mx-auto max-w-[1120px] px-6">
-            <nav aria-label="Breadcrumb" className="text-[13px] text-[#7FA090]">
+            <nav aria-label="Breadcrumb" className="text-[13px] text-[#99B3A6]">
               <ol className="flex items-center gap-2">
                 <li>
                   <Link href="/" className="no-underline hover:text-white">

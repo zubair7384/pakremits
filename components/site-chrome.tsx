@@ -28,7 +28,10 @@ export async function SiteHeader({ locale = 'en' }: { locale?: Locale }) {
           className="flex items-center gap-2.5 text-[22px] font-bold no-underline"
         >
           Bhejo{' '}
-          <span className="urdu pt-1.5 text-[19px] leading-none text-gold" lang="ur">
+          <span
+            className={`${locale === 'ur' ? 'urdu' : 'urdu-fixed'} pt-1.5 text-[19px] leading-none text-gold`}
+            lang="ur"
+          >
             بھیجو
           </span>
         </Link>
@@ -107,7 +110,10 @@ export async function SiteFooter({ locale = 'en' }: { locale?: Locale }) {
               className="flex items-center gap-2.5 text-[22px] font-bold text-white no-underline"
             >
               Bhejo{' '}
-              <span className="urdu pt-1.5 text-[19px] leading-none text-gold" lang="ur">
+              <span
+                className={`${locale === 'ur' ? 'urdu' : 'urdu-fixed'} pt-1.5 text-[19px] leading-none text-gold`}
+                lang="ur"
+              >
                 بھیجو
               </span>
             </Link>
@@ -118,7 +124,7 @@ export async function SiteFooter({ locale = 'en' }: { locale?: Locale }) {
 
           {columns.map((column) => (
             <div key={column.heading}>
-              <h2 className="mb-3.5 text-[13px] font-medium text-[#7FA090]">{column.heading}</h2>
+              <h2 className="mb-3.5 text-[13px] font-medium text-[#99B3A6]">{column.heading}</h2>
               <ul className="grid gap-2.5 text-[14.5px]">
                 {column.links.map((link) => (
                   <li key={link.href}>
@@ -134,7 +140,7 @@ export async function SiteFooter({ locale = 'en' }: { locale?: Locale }) {
 
         <div
           className="mt-10 flex flex-wrap justify-between gap-4 border-t border-green-3 pt-5
-                     text-[12.5px] text-[#7FA090]"
+                     text-[12.5px] text-[#99B3A6]"
         >
           <span>{t('copyright', { year: new Date().getFullYear() })}</span>
           <span>
@@ -142,7 +148,11 @@ export async function SiteFooter({ locale = 'en' }: { locale?: Locale }) {
               English
             </Link>{' '}
             ·{' '}
-            <Link href="/ur" lang="ur" className="urdu no-underline hover:text-white">
+            <Link
+              href="/ur"
+              lang="ur"
+              className={`${locale === 'ur' ? 'urdu' : 'urdu-fixed'} no-underline hover:text-white`}
+            >
               اردو
             </Link>
           </span>

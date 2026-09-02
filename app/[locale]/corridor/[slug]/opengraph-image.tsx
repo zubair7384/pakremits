@@ -73,7 +73,7 @@ export default async function OgImage({ params }: { params: Promise<{ slug: stri
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-          <div style={{ fontSize: 30, color: '#A9BFB4' }}>
+          <div style={{ fontSize: 30, color: '#B2C6BC' }}>
             {corridor ? `${corridor.fromCountryName} → Pakistan` : 'Send money to Pakistan'}
           </div>
 
@@ -102,7 +102,7 @@ export default async function OgImage({ params }: { params: Promise<{ slug: stri
             display: 'flex',
             justifyContent: 'space-between',
             fontSize: 24,
-            color: '#7FA090',
+            color: '#99B3A6',
             borderTop: '1px solid #175A45',
             paddingTop: 22,
           }}

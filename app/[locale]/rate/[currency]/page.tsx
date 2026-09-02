@@ -125,7 +125,7 @@ export default async function RatePage({ params }: { params: Promise<{ locale: s
       <main>
         <div className="bg-green px-0 pt-10 pb-24 text-mist">
           <div className="mx-auto max-w-[1120px] px-6">
-            <nav aria-label="Breadcrumb" className="text-[13px] text-[#7FA090]">
+            <nav aria-label="Breadcrumb" className="text-[13px] text-[#99B3A6]">
               <ol className="flex items-center gap-2">
                 <li>
                   <Link href="/" className="no-underline hover:text-white">
@@ -146,7 +146,7 @@ export default async function RatePage({ params }: { params: Promise<{ locale: s
                 <div className="font-display text-[clamp(48px,8vw,84px)] leading-none font-semibold tabular-nums text-white">
                   {latest?.toFixed(2) ?? '—'}
                 </div>
-                <p className="mt-2 text-[15px] text-[#A9BFB4]">
+                <p className="mt-2 text-[15px] text-[#B2C6BC]">
                   Mid-market reference for 1 {currency}. No provider gives you this rate — it is the
                   line they are measured against.
                 </p>
@@ -155,13 +155,13 @@ export default async function RatePage({ params }: { params: Promise<{ locale: s
               <dl className="flex gap-8">
                 {windows.map((window) => (
                   <div key={window.label}>
-                    <dt className="text-[13px] text-[#7FA090]">{window.label}</dt>
+                    <dt className="text-[13px] text-[#99B3A6]">{window.label}</dt>
                     <dd
                       className="mt-1 font-display text-xl font-semibold tabular-nums"
                       style={{
                         color:
                           window.value === null
-                            ? '#A9BFB4'
+                            ? '#B2C6BC'
                             : window.value >= 0
                               ? 'var(--color-up)'
                               : 'var(--color-down)',

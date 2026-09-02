@@ -16,7 +16,9 @@
     "db:studio": "drizzle-kit studio",
     "seed": "tsx scripts/seed.ts",
     "probe": "tsx scripts/probe.ts",
-    "refresh": "tsx scripts/refresh-local.ts"
+    "refresh": "tsx scripts/refresh-local.ts",
+    "e2e": "playwright test",
+    "e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.2",
@@ -29,6 +31,7 @@
     "zod": "^4.5.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
@@ -37,6 +40,7 @@
     "drizzle-kit": "^0.31.10",
     "eslint": "^9",
     "eslint-config-next": "16.3.4",
+    "lighthouse": "^13.4.1",
     "tailwindcss": "^4",
     "tsx": "^4.23.13",
     "typescript": "^5",

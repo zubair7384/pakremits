@@ -8,6 +8,13 @@ import { getMessages } from '@/i18n/messages'
 import '../globals.css'
 
 export const metadata: Metadata = {
+  /**
+   * Without this, Next emits `<link rel="canonical" href="/">` and relative
+   * hreflang hrefs. Lighthouse flags both — search engines want absolute URLs,
+   * and a relative hreflang is simply ignored, which silently undoes the whole
+   * bilingual setup.
+   */
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'),
   title: 'Bhejo — compare rates before you send money to Pakistan',
   description:
     'Compare every major service sending money to Pakistan, ranked by the exact amount that ' +
@@ -37,7 +44,25 @@ export default async function LocaleLayout({
   // whole route tree drops from prerendered to server-rendered-on-demand.
   setRequestLocale(locale)
 
-  const messages = await getMessages(locale)
+  const all = await getMessages(locale)
+
+  /**
+   * Only the namespaces client components actually read.
+   *
+   * NextIntlClientProvider serialises whatever it is given into the RSC payload
+   * on every page, so passing the whole catalogue shipped `home`, `footer`,
+   * `nav` and `common` — all rendered on the server — to the browser as dead
+   * weight. Measured at 4.6kB of the 7.2kB catalogue.
+   *
+   * If a new client component needs a namespace, add it here; `useTranslations`
+   * will throw a clear error naming the missing one rather than rendering the
+   * key.
+   */
+  const messages = {
+    panel: all.panel,
+    methods: all.methods,
+    alerts: all.alerts,
+  }
 
   return (
     <html

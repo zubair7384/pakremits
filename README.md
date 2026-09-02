@@ -4,13 +4,14 @@ Compares money-transfer services sending to Pakistan, ranked by the exact PKR
 amount that lands in the recipient's account. Not by rate, not by fee, not by
 who pays us.
 
-**Status: Phases 1–4 complete.** The rate engine runs against live provider
+**Status: Phases 1–5 complete, with one number short of target.** The rate engine runs against live provider
 APIs and the full public site renders from it — home, 8 corridor pages, 8 rate
 pages, provider and head-to-head pages, method pages, and the static set, in
 English and Urdu. 26 pages prerender.
 
-Phase 5 (the launch checklist: Playwright e2e, Lighthouse, accessibility pass) is
-not built. Two of the fourteen providers in the original brief are live; see
+Lighthouse mobile is **92** against the brief's target of 95. Desktop is 100
+across all four categories. The gap and what is left to close it are in
+[Performance](#performance) below. Two of the fourteen providers in the original brief are live; see
 [Provider access](#provider-access-as-surveyed-on-2-sep-2026) for why the rest
 are not, which is the main open question for the project.
 
@@ -123,6 +124,8 @@ npm run dev
 | `npm run db:generate` | Generate a migration from schema changes |
 | `npm run db:migrate` | Apply pending migrations |
 | `npm run db:studio` | Drizzle Studio |
+| `npm run e2e` | Playwright end-to-end suite (needs a seeded database) |
+| `npm run e2e:ui` | The same, in Playwright's UI mode |
 
 ### URLs
 
@@ -169,6 +172,104 @@ In your GitHub repo:
 Trigger the workflow by hand from the Actions tab to check it before waiting for
 a tick. GitHub's scheduler is best-effort and lags under load, which is why
 `/admin` surfaces the last successful run.
+
+---
+
+## Launch checklist
+
+| Item | State |
+| --- | --- |
+| Timestamp on every quote, stale badge past 60 minutes | done — asserted in e2e |
+| Affiliate disclosure in the footer and beside provider links | done — asserted in e2e |
+| Privacy policy covering alert data; deletion on unsubscribe | done — unsubscribe deletes the row |
+| Keyboard navigable, visible focus | done — driven with real keys in `test/e2e/accessibility.spec.ts` |
+| Colour contrast AA | done — 33 assertions in `test/unit/contrast.test.ts`, Lighthouse a11y 100 |
+| `aria-live` on the results panel | done — asserted in e2e |
+| Fonts self-hosted via `next/font` | done |
+| Unit tests for `computeReceived` and each adapter parser | done — 156 unit tests |
+| One Playwright e2e for the home comparison flow | done — 18 specs × 2 form factors |
+| Seed script with providers, corridors and 30 days of history | done |
+| README a stranger can deploy from | done |
+| Lighthouse mobile ≥ 95 | **92** — see below |
+| Providers: 14 in the brief | **2 live** — see [Provider access](#provider-access-as-surveyed-on-2-sep-2026) |
+
+### Accessibility
+
+Lighthouse scores 100 for accessibility on both form factors. Two things were
+found and fixed getting there, and both are worth knowing about because a
+contrast suite is easy to write dishonestly:
+
+- The first version of `test/unit/contrast.test.ts` listed only pairings that
+  passed. Adding the ones it had omitted produced **six failures** — `faint` at
+  3.04:1 on white and 2.77:1 on the best-deal row, and the dark-panel greys
+  between 3.57 and 4.26. Those tokens came from the design file, which specified
+  values that do not meet the bar the brief also asks for. They are now
+  `#68716B`, `#99B3A6` and `#B2C6BC`.
+- Lighthouse then found a seventh the extended suite still missed: the
+  WhatsApp-bubble label at 4.29:1. Also fixed, also now asserted.
+
+The lesson is in the file as a comment: a contrast test that only lists the
+pairings you expect to pass proves nothing.
+
+### Performance
+
+Desktop is 100. Mobile is 92, made up of:
+
+| Metric | Value | Lighthouse score |
+| --- | --- | --- |
+| Total Blocking Time | 30 ms | 100 |
+| Cumulative Layout Shift | 0 | 100 |
+| Speed Index | 2.0 s | 99 |
+| First Contentful Paint | 2.0 s | 85 |
+| Largest Contentful Paint | 3.2 s | 73 |
+
+FCP and LCP are the whole gap — there is no blocking-time or layout-shift
+problem to fix. Both are critical-path bytes on Lighthouse's simulated slow 4G.
+
+It started at **78**. What moved it to 92 was one thing: Noto Nastaliq Urdu is
+233kB, and after compression it was the largest asset on the site — larger than
+all the JavaScript combined, and woff2 cannot be squeezed further by a CDN.
+English pages were paying all of it to render three fixed phrases: the "بھیجو"
+wordmark, the hero tagline, and the language-switcher label. Those now use a
+92kB subset (`lib/font-data/`, regeneration command in `lib/fonts.ts`), and the
+full face loads only on Urdu pages.
+
+Note the subset is deliberately *not* a fallback in the same font stack as the
+full face. Webfont fallback is per-character and Nastaliq joins across letters,
+so a chain would let one word draw some letters from each and come apart.
+
+What is left, in order of likely value:
+
+1. **44kB of render-blocking CSS.** Inlining the critical part and deferring the
+   rest is the standard fix and the most direct lever on FCP. Next does not do
+   it out of the box.
+2. **A 93kB HTML document** (16kB gzipped), inflated by the inlined RSC payload.
+   Trimming the client message catalogue took 4.6kB off it; the rest is the
+   panel's initial data, which is what makes the table render without a
+   round trip.
+3. **231kB of gzipped JS.** Total Blocking Time is already 30 ms, so this costs
+   transfer rather than main-thread time. The alert form could be deferred with
+   `next/dynamic` since it is below the fold.
+
+Two things measured and rejected, recorded so they are not retried:
+
+- Dropping the `weight` array to use Bricolage's variable font: identical bytes
+  and an identical score, because next/font slices by unicode-range either way.
+- `preload: false` on Nastaliq: removes the preload hint but not the bytes, since
+  the glyphs are genuinely used. Kept for the ordering benefit, but it was not
+  the win an earlier measurement appeared to show — that reading came from a
+  stale `next start` serving HTML that referenced a CSS chunk which no longer
+  existed, so every font had silently fallen back to Times.
+
+### Measuring it yourself
+
+```bash
+npm run build && npm start
+npx lighthouse http://localhost:3000/ --chrome-flags="--headless=new" --view
+```
+
+`next start` gzips both HTML and static assets, so a local number is comparable
+to a deployed one. Vercel adds brotli, worth a few percent more.
 
 ---
 

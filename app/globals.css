@@ -21,7 +21,12 @@
   --color-line: #dce4df;
   --color-line-2: #edf2ef;
   --color-muted: #5c6b63;
-  --color-faint: #8a978f;
+  /* Was #8A978F, which measured 3.04:1 on white and 2.77:1 on the best-deal
+     row — below AA for the small captions it is used on ("per £", column
+     headings, footnotes). #68716B clears 4.5:1 on white, mist and gold-bg.
+     A deliberate departure from the design file, which specified a value that
+     does not meet the accessibility bar the brief also requires. */
+  --color-faint: #68716b;
   /* Sparkline up/down. Deliberately not red/green alone — the arrow glyph
      carries the meaning too, for colour-blind readers. */
   --color-up: #8fe0b3;
@@ -62,6 +67,21 @@ h3 {
 [dir='rtl'] body,
 .urdu {
   font-family: var(--font-urdu);
+  line-height: 1.9;
+}
+
+/**
+ * The fixed Urdu strings on English pages — wordmark, hero tagline, switcher
+ * label — use a 92kB subset instead of the 233kB full face.
+ *
+ * Deliberately NOT a fallback chain with the full font. Webfont fallback is
+ * per-character, so a chain would let one word draw some letters from the
+ * subset and some from the full face, and Nastaliq joins across letters — the
+ * word would come apart. Urdu pages use `.urdu` and the full face throughout;
+ * English pages use this and never fetch the full one.
+ */
+.urdu-fixed {
+  font-family: var(--font-nastaliq-subset), serif;
   line-height: 1.9;
 }
 
