@@ -15,7 +15,12 @@ import {
   providers,
   rateQuotes,
 } from '@/lib/db/schema'
-import { CURRENCY_SYMBOLS, STANDARD_AMOUNTS } from '@/lib/corridors'
+import {
+  CURRENCY_SYMBOLS,
+  STANDARD_AMOUNTS,
+  corridorBySlug as corridorConfigBySlug,
+  defaultAmountFor,
+} from '@/lib/corridors'
 import { computeReceived, round } from '@/lib/ranking/compute'
 import { type RankedQuote, type SortKey, rankQuotes, savingVsBenchmark } from '@/lib/ranking/rank'
 
@@ -62,6 +67,14 @@ export interface ComparisonRow {
 }
 
 export interface Comparison {
+  /**
+   * True when we could not reach the database at all.
+   *
+   * Distinct from "no rows": an outage must not render as "no provider
+   * delivers to Pakistan this way", which is a false statement about the
+   * market rather than an honest admission that we are broken.
+   */
+  unavailable?: boolean
   corridorSlug: string
   fromCurrency: SendCurrency
   currencySymbol: string
@@ -96,16 +109,40 @@ export function nearestStandardAmount(currency: SendCurrency, amount: number): n
   )
 }
 
+/**
+ * Run a read against the database, degrading instead of throwing.
+ *
+ * Every public page reads through this module. Without it a database blip
+ * takes the whole site down with a stack trace — which is exactly what a
+ * torn-down local Postgres produced: `ECONNREFUSED` surfaced as a 500 on the
+ * home page. The rest of this codebase degrades (a failed adapter becomes a
+ * stale badge, a failed send becomes a warning) and the read path should too.
+ *
+ * Failures are logged loudly rather than swallowed, and callers distinguish
+ * "no rows" from "could not reach the database" so the UI never states
+ * something false about the market.
+ */
+async function safeRead<T>(label: string, fallback: T, run: () => Promise<T>): Promise<T> {
+  try {
+    return await run()
+  } catch (error) {
+    console.error(`[quotes] ${label} failed:`, error)
+    return fallback
+  }
+}
+
 /** Most recent mid-market rate for a currency. */
 export async function latestMidMarket(currency: SendCurrency): Promise<number | null> {
-  const [row] = await db
-    .select({ rate: midMarketRates.rate })
-    .from(midMarketRates)
-    .where(eq(midMarketRates.fromCurrency, currency))
-    .orderBy(desc(midMarketRates.capturedAt))
-    .limit(1)
+  return safeRead(`latestMidMarket(${currency})`, null, async () => {
+    const [row] = await db
+      .select({ rate: midMarketRates.rate })
+      .from(midMarketRates)
+      .where(eq(midMarketRates.fromCurrency, currency))
+      .orderBy(desc(midMarketRates.capturedAt))
+      .limit(1)
 
-  return row ? toNum(row.rate) : null
+    return row ? toNum(row.rate) : null
+  })
 }
 
 /**
@@ -163,12 +200,35 @@ export async function getComparison(options: {
 }): Promise<Comparison | null> {
   const { corridorSlug, method = 'bank', sortBy = 'received', includeBenchmark = true } = options
 
-  const [corridor] = await db
-    .select()
-    .from(corridors)
-    .where(and(eq(corridors.slug, corridorSlug), eq(corridors.active, true)))
-    .limit(1)
+  const config = corridorConfigBySlug(corridorSlug)
 
+  /** Shape returned when the database is unreachable. */
+  const outage = (): Comparison => ({
+    unavailable: true,
+    corridorSlug,
+    fromCurrency: config?.fromCurrency ?? 'GBP',
+    currencySymbol: CURRENCY_SYMBOLS[config?.fromCurrency ?? 'GBP'],
+    deliveryMethod: method,
+    amount: options.amount ?? defaultAmountFor(config?.fromCurrency ?? 'GBP'),
+    quotedAtAmount: options.amount ?? defaultAmountFor(config?.fromCurrency ?? 'GBP'),
+    midMarketRate: null,
+    rows: [],
+    savingVsBank: null,
+    capturedAt: null,
+    stale: false,
+  })
+
+  const corridorRows = await safeRead(`getComparison(${corridorSlug}) corridor`, null, () =>
+    db
+      .select()
+      .from(corridors)
+      .where(and(eq(corridors.slug, corridorSlug), eq(corridors.active, true)))
+      .limit(1),
+  )
+
+  // null means the query threw; an empty array means no such corridor.
+  if (corridorRows === null) return outage()
+  const [corridor] = corridorRows
   if (!corridor) return null
 
   const currency = corridor.fromCurrency
@@ -181,7 +241,8 @@ export async function getComparison(options: {
    * in JS — would pull weeks of history to keep a handful of rows, since this
    * table grows by thousands of rows a day.
    */
-  const rows = (await db.execute(sql`
+  const rows = (await safeRead(`getComparison(${corridorSlug}) quotes`, null, () =>
+    db.execute(sql`
     SELECT DISTINCT ON (${rateQuotes.providerId})
       ${providers.slug}                 AS provider_slug,
       ${providers.name}                 AS provider_name,
@@ -206,7 +267,8 @@ export async function getComparison(options: {
       AND ${rateQuotes.amountSent} = ${String(quotedAtAmount)}
       AND ${providers.active} = true
     ORDER BY ${rateQuotes.providerId}, ${rateQuotes.capturedAt} DESC
-  `)) as unknown as {
+  `),
+  )) as unknown as null | {
     provider_slug: string
     provider_name: string
     brand_color: string
@@ -224,6 +286,8 @@ export async function getComparison(options: {
     stale: boolean
     captured_at: Date
   }[]
+
+  if (rows === null) return outage()
 
   const midMarket = await latestMidMarket(currency)
 
@@ -303,15 +367,17 @@ export async function getMidMarketSeries(
   currency: SendCurrency,
   days = 7,
 ): Promise<RateSeries> {
-  const rows = (await db.execute(sql`
-    SELECT DISTINCT ON (day)
-      date_trunc('day', ${midMarketRates.capturedAt}) AS day,
-      ${midMarketRates.rate} AS rate
-    FROM ${midMarketRates}
-    WHERE ${midMarketRates.fromCurrency} = ${currency}
-      AND ${midMarketRates.capturedAt} > now() - make_interval(days => ${days})
-    ORDER BY day, ${midMarketRates.capturedAt} DESC
-  `)) as unknown as { day: Date; rate: string }[]
+  const rows = (await safeRead(`getMidMarketSeries(${currency})`, [], () =>
+    db.execute(sql`
+      SELECT DISTINCT ON (day)
+        date_trunc('day', ${midMarketRates.capturedAt}) AS day,
+        ${midMarketRates.rate} AS rate
+      FROM ${midMarketRates}
+      WHERE ${midMarketRates.fromCurrency} = ${currency}
+        AND ${midMarketRates.capturedAt} > now() - make_interval(days => ${days})
+      ORDER BY day, ${midMarketRates.capturedAt} DESC
+    `),
+  )) as unknown as { day: Date; rate: string }[]
 
   const points = rows
     .map((row) => ({ date: new Date(row.day), rate: toNum(row.rate) }))
@@ -335,7 +401,9 @@ export async function getMidMarketSeries(
 export async function getBestRatePerCorridor(): Promise<
   { slug: string; countryName: string; currency: SendCurrency; bestRate: number | null }[]
 > {
-  const corridorRows = await db.select().from(corridors).where(eq(corridors.active, true))
+  const corridorRows = await safeRead('getBestRatePerCorridor', [], () =>
+    db.select().from(corridors).where(eq(corridors.active, true)),
+  )
 
   return Promise.all(
     corridorRows.map(async (corridor) => {

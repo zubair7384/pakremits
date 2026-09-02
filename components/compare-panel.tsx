@@ -362,8 +362,10 @@ export function ComparePanel({ initial, corridors }: Props) {
           )}
 
           {rows.length === 0 && !pending && (
-            <p className="py-8 text-center text-muted">
-              {t('emptyState', { currency: data.fromCurrency })}
+            <p className={`py-8 text-center ${data.unavailable ? 'text-[#A32D2D]' : 'text-muted'}`}>
+              {data.unavailable
+                ? t('unavailable')
+                : t('emptyState', { currency: data.fromCurrency })}
             </p>
           )}
 

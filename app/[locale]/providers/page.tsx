@@ -34,11 +34,17 @@ export default async function ProvidersPage({
   const locale = toLocale(localeParam)
   setRequestLocale(locale)
 
+  // Degrade rather than 500 if the database is unreachable — the rest of the
+  // page (the explanation of what we do and do not list) is still worth serving.
   const rows = await db
     .select()
     .from(providers)
     .where(eq(providers.active, true))
     .orderBy(providers.name)
+    .catch((error) => {
+      console.error('[providers] list failed:', error)
+      return []
+    })
 
   const real = rows.filter((row) => !row.isBenchmark)
 

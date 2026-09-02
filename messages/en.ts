@@ -149,6 +149,11 @@ export const en = {
     sendWith: 'Send with {provider}',
     whySoLow: 'Why so low?',
     emptyState: 'No provider we track delivers to Pakistan this way from {currency} yet.',
+    // Shown when we cannot reach our own database. Never conflated with the
+    // empty state, which would claim something false about the market.
+    unavailable:
+      'We cannot load rates right now — this is a problem on our side, not a ' +
+      'statement about the market. Please try again in a few minutes.',
     refreshError: 'Could not refresh quotes. Showing the last figures we had.',
     disclaimerQuotes:
       'Quotes are indicative. The provider confirms the final rate before you pay.',

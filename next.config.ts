@@ -30,6 +30,16 @@ const withNextIntl = createNextIntlPlugin('./i18n/request.ts')
  * URLs plus an unprefixed default locale, and it is worth it.
  */
 const nextConfig: NextConfig = {
+  /**
+   * Next 16 blocks cross-origin requests to dev resources by default, so
+   * opening the dev server on 127.0.0.1 rather than localhost breaks hot
+   * reload with a console full of failed websocket connections. Both spellings
+   * of the loopback address are the same machine.
+   *
+   * Development only — it has no effect on a production build.
+   */
+  allowedDevOrigins: ['localhost', '127.0.0.1'],
+
   async redirects() {
     return [
       /**

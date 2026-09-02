@@ -112,6 +112,9 @@ export default async function ComparePairPage({
   const rows = await db
     .select()
     .from(providers)
+    // Unguarded on purpose: this page is only about these two providers, so an
+    // outage has nothing to degrade to and a 404 would tell crawlers the page
+    // is gone. A 5xx means "try again". Same reasoning as /providers/[slug].
     .where(sql`${providers.slug} in (${parsed[0]}, ${parsed[1]})`)
 
   const a = rows.find((r) => r.slug === parsed[0])

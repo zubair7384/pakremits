@@ -264,6 +264,10 @@ export const ur: Messages = {
       'ہم جن سروسز کو ٹریک کرتے ہیں، ان میں سے کوئی بھی {currency} سے اس طریقے سے پاکستان ' +
       'نہیں بھیجتی۔',
     // TODO: native review
+    unavailable:
+      'اس وقت ریٹ لوڈ نہیں ہو سکے — یہ ہماری طرف کا مسئلہ ہے، مارکیٹ کے بارے میں کوئی بات ' +
+      'نہیں۔ چند منٹ بعد دوبارہ کوشش کریں۔',
+    // TODO: native review
     refreshError: 'ریٹ اپ ڈیٹ نہیں ہو سکے۔ پچھلے دستیاب ریٹ دکھائے جا رہے ہیں۔',
     // TODO: native review
     disclaimerQuotes:

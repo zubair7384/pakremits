@@ -31,6 +31,18 @@ const RAILS = [
   { key: 'supportsRda', label: 'Roshan Digital Account' },
 ] as const
 
+/**
+ * Deliberately unguarded, unlike the read helpers in lib/quotes.ts.
+ *
+ * This page is entirely about one provider — with no row there is nothing to
+ * degrade to. Swallowing a database error here would turn an outage into
+ * `notFound()`, and a 404 tells a crawler the page is *gone*, which invites
+ * de-indexing a page that was fine ten minutes ago. Letting it throw yields a
+ * 5xx, which means "try again" — the honest answer during an outage.
+ *
+ * The home and corridor pages degrade instead, because they have surrounding
+ * content worth serving.
+ */
 async function getProvider(slug: string) {
   const [row] = await db.select().from(providers).where(eq(providers.slug, slug)).limit(1)
   return row ?? null
