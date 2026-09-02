@@ -1,5 +1,5 @@
 /**
- * Bhejo database schema (Postgres / Supabase).
+ * PakRemits database schema (Postgres / Supabase).
  *
  * Money notes:
  *  - Sending-currency amounts (GBP, AED, ...) are `numeric(14,2)`.

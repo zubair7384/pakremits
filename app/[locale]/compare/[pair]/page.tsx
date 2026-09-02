@@ -90,7 +90,7 @@ export async function generateMetadata({
   if (!a || !b) return {}
 
   return {
-    title: `${a.name} vs ${b.name} for sending to Pakistan | Bhejo`,
+    title: `${a.name} vs ${b.name} for sending to Pakistan | PakRemits`,
     description:
       `Which pays more rupees, ${a.name} or ${b.name}? Compared across every corridor we track, ` +
       'using live rates rather than a review written last year.',
@@ -162,7 +162,7 @@ export default async function ComparePairPage({
           <ol className="flex items-center gap-2">
             <li>
               <Link href="/" className="no-underline hover:text-leaf">
-                Bhejo
+                PakRemits
               </Link>
             </li>
             <li aria-hidden="true">/</li>
@@ -310,7 +310,7 @@ export default async function ComparePairPage({
             '@context': 'https://schema.org',
             '@type': 'BreadcrumbList',
             itemListElement: [
-              { '@type': 'ListItem', position: 1, name: 'Bhejo', item: SITE },
+              { '@type': 'ListItem', position: 1, name: 'PakRemits', item: SITE },
               {
                 '@type': 'ListItem',
                 position: 2,

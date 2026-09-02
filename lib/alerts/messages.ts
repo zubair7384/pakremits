@@ -98,7 +98,7 @@ export function composeConfirmMessage(context: {
   const condition = context.direction === 'above' ? 'rises above' : 'falls below'
 
   return {
-    subject: 'Confirm your Bhejo rate alert',
+    subject: 'Confirm your PakRemits rate alert',
     text: [
       `You asked us to tell you when ${context.fromCurrency} → PKR ${condition} ` +
         `${context.targetRate.toFixed(2)}.`,

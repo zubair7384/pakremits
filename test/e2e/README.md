@@ -4,7 +4,7 @@ These drive a real browser against a running site, so they need a database with
 live quotes:
 
 ```bash
-docker run -d --name bhejo-pg -e POSTGRES_PASSWORD=bhejo -e POSTGRES_DB=bhejo \
+docker run -d --name pakremits-pg -e POSTGRES_PASSWORD=pakremits -e POSTGRES_DB=pakremits \
   -p 55432:5432 postgres:16-alpine
 npm run db:migrate && npm run seed && npm run refresh
 npm run e2e

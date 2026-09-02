@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Contact — Bhejo',
+  title: 'Contact — PakRemits',
   description: 'How to report a wrong rate, ask about a provider listing, or request data deletion.',
   alternates: { canonical: '/contact' },
 }

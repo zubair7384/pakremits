@@ -39,7 +39,7 @@ export async function generateMetadata({
 
   const path = methodPath(slug)
   return {
-    title: `${content.title} | Bhejo`,
+    title: `${content.title} | PakRemits`,
     description: content.metaDescription,
     alternates: alternatesFor(path),
     openGraph: { url: `${SITE}${path}`, type: 'article' },
@@ -78,7 +78,7 @@ export default async function MethodPage({ params }: { params: Promise<{ locale:
               <ol className="flex items-center gap-2">
                 <li>
                   <Link href="/" className="no-underline hover:text-white">
-                    Bhejo
+                    PakRemits
                   </Link>
                 </li>
                 <li aria-hidden="true">/</li>
@@ -230,7 +230,7 @@ export default async function MethodPage({ params }: { params: Promise<{ locale:
               '@context': 'https://schema.org',
               '@type': 'BreadcrumbList',
               itemListElement: [
-                { '@type': 'ListItem', position: 1, name: 'Bhejo', item: SITE },
+                { '@type': 'ListItem', position: 1, name: 'PakRemits', item: SITE },
                 {
                   '@type': 'ListItem',
                   position: 2,

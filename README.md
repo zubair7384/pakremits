@@ -1,4 +1,4 @@
-# Bhejo — بھیجو
+# PakRemits
 
 Compares money-transfer services sending to Pakistan, ranked by the exact PKR
 amount that lands in the recipient's account. Not by rate, not by fee, not by
@@ -66,7 +66,7 @@ exists for a corridor we do not fall back to mid-market; we simply do not fire.
 Requires Node 20+ (or 22+; Node 23 works but emits engine warnings from eslint).
 
 ```bash
-git clone <your-repo> bhejo && cd bhejo
+git clone <your-repo> pakremits && cd pakremits
 npm install
 cp .env.example .env.local
 ```
@@ -166,7 +166,7 @@ In your GitHub repo:
 
 - **Settings → Secrets and variables → Actions → Secrets**: add `DATABASE_URL`
   (the pooled Supabase URL) and `CRON_SECRET`, matching the value in Vercel.
-- **→ Variables**: add `SITE_URL`, e.g. `https://bhejo.vercel.app`. Leave it
+- **→ Variables**: add `SITE_URL`, e.g. `https://pakremits.vercel.app`. Leave it
   unset before the first deploy and the revalidate step skips itself.
 
 Trigger the workflow by hand from the Actions tab to check it before waiting for
@@ -229,10 +229,10 @@ problem to fix. Both are critical-path bytes on Lighthouse's simulated slow 4G.
 It started at **78**. What moved it to 92 was one thing: Noto Nastaliq Urdu is
 233kB, and after compression it was the largest asset on the site — larger than
 all the JavaScript combined, and woff2 cannot be squeezed further by a CDN.
-English pages were paying all of it to render three fixed phrases: the "بھیجو"
-wordmark, the hero tagline, and the language-switcher label. Those now use a
-92kB subset (`lib/font-data/`, regeneration command in `lib/fonts.ts`), and the
-full face loads only on Urdu pages.
+English pages were paying all of it to render two fixed phrases: the hero
+tagline and the language-switcher label. Those now use a 92kB subset
+(`lib/font-data/`, regeneration command in `lib/fonts.ts`), and the full face
+loads only on Urdu pages.
 
 Note the subset is deliberately *not* a fallback in the same font stack as the
 full face. Webfont fallback is per-character and Nastaliq joins across letters,
@@ -522,12 +522,12 @@ value against a fee-deducted one silently favours the former.
 For development you can skip Supabase entirely:
 
 ```bash
-docker run -d --name bhejo-pg -e POSTGRES_PASSWORD=bhejo -e POSTGRES_DB=bhejo \
+docker run -d --name pakremits-pg -e POSTGRES_PASSWORD=pakremits -e POSTGRES_DB=pakremits \
   -p 55432:5432 postgres:16-alpine
 ```
 
 Then set both URLs in `.env.local` to
-`postgresql://postgres:bhejo@localhost:55432/bhejo` and run `npm run db:migrate`,
+`postgresql://postgres:pakremits@localhost:55432/pakremits` and run `npm run db:migrate`,
 `npm run seed`, `npm run refresh`. The RLS migration is guarded on role
 existence, so it applies cleanly against a plain Postgres that has no `anon` or
 `authenticated` roles.

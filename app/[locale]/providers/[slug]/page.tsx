@@ -59,7 +59,7 @@ export async function generateMetadata({
   if (!provider) return {}
 
   return {
-    title: `${provider.name} review — rates to Pakistan | Bhejo`,
+    title: `${provider.name} review — rates to Pakistan | PakRemits`,
     description:
       `${provider.name}'s live exchange rate and fees for sending money to Pakistan, across ` +
       'every corridor we track, compared against the mid-market rate.',
@@ -107,7 +107,7 @@ export default async function ProviderPage({ params }: { params: Promise<{ local
           <ol className="flex items-center gap-2">
             <li>
               <Link href="/" className="no-underline hover:text-leaf">
-                Bhejo
+                PakRemits
               </Link>
             </li>
             <li aria-hidden="true">/</li>
@@ -304,7 +304,7 @@ export default async function ProviderPage({ params }: { params: Promise<{ local
             '@context': 'https://schema.org',
             '@type': 'BreadcrumbList',
             itemListElement: [
-              { '@type': 'ListItem', position: 1, name: 'Bhejo', item: SITE },
+              { '@type': 'ListItem', position: 1, name: 'PakRemits', item: SITE },
               { '@type': 'ListItem', position: 2, name: 'Providers', item: `${SITE}/providers` },
               {
                 '@type': 'ListItem',

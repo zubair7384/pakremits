@@ -10,7 +10,7 @@ import {
 } from '@/lib/admin/stats'
 
 export const dynamic = 'force-dynamic'
-export const metadata: Metadata = { title: 'Dashboard — Bhejo admin', robots: { index: false } }
+export const metadata: Metadata = { title: 'Dashboard — PakRemits admin', robots: { index: false } }
 
 const PKT = new Intl.DateTimeFormat('en-GB', {
   timeZone: 'Asia/Karachi',

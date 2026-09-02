@@ -20,7 +20,7 @@ const EXAMPLES: Record<string, string> = {
   impact: 'https://<advertiser>.prf.hn/click/camref:<your-camref>/destination:{destination}?subId1={clickId}',
   cj: 'https://www.anrdoezrs.net/click-<pid>-<aid>?url={destination}&sid={clickId}',
   partnerize: 'https://prf.hn/click/camref:<ref>/pubref:{clickId}/destination:{destination}',
-  direct: 'https://provider.example/signup?ref=bhejo&sub={clickId}',
+  direct: 'https://provider.example/signup?ref=pakremits&sub={clickId}',
   none: '',
 }
 

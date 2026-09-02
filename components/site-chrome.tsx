@@ -23,17 +23,21 @@ export async function SiteHeader({ locale = 'en' }: { locale?: Locale }) {
   return (
     <div className="bg-green text-mist">
       <div className="mx-auto flex h-[72px] max-w-[1120px] items-center justify-between px-6">
-        <Link
-          href={localePath(locale, '/')}
-          className="flex items-center gap-2.5 text-[22px] font-bold no-underline"
-        >
-          Bhejo{' '}
-          <span
-            className={`${locale === 'ur' ? 'urdu' : 'urdu-fixed'} pt-1.5 text-[19px] leading-none text-gold`}
-            lang="ur"
-          >
-            بھیجو
-          </span>
+        <Link href={localePath(locale, '/')} className="flex items-center no-underline">
+          {/* Dark variant: the supplied logo is inked in #0B3D2E, which is the
+              --color-green this bar sits on. See public/pakremits-logo-*.svg.
+
+              Plain <img>, not next/image: the source is a static SVG, which the
+              image optimiser passes through untouched anyway and only serves
+              behind `dangerouslyAllowSVG`. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/pakremits-logo-dark.svg"
+            alt="PakRemits"
+            width={176}
+            height={50}
+            className="h-[50px] w-auto"
+          />
         </Link>
 
         <nav aria-label={t('main')}>
@@ -89,7 +93,7 @@ export async function SiteFooter({ locale = 'en' }: { locale?: Locale }) {
       ],
     },
     {
-      heading: t('bhejo'),
+      heading: t('brand'),
       links: [
         { href: staticPath('how-we-rank', locale), label: 'How we rank' },
         { href: staticPath('providers', locale), label: 'All providers' },
@@ -105,17 +109,15 @@ export async function SiteFooter({ locale = 'en' }: { locale?: Locale }) {
       <div className="mx-auto max-w-[1120px] px-6">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.6fr_1fr_1fr_1fr]">
           <div>
-            <Link
-              href={localePath(locale, '/')}
-              className="flex items-center gap-2.5 text-[22px] font-bold text-white no-underline"
-            >
-              Bhejo{' '}
-              <span
-                className={`${locale === 'ur' ? 'urdu' : 'urdu-fixed'} pt-1.5 text-[19px] leading-none text-gold`}
-                lang="ur"
-              >
-                بھیجو
-              </span>
+            <Link href={localePath(locale, '/')} className="flex items-center no-underline">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/pakremits-logo-dark.svg"
+                alt="PakRemits"
+                width={176}
+                height={50}
+                className="h-[50px] w-auto"
+              />
             </Link>
             {/* Affiliate disclosure. Required on every page carrying provider
                 links, so it lives in the footer rather than on one page. */}

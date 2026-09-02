@@ -1,7 +1,7 @@
 -- Row-level security.
 --
 -- Supabase exposes every table through PostgREST on the `anon` and
--- `authenticated` roles by default. Bhejo has no client-side database access —
+-- `authenticated` roles by default. PakRemits has no client-side database access —
 -- everything goes through server routes on the pooled Postgres connection,
 -- which runs as the table owner and bypasses RLS.
 --

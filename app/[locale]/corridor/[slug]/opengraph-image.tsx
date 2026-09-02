@@ -66,7 +66,7 @@ export default async function OgImage({ params }: { params: Promise<{ slug: stri
             brand name on a share card is worse than no Urdu on it. Add the
             wordmark back here only alongside a subsetted font file. */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: 34 }}>
-          <span style={{ fontWeight: 700 }}>Bhejo</span>
+          <span style={{ fontWeight: 700 }}>PakRemits</span>
           <span style={{ color: '#E9B44C', fontSize: 26 }}>
             Compare rates to Pakistan
           </span>

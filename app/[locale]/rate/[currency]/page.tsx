@@ -46,7 +46,7 @@ export async function generateMetadata({
   const path = `/${currency.toLowerCase()}-to-pkr`
 
   return {
-    title: `${currency} to PKR rate today — ${TODAY.format(new Date())} | Bhejo`,
+    title: `${currency} to PKR rate today — ${TODAY.format(new Date())} | PakRemits`,
     description:
       `Today's ${currency} to PKR mid-market rate, a 30-day chart, and the service paying the ` +
       'most rupees right now. Updated every 15 minutes.',
@@ -129,7 +129,7 @@ export default async function RatePage({ params }: { params: Promise<{ locale: s
               <ol className="flex items-center gap-2">
                 <li>
                   <Link href="/" className="no-underline hover:text-white">
-                    Bhejo
+                    PakRemits
                   </Link>
                 </li>
                 <li aria-hidden="true">/</li>
@@ -295,7 +295,7 @@ export default async function RatePage({ params }: { params: Promise<{ locale: s
             '@context': 'https://schema.org',
             '@type': 'BreadcrumbList',
             itemListElement: [
-              { '@type': 'ListItem', position: 1, name: 'Bhejo', item: SITE },
+              { '@type': 'ListItem', position: 1, name: 'PakRemits', item: SITE },
               {
                 '@type': 'ListItem',
                 position: 2,

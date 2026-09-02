@@ -2,9 +2,9 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'Affiliate disclosure — Bhejo',
+  title: 'Affiliate disclosure — PakRemits',
   description:
-    'How Bhejo makes money, which providers pay us, and why it has no effect on the ranking.',
+    'How PakRemits makes money, which providers pay us, and why it has no effect on the ranking.',
   alternates: { canonical: '/affiliate-disclosure' },
 }
 
@@ -16,7 +16,7 @@ export default function AffiliateDisclosurePage() {
       </h1>
 
       <p className="mt-5 text-[18px] text-muted">
-        Bhejo is free to use. We make money when someone signs up with a provider through one of
+        PakRemits is free to use. We make money when someone signs up with a provider through one of
         our links, and we would rather explain exactly how that works than bury it.
       </p>
 
@@ -25,7 +25,7 @@ export default function AffiliateDisclosurePage() {
         <p>
           Some of the providers listed here run affiliate programmes, generally through networks
           like Impact or CJ Affiliate. When a new customer signs up and completes a first transfer
-          after clicking through from Bhejo, the provider pays us a fixed amount. It is a one-off
+          after clicking through from PakRemits, the provider pays us a fixed amount. It is a one-off
           bounty per customer, not a share of your transfer, and it does not come out of your
           money — your rate is identical whether you arrive from here or type their address in
           directly.

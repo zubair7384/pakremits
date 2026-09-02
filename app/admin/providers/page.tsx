@@ -6,7 +6,7 @@ import { setFeatured } from './actions'
 
 export const dynamic = 'force-dynamic'
 export const metadata: Metadata = {
-  title: 'Providers — Bhejo admin',
+  title: 'Providers — PakRemits admin',
   robots: { index: false },
 }
 

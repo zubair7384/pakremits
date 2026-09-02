@@ -16,7 +16,7 @@
  */
 
 /** What we identify as. Kept honest: a real contact URL, no browser spoofing. */
-export const BHEJO_USER_AGENT = 'BhejoBot'
+export const PAKREMITS_USER_AGENT = 'PakRemitsBot'
 
 interface RobotsRule {
   allow: boolean
@@ -162,7 +162,7 @@ async function loadPolicy(origin: string): Promise<RobotsPolicy> {
 
   try {
     const response = await fetch(`${origin}/robots.txt`, {
-      headers: { 'user-agent': BHEJO_USER_AGENT, accept: 'text/plain' },
+      headers: { 'user-agent': PAKREMITS_USER_AGENT, accept: 'text/plain' },
       signal: AbortSignal.timeout(8000),
       cache: 'no-store',
     })
@@ -175,7 +175,7 @@ async function loadPolicy(origin: string): Promise<RobotsPolicy> {
       // crawl. Guessing "probably fine" is how you end up in someone's logs.
       policy = { rules: [], crawlDelaySeconds: null, unavailable: true }
     } else {
-      policy = parseRobots(await response.text(), BHEJO_USER_AGENT)
+      policy = parseRobots(await response.text(), PAKREMITS_USER_AGENT)
     }
   } catch {
     policy = { rules: [], crawlDelaySeconds: null, unavailable: true }
@@ -197,11 +197,11 @@ export async function assertCrawlable(url: string): Promise<void> {
   const policy = await loadPolicy(parsed.origin)
 
   if (policy.unavailable) {
-    throw new RobotsDisallowedError(url, `${BHEJO_USER_AGENT} (robots.txt unreadable)`)
+    throw new RobotsDisallowedError(url, `${PAKREMITS_USER_AGENT} (robots.txt unreadable)`)
   }
 
   if (!isPathAllowed(policy, parsed.pathname + parsed.search)) {
-    throw new RobotsDisallowedError(url, BHEJO_USER_AGENT)
+    throw new RobotsDisallowedError(url, PAKREMITS_USER_AGENT)
   }
 }
 

@@ -14,7 +14,7 @@ export const dynamic = 'force-dynamic'
 
 /** Never indexed: the URL is a capability token. */
 export const metadata: Metadata = {
-  title: 'Your rate alert — Bhejo',
+  title: 'Your rate alert — PakRemits',
   robots: { index: false, follow: false },
 }
 

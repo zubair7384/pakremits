@@ -2,9 +2,9 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'About Bhejo',
+  title: 'About PakRemits',
   description:
-    'Why Bhejo exists, what it does differently from other remittance comparison sites, and ' +
+    'Why PakRemits exists, what it does differently from other remittance comparison sites, and ' +
     'what it deliberately does not do.',
   alternates: { canonical: '/about' },
 }
@@ -12,12 +12,11 @@ export const metadata: Metadata = {
 export default function AboutPage() {
   return (
     <>
-      <h1 className="text-[clamp(32px,4.4vw,46px)] leading-[1.06] font-semibold">About Bhejo</h1>
+      <h1 className="text-[clamp(32px,4.4vw,46px)] leading-[1.06] font-semibold">About PakRemits</h1>
 
       <p className="mt-5 text-[18px] text-muted">
-        Bhejo — <span className="urdu text-ink" lang="ur">بھیجو</span>, Urdu for “send” — compares
-        money transfer services for people sending to Pakistan, ranked by the rupees that actually
-        arrive.
+        PakRemits compares money transfer services for people sending to Pakistan, ranked by the
+        rupees that actually arrive.
       </p>
 
       <h2 className="mt-10 text-[24px] font-semibold">Why it exists</h2>

@@ -69,7 +69,7 @@ export const en = {
       'It is the provider’s live quote at the time shown on the page, refreshed every 15 ' +
       'minutes. The provider confirms the final rate on their site before you pay, and it can ' +
       'move slightly in between. That is why we show a timestamp on every quote.',
-    faq2Q: 'How does Bhejo make money?',
+    faq2Q: 'How does PakRemits make money?',
     faq2A:
       'Some providers pay us a fixed commission when a new customer signs up through our link. ' +
       'It does not change your rate and it never changes the order of results, which is always ' +
@@ -185,13 +185,13 @@ export const en = {
 
   footer: {
     disclosure:
-      'Bhejo is an independent comparison service. We earn a commission from some providers ' +
+      'PakRemits is an independent comparison service. We earn a commission from some providers ' +
       'when you sign up through our links. This never affects the ranking, which is by amount ' +
       'received. We are not a money transfer service and never hold your funds.',
     compare: 'Compare',
     rates: 'Rates',
-    bhejo: 'Bhejo',
-    copyright: '© {year} Bhejo. Rates are indicative and provided for comparison only.',
+    brand: 'PakRemits',
+    copyright: '© {year} PakRemits. Rates are indicative and provided for comparison only.',
   },
 
   common: {

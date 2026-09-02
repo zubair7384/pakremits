@@ -22,7 +22,7 @@ export async function generateMetadata({
   const t = await getTranslations({ locale, namespace: 'home' })
 
   return {
-    title: `Bhejo — ${t('heroTagline')}`,
+    title: `PakRemits — ${t('heroTagline')}`,
     description: t('heroLede'),
     // hreflang for both locales plus x-default, generated from one helper so
     // the URL shape is defined in a single place.
@@ -309,14 +309,14 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             </p>
 
             <div className="relative mt-7 max-w-[380px] rounded-[14px_14px_14px_4px] bg-[#DCF8C6] p-4 text-[14.5px] leading-relaxed text-[#1E2B22]">
-              <div className="mb-1 text-xs font-medium text-[#436B50]">Bhejo alerts</div>
+              <div className="mb-1 text-xs font-medium text-[#436B50]">PakRemits alerts</div>
               <b className="font-medium">
                 GBP → PKR just crossed{' '}
                 {ticker[0]?.latest ? (Math.ceil(ticker[0].latest / 5) * 5).toFixed(0) : '380'}.
               </b>{' '}
               Best right now:{' '}
               {chips.find((chip) => chip.currency === 'GBP')?.bestRate?.toFixed(2) ?? '—'} — open
-              Bhejo to see who is paying it.
+              PakRemits to see who is paying it.
             </div>
           </div>
 

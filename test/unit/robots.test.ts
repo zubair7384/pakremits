@@ -6,12 +6,12 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { BHEJO_USER_AGENT, isPathAllowed, parseRobots } from '@/lib/providers/robots'
+import { PAKREMITS_USER_AGENT, isPathAllowed, parseRobots } from '@/lib/providers/robots'
 
 const fixture = (host: string) =>
   readFileSync(join(__dirname, '../fixtures/robots', `${host}.txt`), 'utf8')
 
-const check = (host: string, path: string, agent = BHEJO_USER_AGENT) =>
+const check = (host: string, path: string, agent = PAKREMITS_USER_AGENT) =>
   isPathAllowed(parseRobots(fixture(host), agent), path)
 
 describe('parseRobots — real provider files', () => {
@@ -64,7 +64,7 @@ describe('the gate does not block our own working adapters', () => {
     //   Allow: *gateway*sourceCurrency=*
     // The Wise adapter's URL is affirmatively sanctioned rather than merely
     // unmentioned, which is why the check matches path *and* query string.
-    const wise = parseRobots(fixture('wise.com'), BHEJO_USER_AGENT)
+    const wise = parseRobots(fixture('wise.com'), PAKREMITS_USER_AGENT)
     expect(
       isPathAllowed(
         wise,
@@ -74,7 +74,7 @@ describe('the gate does not block our own working adapters', () => {
   })
 
   it('still blocks the Wise paths that robots.txt disallows', () => {
-    const wise = parseRobots(fixture('wise.com'), BHEJO_USER_AGENT)
+    const wise = parseRobots(fixture('wise.com'), PAKREMITS_USER_AGENT)
     // Disallow: /*/*/currency-converter/ — two segments must precede it, so
     // a locale+language path matches and a bare locale path does not.
     expect(isPathAllowed(wise, '/gb/en/currency-converter/gbp-to-pkr-rate')).toBe(false)
@@ -87,49 +87,49 @@ describe('the gate does not block our own working adapters', () => {
 describe('parseRobots — spec behaviour', () => {
   it('treats an empty Disallow as allow-all', () => {
     // Small World ships exactly this: "User-agent: *\nDisallow:"
-    const policy = parseRobots('User-agent: *\nDisallow:', BHEJO_USER_AGENT)
+    const policy = parseRobots('User-agent: *\nDisallow:', PAKREMITS_USER_AGENT)
     expect(isPathAllowed(policy, '/anything')).toBe(true)
   })
 
   it('treats Disallow: / as block-all', () => {
-    const policy = parseRobots('User-agent: *\nDisallow: /', BHEJO_USER_AGENT)
+    const policy = parseRobots('User-agent: *\nDisallow: /', PAKREMITS_USER_AGENT)
     expect(isPathAllowed(policy, '/')).toBe(false)
     expect(isPathAllowed(policy, '/anything')).toBe(false)
   })
 
   it('allows everything when there are no rules', () => {
-    expect(isPathAllowed(parseRobots('', BHEJO_USER_AGENT), '/x')).toBe(true)
+    expect(isPathAllowed(parseRobots('', PAKREMITS_USER_AGENT), '/x')).toBe(true)
   })
 
   it('supports * wildcards mid-pattern', () => {
-    const policy = parseRobots('User-agent: *\nDisallow: /a/*/secret', BHEJO_USER_AGENT)
+    const policy = parseRobots('User-agent: *\nDisallow: /a/*/secret', PAKREMITS_USER_AGENT)
     expect(isPathAllowed(policy, '/a/b/secret')).toBe(false)
     expect(isPathAllowed(policy, '/a/b/public')).toBe(true)
   })
 
   it('supports the $ end-anchor', () => {
-    const policy = parseRobots('User-agent: *\nDisallow: /*.pdf$', BHEJO_USER_AGENT)
+    const policy = parseRobots('User-agent: *\nDisallow: /*.pdf$', PAKREMITS_USER_AGENT)
     expect(isPathAllowed(policy, '/report.pdf')).toBe(false)
     expect(isPathAllowed(policy, '/report.pdf.html')).toBe(true)
   })
 
   it('resolves ties in favour of Allow', () => {
-    const policy = parseRobots('User-agent: *\nDisallow: /x\nAllow: /x', BHEJO_USER_AGENT)
+    const policy = parseRobots('User-agent: *\nDisallow: /x\nAllow: /x', PAKREMITS_USER_AGENT)
     expect(isPathAllowed(policy, '/x')).toBe(true)
   })
 
   it('lets the longest matching pattern win regardless of order', () => {
     const policy = parseRobots(
       'User-agent: *\nAllow: /a/b/c\nDisallow: /a/',
-      BHEJO_USER_AGENT,
+      PAKREMITS_USER_AGENT,
     )
     expect(isPathAllowed(policy, '/a/b/c')).toBe(true)
     expect(isPathAllowed(policy, '/a/b')).toBe(false)
   })
 
   it('prefers a named group over the wildcard group', () => {
-    const text = 'User-agent: *\nDisallow:\n\nUser-agent: BhejoBot\nDisallow: /'
-    expect(isPathAllowed(parseRobots(text, 'BhejoBot'), '/x')).toBe(false)
+    const text = 'User-agent: *\nDisallow:\n\nUser-agent: PakRemitsBot\nDisallow: /'
+    expect(isPathAllowed(parseRobots(text, 'PakRemitsBot'), '/x')).toBe(false)
     expect(isPathAllowed(parseRobots(text, 'SomeoneElse'), '/x')).toBe(true)
   })
 
@@ -148,11 +148,11 @@ describe('parseRobots — spec behaviour', () => {
 
   it('ignores comments and blank lines', () => {
     const text = '# comment\n\nUser-agent: *  # trailing\nDisallow: /x # why\n'
-    expect(isPathAllowed(parseRobots(text, BHEJO_USER_AGENT), '/x')).toBe(false)
+    expect(isPathAllowed(parseRobots(text, PAKREMITS_USER_AGENT), '/x')).toBe(false)
   })
 
   it('reads Crawl-delay', () => {
     // MoneyGram sets Crawl-delay: 5 for everyone.
-    expect(parseRobots(fixture('www.moneygram.com'), BHEJO_USER_AGENT).crawlDelaySeconds).toBe(5)
+    expect(parseRobots(fixture('www.moneygram.com'), PAKREMITS_USER_AGENT).crawlDelaySeconds).toBe(5)
   })
 })

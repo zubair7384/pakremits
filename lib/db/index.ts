@@ -4,7 +4,7 @@ import * as schema from './schema'
 
 declare global {
   // eslint-disable-next-line no-var
-  var __bhejoSql: ReturnType<typeof postgres> | undefined
+  var __pakremitsSql: ReturnType<typeof postgres> | undefined
 }
 
 function createClient() {
@@ -33,8 +33,8 @@ let cached: ReturnType<typeof drizzle<typeof schema>> | undefined
 export function getDb() {
   if (!cached) {
     // Reuse across hot reloads in dev, otherwise each save leaks a connection.
-    const sql = globalThis.__bhejoSql ?? createClient()
-    if (process.env.NODE_ENV !== 'production') globalThis.__bhejoSql = sql
+    const sql = globalThis.__pakremitsSql ?? createClient()
+    if (process.env.NODE_ENV !== 'production') globalThis.__pakremitsSql = sql
     cached = drizzle(sql, { schema })
   }
   return cached

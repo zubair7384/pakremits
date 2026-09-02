@@ -125,7 +125,7 @@ export const ur: Messages = {
       'ادائیگی سے پہلے متعلقہ سروس اپنی ویب سائٹ پر حتمی ریٹ کی تصدیق کرتی ہے، اور اس دوران ' +
       'ریٹ تھوڑا بدل سکتا ہے۔ اسی لیے ہم ہر ریٹ کے ساتھ وقت لکھتے ہیں۔',
     // TODO: native review
-    faq2Q: 'بھیجو کیسے کماتا ہے؟',
+    faq2Q: 'PakRemits کیسے کماتا ہے؟',
     // TODO: native review
     faq2A:
       'کچھ سروسز ہمیں مقررہ کمیشن دیتی ہیں جب کوئی نیا صارف ہمارے لنک سے رجسٹر ہوتا ہے۔ اس سے ' +
@@ -309,17 +309,17 @@ export const ur: Messages = {
   footer: {
     // TODO: native review — this is a legal-ish disclosure, check it carefully
     disclosure:
-      'بھیجو ایک آزاد موازنہ سروس ہے۔ جب آپ ہمارے لنک سے کسی سروس میں رجسٹر ہوتے ہیں تو ہمیں ' +
+      'PakRemits ایک آزاد موازنہ سروس ہے۔ جب آپ ہمارے لنک سے کسی سروس میں رجسٹر ہوتے ہیں تو ہمیں ' +
       'کمیشن ملتا ہے۔ اس سے درجہ بندی پر کوئی اثر نہیں پڑتا، جو صرف وصول ہونے والی رقم پر ' +
       'مبنی ہے۔ ہم رقم بھیجنے والی سروس نہیں ہیں اور آپ کی رقم کبھی اپنے پاس نہیں رکھتے۔',
     // TODO: native review
     compare: 'موازنہ',
     // TODO: native review
     rates: 'ریٹ',
-    // TODO: native review — brand name, kept as-is
-    bhejo: 'بھیجو',
+    // Brand name stays in Latin script in Urdu copy — see the rebrand note in the README.
+    brand: 'PakRemits',
     // TODO: native review
-    copyright: '© {year} بھیجو۔ ریٹ اندازاً ہیں اور صرف موازنے کے لیے دیے گئے ہیں۔',
+    copyright: '© {year} PakRemits۔ ریٹ اندازاً ہیں اور صرف موازنے کے لیے دیے گئے ہیں۔',
   },
 
   common: {

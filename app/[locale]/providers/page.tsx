@@ -10,9 +10,9 @@ import { providers } from '@/lib/db/schema'
 export const revalidate = 3600
 
 export const metadata: Metadata = {
-  title: 'Every service we compare — Bhejo',
+  title: 'Every service we compare — PakRemits',
   description:
-    'The money transfer services Bhejo tracks for Pakistan, what each supports, and which ' +
+    'The money transfer services PakRemits tracks for Pakistan, what each supports, and which ' +
     'ones we cannot quote and why.',
   alternates: { canonical: '/providers' },
 }
@@ -57,7 +57,7 @@ export default async function ProvidersPage({
           <ol className="flex items-center gap-2">
             <li>
               <Link href="/" className="no-underline hover:text-leaf">
-                Bhejo
+                PakRemits
               </Link>
             </li>
             <li aria-hidden="true">/</li>

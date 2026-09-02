@@ -6,7 +6,7 @@ import { getFormOptions } from './actions'
 import { OverrideForm } from './override-form'
 
 export const dynamic = 'force-dynamic'
-export const metadata = { title: 'Quote overrides — Bhejo admin', robots: { index: false } }
+export const metadata = { title: 'Quote overrides — PakRemits admin', robots: { index: false } }
 
 /** Recent quotes across all providers, so a bad number is easy to spot. */
 async function recentQuotes() {

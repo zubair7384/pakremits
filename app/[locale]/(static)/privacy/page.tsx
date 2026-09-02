@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Privacy — Bhejo',
+  title: 'Privacy — PakRemits',
   description:
-    'What Bhejo collects, what it does not, and how to have your rate-alert contact details ' +
+    'What PakRemits collects, what it does not, and how to have your rate-alert contact details ' +
     'deleted.',
   alternates: { canonical: '/privacy' },
 }
@@ -14,7 +14,7 @@ export default function PrivacyPage() {
       <h1 className="text-[clamp(32px,4.4vw,46px)] leading-[1.06] font-semibold">Privacy</h1>
 
       <p className="mt-5 text-[18px] text-muted">
-        Bhejo is a comparison site. We are not a money transfer service, we never hold your funds,
+        PakRemits is a comparison site. We are not a money transfer service, we never hold your funds,
         and we never see your bank details.
       </p>
 

@@ -8,7 +8,7 @@ import '../globals.css'
  * than inheriting one from [locale].
  */
 export const metadata: Metadata = {
-  title: 'Bhejo admin',
+  title: 'PakRemits admin',
   robots: { index: false, follow: false },
 }
 

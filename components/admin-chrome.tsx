@@ -17,8 +17,11 @@ export function AdminNav({ current }: { current: string }) {
   return (
     <header className="border-b border-line bg-white">
       <div className="mx-auto flex max-w-[1200px] flex-wrap items-center gap-x-6 gap-y-2 px-6 py-4">
-        <span className="font-display text-lg font-semibold">
-          Bhejo <span className="text-muted">admin</span>
+        <span className="flex items-center gap-2 font-display text-lg font-semibold">
+          {/* Light variant — the admin bar is white, unlike the public chrome. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/pakremits-logo-light.svg" alt="PakRemits" width={99} height={28} className="h-7 w-auto" />
+          <span className="text-muted">admin</span>
         </span>
         <nav className="flex flex-wrap gap-x-5 gap-y-1 text-sm">
           {NAV.map((item) => (

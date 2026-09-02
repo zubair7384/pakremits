@@ -15,7 +15,7 @@ export const metadata: Metadata = {
    * bilingual setup.
    */
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'),
-  title: 'Bhejo — compare rates before you send money to Pakistan',
+  title: 'PakRemits — compare rates before you send money to Pakistan',
   description:
     'Compare every major service sending money to Pakistan, ranked by the exact amount that ' +
     'lands in the account. Not by rate, not by fee, not by who pays us.',

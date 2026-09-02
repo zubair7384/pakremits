@@ -13,9 +13,9 @@ import { toLocale } from '@/i18n/routing'
  * that does the ranking and the test that enforces it.
  */
 export const metadata: Metadata = {
-  title: 'How we rank — Bhejo',
+  title: 'How we rank — PakRemits',
   description:
-    'Bhejo ranks money transfer services by the exact rupee amount that reaches the recipient. ' +
+    'PakRemits ranks money transfer services by the exact rupee amount that reaches the recipient. ' +
     'How the figure is calculated, where our money comes from, and what we do not cover.',
   alternates: { canonical: '/how-we-rank' },
 }
@@ -38,7 +38,7 @@ export default async function HowWeRankPage({
           <ol className="flex items-center gap-2">
             <li>
               <Link href="/" className="no-underline hover:text-leaf">
-                Bhejo
+                PakRemits
               </Link>
             </li>
             <li aria-hidden="true">/</li>

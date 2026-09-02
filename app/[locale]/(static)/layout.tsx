@@ -25,12 +25,12 @@ export default async function StaticLayout({
           <ol className="flex items-center gap-2">
             <li>
               <Link href={localePath(locale, '/')} className="no-underline hover:text-leaf">
-                Bhejo
+                PakRemits
               </Link>
             </li>
           </ol>
         </nav>
-        <article className="prose-bhejo mt-5 max-w-[68ch]">{children}</article>
+        <article className="prose-pakremits mt-5 max-w-[68ch]">{children}</article>
       </main>
       <SiteFooter locale={locale} />
     </>

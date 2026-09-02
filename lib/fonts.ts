@@ -38,16 +38,12 @@ const plex = IBM_Plex_Sans({
  * Lighthouse score.
  *
  * `preload: false` drops the <link rel=preload>, so it is no longer requested
- * before the page needs it. Measured honestly, that does *not* reduce total
- * bytes on an English page: the header and footer render the "بھیجو" wordmark
- * in this face, so the browser reaches a glyph that needs it and fetches it
- * anyway. What it buys is ordering — the 239kB no longer competes with the CSS
- * and the hero for early bandwidth, and `display: swap` means nothing blocks on
- * it.
+ * before the page needs it. What it buys is ordering — the 239kB no longer
+ * competes with the CSS and the hero for early bandwidth, and `display: swap`
+ * means nothing blocks on it.
  *
- * To actually remove the 239kB from English pages the wordmark would have to
- * stop being live text — an inline SVG of the two words would do it and keep
- * the design exactly. Worth doing; not done here.
+ * English pages do not fetch this face at all: the fixed Urdu strings there use
+ * `.urdu-fixed` and the 92kB subset below. Urdu pages use it throughout.
  */
 const nastaliq = Noto_Nastaliq_Urdu({
   subsets: ['arabic'],
@@ -59,16 +55,20 @@ const nastaliq = Noto_Nastaliq_Urdu({
 
 /**
  * Nastaliq, subset to the fixed Urdu strings that appear on English pages: the
- * "بھیجو" wordmark, the hero tagline from the design, and the "اردو" switcher
- * label.
+ * hero tagline from the design and the "اردو" switcher label.
  *
  * The full face is 233kB — after compression the single largest asset on the
  * site, larger than all the JavaScript combined, and woff2 cannot be squeezed
- * further by a CDN. English pages were paying all of it to render three fixed
- * phrases. This subset is 92kB and covers exactly those.
+ * further by a CDN. English pages were paying all of it to render a couple of
+ * fixed phrases. This subset is 92kB and covers exactly those.
+ *
+ * The shipped .woff2 still carries the glyphs for the old "بھیجو" wordmark,
+ * which the PakRemits logo replaced. Harmless — a superset renders correctly —
+ * but the next regeneration drops them, which is why they are not in the
+ * --text string below.
  *
  * Regenerate with (fonttools in a venv):
- *   pyftsubset <full.woff2> --text="بھیجو پیسے بھیجنے سے پہلے ریٹ چیک کریں اردو" \
+ *   pyftsubset <full.woff2> --text="پیسے بھیجنے سے پہلے ریٹ چیک کریں اردو" \
  *     --output-file=lib/font-data/nastaliq-latin-pages.woff2 \
  *     --flavor=woff2 --layout-features='*' --no-hinting
  *

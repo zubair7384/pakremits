@@ -107,7 +107,7 @@ export default async function CorridorPage({ params }: { params: Promise<{ local
               <ol className="flex flex-wrap items-center gap-2">
                 <li>
                   <Link href="/" className="no-underline hover:text-white">
-                    Bhejo
+                    PakRemits
                   </Link>
                 </li>
                 <li aria-hidden="true">/</li>
@@ -270,7 +270,7 @@ export default async function CorridorPage({ params }: { params: Promise<{ local
               '@context': 'https://schema.org',
               '@type': 'BreadcrumbList',
               itemListElement: [
-                { '@type': 'ListItem', position: 1, name: 'Bhejo', item: SITE },
+                { '@type': 'ListItem', position: 1, name: 'PakRemits', item: SITE },
                 {
                   '@type': 'ListItem',
                   position: 2,

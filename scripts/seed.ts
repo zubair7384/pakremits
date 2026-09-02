@@ -246,7 +246,7 @@ async function seedMidMarketHistory(days = 30) {
 }
 
 async function main() {
-  console.log('Seeding Bhejo…')
+  console.log('Seeding PakRemits…')
   await seedProviders()
   await seedCorridors()
   await seedMidMarketHistory()

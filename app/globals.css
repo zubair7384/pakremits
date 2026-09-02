@@ -71,8 +71,8 @@ h3 {
 }
 
 /**
- * The fixed Urdu strings on English pages — wordmark, hero tagline, switcher
- * label — use a 92kB subset instead of the 233kB full face.
+ * The fixed Urdu strings on English pages — hero tagline, switcher label — use
+ * a 92kB subset instead of the 233kB full face.
  *
  * Deliberately NOT a fallback chain with the full font. Webfont fallback is
  * per-character, so a chain would let one word draw some letters from the
