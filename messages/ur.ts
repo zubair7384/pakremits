@@ -38,6 +38,10 @@ export const ur: Messages = {
     language: 'زبان',
     // TODO: native review — accessibility label for the main nav
     main: 'مرکزی',
+    // TODO: native review — accessibility label on the mobile menu button
+    openMenu: 'مینو کھولیں',
+    // TODO: native review — accessibility label on the mobile menu button
+    closeMenu: 'مینو بند کریں',
   },
 
   home: {
@@ -71,6 +75,15 @@ export const ur: Messages = {
     flatThisWeek: 'اس ہفتے کوئی تبدیلی نہیں',
     // TODO: native review
     changeThisWeek: '{direction} {percent}% اس ہفتے',
+
+    // TODO: native review
+    marqueeLabel: 'بھیجنے والے ملک کے حساب سے آج کا بہترین ریٹ',
+    // TODO: native review
+    marqueeHead: '<strong>آج کا بہترین ریٹ</strong> بھیجنے والے ملک کے حساب سے · فی یونٹ روپے',
+    // TODO: native review
+    marqueeHint: 'رکنے کے لیے ماؤس رکھیں · کوریڈور کھولنے کے لیے کلک کریں',
+    // TODO: native review
+    marqueeFlat: 'کوئی تبدیلی نہیں',
     // TODO: native review
     corridorsTitle: 'آپ کہاں سے بھیج رہے ہیں؟',
     // TODO: native review
@@ -182,12 +195,6 @@ export const ur: Messages = {
   alerts: {
     // TODO: native review
     pair: 'کرنسی جوڑا',
-    // TODO: native review
-    direction: 'مجھے بتائیں جب یہ',
-    // TODO: native review
-    above: 'اس سے اوپر جائے',
-    // TODO: native review
-    below: 'اس سے نیچے آئے',
     // TODO: native review
     targetRate: 'مطلوبہ ریٹ',
     // TODO: native review

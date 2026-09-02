@@ -35,7 +35,11 @@ export function RateAlertForm({ defaultRate }: { defaultRate?: number }) {
           contact: form.get('contact'),
           fromCurrency: form.get('fromCurrency'),
           targetRate: form.get('targetRate'),
-          direction: form.get('direction'),
+          // The form no longer asks. Every alert is a "rises above" alert —
+          // the API still requires the field, and the whole delivery pipeline
+          // (decide.ts, messages.ts) branches on it, so it is pinned here
+          // rather than dropped from the contract.
+          direction: 'above',
           wantsDigest: form.get('wantsDigest') === 'on',
         }),
       })
@@ -89,29 +93,18 @@ export function RateAlertForm({ defaultRate }: { defaultRate?: number }) {
         </select>
       </div>
 
-      <div className="mt-3.5 grid gap-3.5 sm:grid-cols-[auto_1fr]">
-        <div>
-          <label htmlFor="alert-direction" className="mb-1.5 block text-[13px] text-[#B2C6BC]">
-            {t('direction')}
-          </label>
-          <select id="alert-direction" name="direction" className={fieldClass} defaultValue="above">
-            <option value="above">{t('above')}</option>
-            <option value="below">{t('below')}</option>
-          </select>
-        </div>
-        <div>
-          <label htmlFor="alert-rate" className="mb-1.5 block text-[13px] text-[#B2C6BC]">
-            {t('targetRate')}
-          </label>
-          <input
-            id="alert-rate"
-            name="targetRate"
-            inputMode="decimal"
-            required
-            defaultValue={defaultRate ? defaultRate.toFixed(2) : ''}
-            className={`${fieldClass} font-display text-[22px] font-semibold tabular-nums`}
-          />
-        </div>
+      <div className="mt-3.5">
+        <label htmlFor="alert-rate" className="mb-1.5 block text-[13px] text-[#B2C6BC]">
+          {t('targetRate')}
+        </label>
+        <input
+          id="alert-rate"
+          name="targetRate"
+          inputMode="decimal"
+          required
+          defaultValue={defaultRate ? defaultRate.toFixed(2) : ''}
+          className={`${fieldClass} font-display text-[22px] font-semibold tabular-nums`}
+        />
       </div>
 
       <div className="mt-3.5">

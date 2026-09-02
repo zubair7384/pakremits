@@ -6,6 +6,9 @@ import { claimMap, evaluateClaims } from '@/lib/proof/claims'
 import { formatProofPkr, formatProofPkrFull } from '@/lib/proof/format'
 import type { ProofStats } from '@/lib/proof/stats'
 
+/** The card shell, shared with the cards callers pass in as `children`. */
+export const PROOF_CARD = 'rounded-panel border border-line bg-white px-7 py-6.5'
+
 /**
  * The proof strip: claims that are true right now, and nothing else.
  *
@@ -14,18 +17,25 @@ import type { ProofStats } from '@/lib/proof/stats'
  * threshold produces no element at all: no greyed-out card, no "0 so far", no
  * placeholder. An empty strip is the correct appearance for a site with no
  * traffic yet, and it is what a fresh deploy shows.
+ *
+ * `children` are extra <li> cards that belong in the same four-up grid — the
+ * design has the claims and the counted-fact cards as one row, not two, so they
+ * have to share a grid to come out the same width and height.
  */
 export async function ProofStrip({
   locale,
   stats,
   liveGapOnStandardAmount,
   sendAmountLabel,
+  children,
 }: {
   locale: Locale
   stats: ProofStats
   liveGapOnStandardAmount: number | null
   /** e.g. "£500" — the amount currently in the widget. */
   sendAmountLabel: string
+  /** Extra <li> cards for the same grid. */
+  children?: React.ReactNode
 }) {
   const t = await getTranslations({ locale, namespace: 'proof' })
   const claims = claimMap(evaluateClaims({ stats, liveGapOnStandardAmount }))
@@ -108,23 +118,24 @@ export async function ProofStrip({
     })
   }
 
-  if (items.length === 0) return null
+  if (items.length === 0 && !children) return null
 
   return (
-    <section className="mt-7" aria-label={t('stripLabel')}>
-      <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <section className="mt-5" aria-label={t('stripLabel')}>
+      <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {items.map((item) => (
-          <li key={item.key} className="rounded-panel border border-line bg-white p-6">
-            <p className="text-[15px] leading-relaxed text-ink">{item.body}</p>
+          <li key={item.key} className={PROOF_CARD}>
+            <p className="text-[17px] leading-[1.35] font-medium text-ink">{item.body}</p>
             <Link
               href={item.href}
-              className="mt-3 inline-block text-[13px] text-muted underline underline-offset-2
+              className="mt-3.5 inline-block text-[13px] text-muted underline underline-offset-2
                          hover:text-leaf"
             >
               {t('howWeCount')}
             </Link>
           </li>
         ))}
+        {children}
       </ul>
     </section>
   )

@@ -14,6 +14,8 @@ export const en = {
     setAlert: 'Set a rate alert',
     language: 'Language',
     main: 'Main',
+    openMenu: 'Open menu',
+    closeMenu: 'Close menu',
   },
 
   home: {
@@ -33,6 +35,13 @@ export const en = {
     tickerFootnote: 'Mid-market reference, 7-day trend',
     flatThisWeek: 'Flat this week',
     changeThisWeek: '{direction} {percent}% this week',
+
+    marqueeLabel: 'Best rate today by sending country',
+    // <strong> wraps the lead phrase; the rest of the line is the unit note.
+    marqueeHead: '<strong>Best rate today</strong> by sending country · rupees per unit',
+    marqueeHint: 'Hover to pause · click to open the corridor',
+    // Short form for the marquee chip. `flatThisWeek` is the spoken label.
+    marqueeFlat: 'Flat',
     corridorsTitle: 'Where are you sending from?',
     corridorsLede:
       'Every corridor has its own page with live rates, delivery times, and limits.',
@@ -114,9 +123,6 @@ export const en = {
 
   alerts: {
     pair: 'Currency pair',
-    direction: 'Tell me when it',
-    above: 'rises above',
-    below: 'falls below',
     targetRate: 'Target rate',
     sendBy: 'Send it by',
     whatsapp: 'WhatsApp',

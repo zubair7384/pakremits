@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
 import { LocaleSwitcher } from '@/components/locale-switcher'
+import { MobileNav } from '@/components/mobile-nav'
 import { type Locale, localePath } from '@/i18n/routing'
 import { corridorPath, methodPath, ratePath, staticPath } from '@/lib/routes'
 
@@ -21,7 +22,10 @@ export async function SiteHeader({ locale = 'en' }: { locale?: Locale }) {
   ]
 
   return (
-    <div className="bg-green text-mist">
+    /* Sticky and fully opaque — green-2 on a green-3 rule, the same pairing the
+       rate panel in the hero uses, so the bar reads as one of the site's
+       surfaces rather than a tint of whatever scrolls beneath it. */
+    <div className="sticky top-0 z-50 border-b border-green-3 bg-green-2 text-mist">
       <div className="mx-auto flex h-[72px] max-w-[1120px] items-center justify-between px-6">
         <Link href={localePath(locale, '/')} className="flex items-center no-underline">
           {/* Dark variant: the supplied logo is inked in #0B3D2E, which is the
@@ -36,12 +40,15 @@ export async function SiteHeader({ locale = 'en' }: { locale?: Locale }) {
             alt="PakRemits"
             width={176}
             height={50}
-            className="h-[50px] w-auto"
+            className="h-10 w-auto sm:h-[50px]"
           />
         </Link>
 
-        <nav aria-label={t('main')}>
-          <ul className="hidden items-center gap-7 text-[15px] md:flex">
+        {/* Hidden on the landmark, not the list: leaving an empty <nav> with
+            this label in the mobile DOM would give the page two "Main"
+            navigation landmarks, one of them empty. */}
+        <nav aria-label={t('main')} className="hidden md:block">
+          <ul className="flex items-center gap-7 text-[15px]">
             {nav.map((item) => (
               <li key={item.href}>
                 <Link href={item.href} className="text-[#C9D9D0] no-underline hover:text-white">
@@ -52,16 +59,28 @@ export async function SiteHeader({ locale = 'en' }: { locale?: Locale }) {
           </ul>
         </nav>
 
-        <div className="flex items-center gap-3.5">
-          <LocaleSwitcher locale={locale} label={t('language')} />
+        <div className="flex items-center gap-2.5 sm:gap-3.5">
+          {/* Hidden on the same breakpoint as the nav: below md both live in
+              the mobile panel instead, so neither is duplicated. */}
+          <LocaleSwitcher locale={locale} label={t('language')} className="hidden md:flex" />
 
           <Link
             href={`${localePath(locale, '/')}#alerts`}
-            className="flex h-10 items-center rounded-full border border-[#2A6B54] px-4
-                       text-sm font-medium text-white no-underline hover:bg-green-3"
+            className="flex h-10 items-center rounded-full border border-[#2A6B54] px-3.5
+                       text-sm font-medium whitespace-nowrap text-white no-underline
+                       hover:bg-green-3 sm:px-4"
           >
             {t('setAlert')}
           </Link>
+
+          <MobileNav
+            items={nav}
+            label={t('main')}
+            openLabel={t('openMenu')}
+            closeLabel={t('closeMenu')}
+          >
+            <LocaleSwitcher locale={locale} label={t('language')} />
+          </MobileNav>
         </div>
       </div>
     </div>

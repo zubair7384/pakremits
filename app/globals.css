@@ -44,6 +44,10 @@
 
 html {
   scroll-behavior: smooth;
+  /* The header is sticky and 72px tall, so an anchor target scrolled to the
+     very top of the viewport lands underneath it. Offset every jump by the
+     bar's height plus a little breathing room. */
+  scroll-padding-top: 88px;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -53,6 +57,11 @@ body {
   font-family: var(--font-sans);
   font-size: 16px;
   line-height: 1.55;
+  /* The corridor marquee is full-bleed at 100vw, which is wider than the
+     content box wherever a classic scrollbar takes up room. `clip`, not
+     `hidden`: hidden turns the body into a scroll container and the sticky
+     header stops sticking. */
+  overflow-x: clip;
 }
 
 h1,
@@ -85,10 +94,24 @@ h3 {
   line-height: 1.9;
 }
 
-/* Visible focus everywhere — the design specifies it, and AA requires it. */
-:focus-visible {
-  outline: 3px solid rgb(28 124 84 / 0.45);
-  outline-offset: 2px;
+/**
+ * Visible focus everywhere — the design specifies it, and AA requires it.
+ *
+ * In `@layer base` on purpose. Unlayered CSS beats anything in a layer whatever
+ * the specificity, so as a plain rule this outlined even the controls that ask
+ * for `focus:outline-none` because they paint their own indicator — the compare
+ * panel's fields drew this outline *inside* their own focus ring, two boxes for
+ * one focused field. Layered, a `focus:outline-none` utility wins and every
+ * other focusable thing still gets the outline.
+ *
+ * The controls that opt out all replace it with a 4px ring plus a border colour
+ * change, so none of them ends up with focus you cannot see.
+ */
+@layer base {
+  :focus-visible {
+    outline: 3px solid rgb(28 124 84 / 0.45);
+    outline-offset: 2px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -123,4 +146,54 @@ h3 {
 [dir='rtl'] h2,
 [dir='rtl'] h3 {
   line-height: 1.6;
+}
+
+/**
+ * Corridor marquee.
+ *
+ * The scroll, the hover pause and the reduced-motion fallback are plain CSS
+ * rather than utilities: the track is duplicated and animates to -50%, so the
+ * loop only reads as seamless if the keyframe and the duplicate agree, and the
+ * blanket `animation-duration: 0.01ms` above would otherwise freeze the track
+ * mid-slide instead of resetting it. Values are the design file's.
+ */
+.marquee-viewport {
+  mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+}
+
+.marquee-track {
+  animation: marquee-scroll 48s linear infinite;
+}
+
+.marquee-viewport:hover .marquee-track,
+.marquee-viewport:focus-within .marquee-track {
+  animation-play-state: paused;
+}
+
+@keyframes marquee-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* No motion: a plain horizontal scroller with no duplicate set, so the second
+   copy is not announced or scrolled past twice. */
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none !important;
+  }
+
+  .marquee-viewport {
+    overflow-x: auto;
+    mask-image: none;
+    -webkit-mask-image: none;
+  }
+
+  .marquee-dup {
+    display: none !important;
+  }
 }

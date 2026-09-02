@@ -21,7 +21,17 @@ import { type Locale, DEFAULT_LOCALE, localePath } from '@/i18n/routing'
 /** Route trees that exist only in English. */
 const UNLOCALISED_PREFIXES = ['/alerts', '/admin', '/go']
 
-export function LocaleSwitcher({ locale, label }: { locale: Locale; label: string }) {
+export function LocaleSwitcher({
+  locale,
+  label,
+  className = 'flex',
+}: {
+  locale: Locale
+  label: string
+  /** Display and visibility classes. The header hides it below md, where the
+      mobile menu renders its own copy; the default is a plain visible row. */
+  className?: string
+}) {
   const pathname = usePathname() || '/'
 
   // Strip the locale prefix to get the shared, locale-free path.
@@ -46,7 +56,7 @@ export function LocaleSwitcher({ locale, label }: { locale: Locale; label: strin
 
   return (
     <div
-      className="hidden overflow-hidden rounded-full border border-green-3 text-[13px] sm:flex"
+      className={`overflow-hidden rounded-full border border-green-3 text-[13px] ${className}`}
       aria-label={label}
     >
       <Link

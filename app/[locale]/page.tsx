@@ -11,7 +11,8 @@ import { getBestRatePerCorridor, getComparison, getMidMarketSeries } from '@/lib
 import type { SendCurrency } from '@/lib/db/schema'
 import { alternatesFor, localePath, toLocale } from '@/i18n/routing'
 import { corridorPath, staticPath } from '@/lib/routes'
-import { ProofStrip, heroSavingStat } from '@/components/proof-strip'
+import { PROOF_CARD, ProofStrip, heroSavingStat } from '@/components/proof-strip'
+import { RateMarquee } from '@/components/rate-marquee'
 import { CLAIM_FIRST_PAKISTAN_ONLY_SITE } from '@/lib/proof/config'
 import { getProofStats } from '@/lib/proof/stats'
 
@@ -66,11 +67,30 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
     { q: t('faq4Q'), a: t('faq4A') },
   ]
 
-  const [comparison, chips, ticker] = await Promise.all([
+  const [comparison, chips, series] = await Promise.all([
     getComparison({ corridorSlug: 'uk', method: 'bank', amount: 500 }),
     getBestRatePerCorridor(),
-    Promise.all(TICKER_CURRENCIES.map((currency) => getMidMarketSeries(currency, 7))),
+    // Every corridor currency, not just the four in the ticker: the marquee
+    // carries a trend chip per sending country and reads the same series, so
+    // the two never disagree about which way a rate moved.
+    Promise.all(CORRIDORS.map((corridor) => getMidMarketSeries(corridor.fromCurrency, 7))),
   ])
+
+  const seriesByCurrency = new Map(series.map((entry) => [entry.currency, entry]))
+  const ticker = TICKER_CURRENCIES.map(
+    (currency) =>
+      seriesByCurrency.get(currency) ?? {
+        currency,
+        points: [],
+        latest: null,
+        changePercent: null,
+      },
+  )
+
+  const marqueeItems = chips.map((chip) => ({
+    ...chip,
+    changePercent: seriesByCurrency.get(chip.currency)?.changePercent ?? null,
+  }))
 
   const corridorOptions = CORRIDORS.map((corridor) => ({
     slug: corridor.slug,
@@ -272,37 +292,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           </section>
         )}
 
-        {/*
-          Proof strip. Replaces a card that showed `saving * 12` rounded to the
-          nearest thousand — a projection of a projection, and exactly the kind
-          of figure the proof rules forbid. Everything here is a live sum.
-        */}
-        <ProofStrip
-          locale={locale}
-          stats={proofStats}
-          liveGapOnStandardAmount={saving}
-          sendAmountLabel={sendAmountLabel}
-        />
-
-        <div className="mt-4 grid gap-4 lg:grid-cols-2">
-          <div className="rounded-panel border border-line bg-white p-7">
-            <div className="font-display text-[40px] leading-none font-semibold tracking-[-0.025em] text-green">
-              {providerCount}
-            </div>
-            <p className="mt-2.5 text-[14.5px] text-muted">
-              {t('statComparedBody')}
-            </p>
-          </div>
-
-          <div className="rounded-panel border border-line bg-white p-7">
-            <div className="font-display text-[40px] leading-none font-semibold tracking-[-0.025em] text-green">
-              0
-            </div>
-            <p className="mt-2.5 text-[14.5px] text-muted">
-              {t('statSponsoredBody')}
-            </p>
-          </div>
-        </div>
+        {/* Corridor marquee — full-bleed, so it sits outside the column above. */}
+        <RateMarquee locale={locale} items={marqueeItems} />
 
         {/* Rate alerts */}
         <section
@@ -326,7 +317,13 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               {t('alertsBody')}
             </p>
 
-            <div className="relative mt-7 max-w-[380px] rounded-[14px_14px_14px_4px] bg-[#DCF8C6] p-4 text-[14.5px] leading-relaxed text-[#1E2B22]">
+            {/* Sample alert. Hidden on phones: it is an illustration of what
+                arrives, and on a narrow screen it only pushes the form itself
+                further down. */}
+            <div
+              className="relative mt-7 hidden max-w-[380px] rounded-[14px_14px_14px_4px]
+                         bg-[#DCF8C6] p-4 text-[14.5px] leading-relaxed text-[#1E2B22] sm:block"
+            >
               <div className="mb-1 text-xs font-medium text-[#436B50]">PakRemits alerts</div>
               <b className="font-medium">
                 GBP → PKR just crossed{' '}
@@ -346,6 +343,39 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             }
           />
         </section>
+
+        {/*
+          Proof strip. Replaces a card that showed `saving * 12` rounded to the
+          nearest thousand — a projection of a projection, and exactly the kind
+          of figure the proof rules forbid. Everything here is a live sum.
+        */}
+        {/* The two counted facts are passed into the strip's own grid rather
+            than sitting in a second one below it: the design has all four cards
+            in one four-up row, at one width and one height. */}
+        <ProofStrip
+          locale={locale}
+          stats={proofStats}
+          liveGapOnStandardAmount={saving}
+          sendAmountLabel={sendAmountLabel}
+        >
+          <li className={PROOF_CARD}>
+            <div className="font-display text-[44px] leading-none font-semibold tracking-[-0.025em] text-green">
+              {providerCount}
+            </div>
+            <p className="mt-2.5 text-[14.5px] text-muted">
+              {t('statComparedBody')}
+            </p>
+          </li>
+
+          <li className={PROOF_CARD}>
+            <div className="font-display text-[44px] leading-none font-semibold tracking-[-0.025em] text-green">
+              0
+            </div>
+            <p className="mt-2.5 text-[14.5px] text-muted">
+              {t('statSponsoredBody')}
+            </p>
+          </li>
+        </ProofStrip>
 
         {/* Corridors */}
         <section id="corridors" className="mt-24">
