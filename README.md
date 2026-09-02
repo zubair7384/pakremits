@@ -4,10 +4,15 @@ Compares money-transfer services sending to Pakistan, ranked by the exact PKR
 amount that lands in the recipient's account. Not by rate, not by fee, not by
 who pays us.
 
-**Status: Phase 1 complete, Phase 2 in progress.** The rate engine works
-end-to-end against live provider APIs, and the home page renders live data.
-Corridor, provider, comparison, rate and method pages are not built yet, and
-neither is the Urdu locale — links to them currently 404.
+**Status: Phases 1 and 2 complete.** The rate engine runs against live provider
+APIs and the full public site renders from it — home, 8 corridor pages, 8 rate
+pages, provider and head-to-head pages, method pages, and the static set, in
+English and Urdu. 26 pages prerender.
+
+Phase 3 (rate alerts), Phase 4 (admin dashboard) and Phase 5 (launch checklist)
+are not built. Two of the fourteen providers in the original brief are live; see
+[Provider access](#provider-access-as-surveyed-on-2-sep-2026) for why the rest
+are not, which is the main open question for the project.
 
 ---
 
@@ -100,6 +105,19 @@ npm run dev
 | `npm run db:generate` | Generate a migration from schema changes |
 | `npm run db:migrate` | Apply pending migrations |
 | `npm run db:studio` | Drizzle Studio |
+
+### URLs
+
+Public URLs do not match the file router, for two reasons documented in
+`next.config.ts`: Next dynamic segments must be a whole path segment (so
+`send-money-from-[slug]-to-pakistan` is not expressible as a folder), and
+English is served unprefixed while pages live under `/[locale]`. Both are
+handled by explicit rewrites.
+
+**Never link an internal path directly.** `robots.txt` disallows `/corridor/`,
+`/rate/` and `/method/`, so a stray internal link would point search engines at
+a de-indexed URL. Every link goes through `lib/routes.ts`, which takes a locale
+so Urdu pages link to Urdu pages. Adding a page means adding a rewrite line.
 
 ---
 

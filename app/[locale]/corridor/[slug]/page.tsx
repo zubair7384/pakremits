@@ -62,6 +62,12 @@ export async function generateMetadata({
       description: content.metaDescription,
       url: `${SITE}${path}`,
       type: 'article',
+      // Explicit, because the derived URL would be the internal route path.
+      images: [{ url: `${SITE}/og/corridor/${slug}.png`, width: 1200, height: 630 }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      images: [`${SITE}/og/corridor/${slug}.png`],
     },
   }
 }

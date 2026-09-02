@@ -49,6 +49,17 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return {
       beforeFiles: [
+        /**
+         * Open Graph images.
+         *
+         * Next derives the image URL from the internal route (/en/corridor/uk/
+         * opengraph-image), which the /en redirect below would bounce and which
+         * robots.txt disallows. This gives the card a stable public URL that
+         * the page metadata can point at instead. An incoming /og/... request
+         * does not match the /en redirect, so it reaches this rewrite intact.
+         */
+        { source: '/og/corridor/:slug.png', destination: '/en/corridor/:slug/opengraph-image' },
+
         // ─── Pretty URLs, English ────────────────────────────────────────
         { source: '/send-money-from-:slug-to-pakistan', destination: '/en/corridor/:slug' },
         { source: '/roshan-digital-account-transfer', destination: '/en/method/rda' },
