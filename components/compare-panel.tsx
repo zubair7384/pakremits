@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useId, useRef, useState } from 'react'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import type { Comparison } from '@/lib/quotes'
 import type { DeliveryMethod } from '@/lib/db/schema'
 import type { SortKey } from '@/lib/ranking/rank'
@@ -21,6 +21,8 @@ interface CorridorOption {
   countryName: string
   currency: string
   symbol: string
+  /** The corridor's standard amount, used when switching into it. */
+  defaultAmount: number
 }
 
 interface Props {
@@ -37,6 +39,17 @@ const SORT_LABEL_KEY: Record<SortKey, 'sortReceived' | 'sortFastest' | 'sortLowe
   received: 'sortReceived',
   fastest: 'sortFastest',
   'lowest-fee': 'sortLowestFee',
+}
+
+/**
+ * Provider-supplied strings that reach the page untranslated — the delivery
+ * SLA and the promo note — are Latin text. Dropped into right-to-left Urdu the
+ * bidi algorithm reorders them: "3–5 days" renders as "days 5–3", which is not
+ * a translation gap but plain nonsense. Isolating the run fixes the ordering;
+ * the buckets below fix the language.
+ */
+function Isolated({ children }: { children: React.ReactNode }) {
+  return <bdi>{children}</bdi>
 }
 
 const PKT = new Intl.DateTimeFormat('en-GB', {
@@ -72,6 +85,29 @@ function BoltIcon() {
 export function ComparePanel({ initial, corridors }: Props) {
   const t = useTranslations('panel')
   const tm = useTranslations('methods')
+  const locale = useLocale()
+
+  /**
+   * Delivery speed, as text.
+   *
+   * English keeps the provider's own published wording, which is more precise
+   * than any bucket we could derive — 4320 minutes is "3–5 days" for Remitly
+   * and "2–4 days" for a bank, and minutes alone cannot tell them apart. Other
+   * locales get a bucket, because showing the English is worse than showing a
+   * slightly coarser translation.
+   */
+  const speedLabel = (minutes: number | null, fallback: string): string => {
+    if (locale === 'en') return fallback
+    if (minutes === null) return t('speedVaries')
+    if (minutes <= 30) return t('speedMinutes')
+    if (minutes <= 360) return t('speedHours')
+    if (minutes <= 1440) return t('speedSameDay')
+    return t('speedFewDays')
+  }
+
+  /** Known promo notes get a translation; anything else is isolated as-is. */
+  const promoLabel = (note: string): string =>
+    note === 'New-customer rate' ? t('promoNewCustomer') : note
   const [corridor, setCorridor] = useState(initial.corridorSlug)
   const [method, setMethod] = useState<DeliveryMethod>(initial.deliveryMethod)
   const [amountText, setAmountText] = useState(String(initial.amount))
@@ -167,7 +203,17 @@ export function ComparePanel({ initial, corridors }: Props) {
               <select
                 id="from"
                 value={corridor}
-                onChange={(event) => setCorridor(event.target.value)}
+                onChange={(event) => {
+                  const next = event.target.value
+                  setCorridor(next)
+                  // Reset the amount to this corridor's standard figure.
+                  // Currencies differ by an order of magnitude — £500 is about
+                  // 2,300 AED — so carrying the number across a switch showed
+                  // "د.إ 500" to someone who had asked about £500, and quietly
+                  // extrapolated it from a band captured at a different amount.
+                  const target = corridors.find((c) => c.slug === next)
+                  if (target) setAmountText(String(target.defaultAmount))
+                }}
                 className={fieldClass}
               >
                 {corridors.map((option) => (
@@ -266,7 +312,10 @@ export function ComparePanel({ initial, corridors }: Props) {
           </div>
 
           <div
-            className="flex gap-1 rounded-full border border-line bg-white p-[3px]"
+            // flex-wrap on the group, nowrap inside each pill: Urdu labels are
+            // longer than the English, and without this the text wrapped inside
+            // the pills and doubled the control's height.
+            className="flex flex-wrap gap-1 rounded-full border border-line bg-white p-[3px]"
             role="group"
             aria-label={t('sortBy')}
           >
@@ -276,7 +325,7 @@ export function ComparePanel({ initial, corridors }: Props) {
                 type="button"
                 onClick={() => setSort(value)}
                 aria-pressed={sort === value}
-                className={`rounded-full px-3 py-[5px] text-[13px] transition-colors ${
+                className={`rounded-full px-3 py-[5px] text-[13px] whitespace-nowrap transition-colors ${
                   sort === value ? 'bg-ink text-white' : 'text-muted hover:text-ink'
                 }`}
               >
@@ -365,7 +414,7 @@ export function ComparePanel({ initial, corridors }: Props) {
                     )}
                     {q.promo && q.promoNote && (
                       <span className="rounded-full bg-[#F1EAFB] px-2.5 py-[3px] text-[11.5px] text-[#7A4EB8]">
-                        {q.promoNote}
+                        <Isolated>{promoLabel(q.promoNote)}</Isolated>
                       </span>
                     )}
                     {q.stale && (
@@ -385,7 +434,9 @@ export function ComparePanel({ initial, corridors }: Props) {
                       }`}
                     >
                       {(q.deliverySpeedMinutes ?? Number.POSITIVE_INFINITY) <= 600 && <BoltIcon />}
-                      {q.deliverySpeedText}
+                      <Isolated>
+                        {speedLabel(q.deliverySpeedMinutes, q.deliverySpeedText)}
+                      </Isolated>
                     </span>
                   </div>
                 </div>

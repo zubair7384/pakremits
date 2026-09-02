@@ -155,6 +155,19 @@ export const en = {
     disclaimerCaptured: 'Rates captured at {amount}.',
     disclaimerCommission:
       'Some links pay us a commission. Ranking is by amount received only.',
+
+    // Delivery-speed buckets, derived from deliverySpeedMinutes. English uses
+    // the provider's own published wording where we have it; other locales use
+    // these, because an untranslated Latin phrase inside right-to-left text
+    // gets reordered by the bidi algorithm into nonsense ("3–5 days" rendered
+    // as "days 5–3").
+    speedMinutes: 'Minutes',
+    speedHours: 'In hours',
+    speedSameDay: 'Same day',
+    speedFewDays: 'A few days',
+    speedVaries: 'Varies',
+
+    promoNewCustomer: 'New-customer rate',
   },
 
   methods: {

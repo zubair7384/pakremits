@@ -273,6 +273,20 @@ export const ur: Messages = {
     // TODO: native review
     disclaimerCommission:
       'کچھ لنکس پر ہمیں کمیشن ملتا ہے۔ درجہ بندی صرف وصول ہونے والی رقم پر ہوتی ہے۔',
+
+    // TODO: native review
+    speedMinutes: 'چند منٹ میں',
+    // TODO: native review
+    speedHours: 'چند گھنٹوں میں',
+    // TODO: native review
+    speedSameDay: 'اسی دن',
+    // TODO: native review
+    speedFewDays: 'چند دن میں',
+    // TODO: native review
+    speedVaries: 'مختلف',
+
+    // TODO: native review
+    promoNewCustomer: 'نئے صارف کا ریٹ',
   },
 
   methods: {

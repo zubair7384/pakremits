@@ -11,7 +11,7 @@ import { notFound } from 'next/navigation'
 import { RateChart } from '@/components/rate-chart'
 import { setRequestLocale } from 'next-intl/server'
 import { SiteFooter, SiteHeader } from '@/components/site-chrome'
-import { toLocale } from '@/i18n/routing'
+import { alternatesFor, toLocale } from '@/i18n/routing'
 import { CORRIDORS, CURRENCY_SYMBOLS, corridorByCurrency } from '@/lib/corridors'
 import { SEND_CURRENCIES, type SendCurrency } from '@/lib/db/schema'
 import { formatPkr, round } from '@/lib/ranking/compute'
@@ -50,7 +50,7 @@ export async function generateMetadata({
     description:
       `Today's ${currency} to PKR mid-market rate, a 30-day chart, and the service paying the ` +
       'most rupees right now. Updated every 15 minutes.',
-    alternates: { canonical: path, languages: { 'en-GB': path, ur: `/ur${path}` } },
+    alternates: alternatesFor(path),
     openGraph: { url: `${SITE}${path}`, type: 'website' },
   }
 }

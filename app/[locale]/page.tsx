@@ -5,7 +5,7 @@ import { ComparePanel } from '@/components/compare-panel'
 import { RateAlertForm } from '@/components/rate-alert-form'
 import { SiteFooter, SiteHeader } from '@/components/site-chrome'
 import { Sparkline } from '@/components/sparkline'
-import { CORRIDORS, CURRENCY_SYMBOLS } from '@/lib/corridors'
+import { CORRIDORS, CURRENCY_SYMBOLS, defaultAmountFor } from '@/lib/corridors'
 import { formatPkr } from '@/lib/ranking/compute'
 import { getBestRatePerCorridor, getComparison, getMidMarketSeries } from '@/lib/quotes'
 import type { SendCurrency } from '@/lib/db/schema'
@@ -73,6 +73,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
     countryName: corridor.fromCountryName,
     currency: corridor.fromCurrency,
     symbol: CURRENCY_SYMBOLS[corridor.fromCurrency],
+    defaultAmount: defaultAmountFor(corridor.fromCurrency),
   }))
 
   // Everything below is derived from live data. The copy rules forbid a

@@ -12,8 +12,8 @@ import { notFound } from 'next/navigation'
 import { ComparePanel } from '@/components/compare-panel'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { SiteFooter, SiteHeader } from '@/components/site-chrome'
-import { toLocale } from '@/i18n/routing'
-import { CORRIDORS, CURRENCY_SYMBOLS } from '@/lib/corridors'
+import { alternatesFor, toLocale } from '@/i18n/routing'
+import { CORRIDORS, CURRENCY_SYMBOLS, defaultAmountFor } from '@/lib/corridors'
 import { METHOD_CONTENT, methodBySlug } from '@/lib/content/methods'
 import { methodPath } from '@/lib/routes'
 import { getComparison } from '@/lib/quotes'
@@ -41,7 +41,7 @@ export async function generateMetadata({
   return {
     title: `${content.title} | Bhejo`,
     description: content.metaDescription,
-    alternates: { canonical: path, languages: { 'en-GB': path, ur: `/ur${path}` } },
+    alternates: alternatesFor(path),
     openGraph: { url: `${SITE}${path}`, type: 'article' },
   }
 }
@@ -62,6 +62,7 @@ export default async function MethodPage({ params }: { params: Promise<{ locale:
     countryName: c.fromCountryName,
     currency: c.fromCurrency,
     symbol: CURRENCY_SYMBOLS[c.fromCurrency],
+    defaultAmount: defaultAmountFor(c.fromCurrency),
   }))
 
   const hasQuotes = (comparison?.rows.filter((r) => !r.quote.isBenchmark).length ?? 0) > 0

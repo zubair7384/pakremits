@@ -127,3 +127,13 @@ export function corridorBySlug(slug: string): CorridorConfig | undefined {
 export function corridorByCurrency(currency: SendCurrency): CorridorConfig | undefined {
   return CORRIDORS.find((c) => c.fromCurrency === currency)
 }
+
+/**
+ * The amount a corridor opens on, and the figure the panel resets to when the
+ * user switches into it. The second entry of the grid: 500 for the currencies
+ * that use round hundreds, 1000 for the Gulf ones where 500 is a small sum.
+ */
+export function defaultAmountFor(currency: SendCurrency): number {
+  const grid = STANDARD_AMOUNTS[currency] ?? [100, 500, 1000, 2000]
+  return grid[1] ?? grid[0]
+}

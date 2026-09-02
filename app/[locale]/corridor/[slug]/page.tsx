@@ -13,8 +13,8 @@ import { ComparePanel } from '@/components/compare-panel'
 import { RateChart } from '@/components/rate-chart'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { SiteFooter, SiteHeader } from '@/components/site-chrome'
-import { toLocale } from '@/i18n/routing'
-import { CORRIDORS, CURRENCY_SYMBOLS, corridorBySlug } from '@/lib/corridors'
+import { alternatesFor, toLocale } from '@/i18n/routing'
+import { CORRIDORS, CURRENCY_SYMBOLS, defaultAmountFor, corridorBySlug } from '@/lib/corridors'
 import { CORRIDOR_CONTENT } from '@/lib/content/corridors'
 import { formatPkr } from '@/lib/ranking/compute'
 import { getComparison, getMidMarketSeries } from '@/lib/quotes'
@@ -53,10 +53,7 @@ export async function generateMetadata({
     // where freshness is the whole point.
     title: `${content.title} — live rates, ${TODAY.format(new Date())}`,
     description: content.metaDescription,
-    alternates: {
-      canonical: path,
-      languages: { 'en-GB': path, ur: `/ur${path}` },
-    },
+    alternates: alternatesFor(path),
     openGraph: {
       title: content.title,
       description: content.metaDescription,
@@ -93,6 +90,7 @@ export default async function CorridorPage({ params }: { params: Promise<{ local
     countryName: c.fromCountryName,
     currency: c.fromCurrency,
     symbol: CURRENCY_SYMBOLS[c.fromCurrency],
+    defaultAmount: defaultAmountFor(c.fromCurrency),
   }))
 
   const path = corridorPath(slug)
