@@ -142,6 +142,59 @@ so Urdu pages link to Urdu pages. Adding a page means adding a rewrite line.
 
 ---
 
+## Deploying to Fly.io
+
+This repository is prepared for Fly Launch's Next.js detector. `package.json`
+identifies the framework and `next.config.ts` enables Next's standalone output,
+so Fly can generate an optimized multi-stage `Dockerfile` and `fly.toml` for the
+project. Those two files are intentionally generated at launch time because the
+Fly app name, organization, and region are chosen during that flow.
+
+Install `flyctl`, sign in, and run these commands from the repository root:
+
+```bash
+fly auth login
+fly launch --no-deploy
+```
+
+Review the generated files before the first deploy. The generated service should
+listen on internal port `3000`; configure its HTTP health check to use
+`/api/health`. Keep one Machine initially because Next's in-memory/filesystem
+cache invalidation is local to each Machine.
+
+Set server-only values on the Fly app. `DIRECT_URL` is only needed on the machine
+where you run migrations, so it does not need to be a web-app secret.
+
+```bash
+fly secrets set DATABASE_URL="postgresql://..." CRON_SECRET="..." ADMIN_PASSWORD="..."
+```
+
+Add whichever notification secrets from `.env.example` you use. Then migrate
+from a trusted machine that has `DIRECT_URL`, and deploy:
+
+```bash
+npm run db:migrate
+fly deploy --build-arg NEXT_PUBLIC_SITE_URL="https://YOUR-APP.fly.dev"
+```
+
+`NEXT_PUBLIC_*` variables are compiled into the browser bundle. If Plausible is
+enabled, declare both public names under the generated `fly.toml` `[build.args]`
+table and pass both values to `fly deploy`:
+
+```toml
+[build.args]
+  NEXT_PUBLIC_SITE_URL = ""
+  NEXT_PUBLIC_PLAUSIBLE_DOMAIN = ""
+```
+
+Do not commit production secrets to `fly.toml`. After the first deploy, set the
+GitHub Actions repository variable `SITE_URL` to the new `https://...fly.dev`
+address. The scheduled refresh will continue to update PostgreSQL directly and
+will ask the Fly app to revalidate its cached quote pages.
+
+Fly's official [Next.js guide](https://fly.io/nextjs/) documents the detector,
+generated files, standalone output, and the build-time/runtime environment split.
+
 ## Deploying to Vercel
 
 1. Push to GitHub, import the repo at [vercel.com/new](https://vercel.com/new).
@@ -165,13 +218,14 @@ cached pages. `/api/cron/refresh-rates` still exists for manual triggering.
 In your GitHub repo:
 
 - **Settings → Secrets and variables → Actions → Secrets**: add `DATABASE_URL`
-  (the pooled Supabase URL) and `CRON_SECRET`, matching the value in Vercel.
-- **→ Variables**: add `SITE_URL`, e.g. `https://pakremits.vercel.app`. Leave it
+  (the pooled Supabase URL) and `CRON_SECRET`, matching the value on the deployed app.
+- **→ Variables**: add `SITE_URL`, e.g. `https://pakremits.fly.dev`. Leave it
   unset before the first deploy and the revalidate step skips itself.
 
 Trigger the workflow by hand from the Actions tab to check it before waiting for
-a tick. GitHub's scheduler is best-effort and lags under load, which is why
-`/admin` surfaces the last successful run.
+a tick. It runs at 7, 22, 37, and 52 minutes past each hour (UTC), avoiding the
+top-of-hour load peak. GitHub's scheduler is best-effort and can still lag,
+which is why `/admin` surfaces the last successful run.
 
 ---
 

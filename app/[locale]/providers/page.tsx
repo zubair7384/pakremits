@@ -1,9 +1,10 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { notFound } from 'next/navigation'
 import { eq } from 'drizzle-orm'
 import { setRequestLocale } from 'next-intl/server'
 import { SiteFooter, SiteHeader } from '@/components/site-chrome'
-import { toLocale } from '@/i18n/routing'
+import { isLocale } from '@/i18n/routing'
 import { db } from '@/lib/db'
 import { providers } from '@/lib/db/schema'
 
@@ -31,20 +32,24 @@ export default async function ProvidersPage({
   params: Promise<{ locale: string }>
 }) {
   const { locale: localeParam } = await params
-  const locale = toLocale(localeParam)
+  const locale = isLocale(localeParam) ? localeParam : notFound()
   setRequestLocale(locale)
 
   // Degrade rather than 500 if the database is unreachable — the rest of the
   // page (the explanation of what we do and do not list) is still worth serving.
-  const rows = await db
-    .select()
-    .from(providers)
-    .where(eq(providers.active, true))
-    .orderBy(providers.name)
-    .catch((error) => {
-      console.error('[providers] list failed:', error)
-      return []
-    })
+  let rows: (typeof providers.$inferSelect)[] = []
+  try {
+    rows = await db
+      .select()
+      .from(providers)
+      .where(eq(providers.active, true))
+      .orderBy(providers.name)
+  } catch (error) {
+    // The lazy DB proxy can throw while constructing the query (for example,
+    // when DATABASE_URL is absent at build time), before a promise exists for
+    // a chained .catch() to observe.
+    console.error('[providers] list failed:', error)
+  }
 
   const real = rows.filter((row) => !row.isBenchmark)
 

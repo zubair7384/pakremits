@@ -1,9 +1,10 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { notFound } from 'next/navigation'
 import { setRequestLocale } from 'next-intl/server'
 import { SiteFooter, SiteHeader } from '@/components/site-chrome'
 import { SavingsMethodology } from '@/components/savings-methodology'
-import { toLocale } from '@/i18n/routing'
+import { isLocale } from '@/i18n/routing'
 
 /**
  * The methodology page.
@@ -35,7 +36,7 @@ export default async function HowWeRankPage({
   params: Promise<{ locale: string }>
 }) {
   const { locale: localeParam } = await params
-  const locale = toLocale(localeParam)
+  const locale = isLocale(localeParam) ? localeParam : notFound()
   setRequestLocale(locale)
 
   return (

@@ -15,7 +15,7 @@ import { notFound } from 'next/navigation'
 import { eq, sql } from 'drizzle-orm'
 import { setRequestLocale } from 'next-intl/server'
 import { SiteFooter, SiteHeader } from '@/components/site-chrome'
-import { toLocale } from '@/i18n/routing'
+import { isLocale } from '@/i18n/routing'
 import { CORRIDORS, CURRENCY_SYMBOLS, formatSend } from '@/lib/corridors'
 import { db } from '@/lib/db'
 import { providers, rateQuotes } from '@/lib/db/schema'
@@ -75,7 +75,7 @@ export async function generateMetadata({
   params: Promise<{ locale: string; pair: string }>
 }): Promise<Metadata> {
   const { locale: localeParam, pair } = await params
-  const locale = toLocale(localeParam)
+  if (!isLocale(localeParam)) notFound()
   const parsed = parsePair(pair)
   if (!parsed) return {}
 
@@ -104,7 +104,7 @@ export default async function ComparePairPage({
   params: Promise<{ locale: string; pair: string }>
 }) {
   const { locale: localeParam, pair } = await params
-  const locale = toLocale(localeParam)
+  const locale = isLocale(localeParam) ? localeParam : notFound()
   setRequestLocale(locale)
   const parsed = parsePair(pair)
   if (!parsed) notFound()

@@ -9,7 +9,8 @@ import { CORRIDORS, CURRENCY_SYMBOLS, defaultAmountFor, formatSend } from '@/lib
 import { formatPkr } from '@/lib/ranking/compute'
 import { getBestRatePerCorridor, getComparison, getMidMarketSeries } from '@/lib/quotes'
 import type { SendCurrency } from '@/lib/db/schema'
-import { alternatesFor, toLocale } from '@/i18n/routing'
+import { notFound } from 'next/navigation'
+import { alternatesFor, isLocale } from '@/i18n/routing'
 import { corridorPath } from '@/lib/routes'
 import { PROOF_CARD, ProofStrip } from '@/components/proof-strip'
 import { RateMarquee } from '@/components/rate-marquee'
@@ -22,7 +23,7 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>
 }): Promise<Metadata> {
   const { locale: localeParam } = await params
-  const locale = toLocale(localeParam)
+  const locale = isLocale(localeParam) ? localeParam : notFound()
   const t = await getTranslations({ locale, namespace: 'home' })
 
   return {
@@ -69,7 +70,7 @@ const CURRENCY_NAMES: Record<SendCurrency, string> = {
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale: localeParam } = await params
-  const locale = toLocale(localeParam)
+  const locale = isLocale(localeParam) ? localeParam : notFound()
   setRequestLocale(locale)
   const t = await getTranslations({ locale, namespace: 'home' })
   const tProof = await getTranslations({ locale, namespace: 'proof' })
@@ -468,7 +469,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               <details key={faq.q} open={index === 0} className="group border-b border-line">
                 <summary
                   className="flex cursor-pointer list-none items-center justify-between gap-4 py-5
-                             text-[17px] font-medium [&::-webkit-details-marker]:hidden"
+                             text-[17px] font-medium faq-summary"
                 >
                   {faq.q}
                   <svg

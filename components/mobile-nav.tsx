@@ -12,22 +12,19 @@ import { useEffect, useId, useRef, useState } from 'react'
  * behind the section the reader just jumped to, and Escape does not close a
  * `<details>` in any browser.
  *
- * The links and the language switcher are passed in rather than fetched, so
- * this ships no message catalogue of its own.
+ * The links are passed in rather than fetched, so this ships no message
+ * catalogue of its own.
  */
 export function MobileNav({
   items,
   label,
   openLabel,
   closeLabel,
-  children,
 }: {
   items: { href: string; label: string }[]
   label: string
   openLabel: string
   closeLabel: string
-  /** The language switcher, rendered by the server component that owns it. */
-  children: React.ReactNode
 }) {
   const [open, setOpen] = useState(false)
   const panelId = useId()
@@ -103,8 +100,6 @@ export function MobileNav({
               </li>
             ))}
           </ul>
-
-          <div className="flex justify-start py-3.5">{children}</div>
         </nav>
       </div>
     </div>

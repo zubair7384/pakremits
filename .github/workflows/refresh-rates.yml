@@ -13,7 +13,9 @@ name: Refresh rates
 # Vercel functions do not provide.
 on:
   schedule:
-    - cron: '*/15 * * * *'
+    # Offset from the top of the hour, when GitHub's scheduler is busiest.
+    # Runs at :07, :22, :37 and :52 UTC every hour.
+    - cron: '7-59/15 * * * *'
   workflow_dispatch:
 
 concurrency:
@@ -57,4 +59,7 @@ jobs:
             -o /dev/null -w '%{http_code}' \
             "${SITE_URL}/api/cron/revalidate")
           echo "revalidate: HTTP $status"
-          [ "$status" = "200" ] || echo "::warning::Revalidate returned $status"
+          if [ "$status" != "200" ]; then
+            echo "::error::Revalidate returned $status"
+            exit 1
+          fi

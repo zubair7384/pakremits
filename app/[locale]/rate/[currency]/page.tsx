@@ -11,7 +11,7 @@ import { notFound } from 'next/navigation'
 import { RateChart } from '@/components/rate-chart'
 import { setRequestLocale } from 'next-intl/server'
 import { SiteFooter, SiteHeader } from '@/components/site-chrome'
-import { alternatesFor, toLocale } from '@/i18n/routing'
+import { alternatesFor, isLocale } from '@/i18n/routing'
 import { CORRIDORS, CURRENCY_SYMBOLS, corridorByCurrency, formatSend } from '@/lib/corridors'
 import { SEND_CURRENCIES, type SendCurrency } from '@/lib/db/schema'
 import { formatPkr, round } from '@/lib/ranking/compute'
@@ -39,7 +39,7 @@ export async function generateMetadata({
   params: Promise<{ locale: string; currency: string }>
 }): Promise<Metadata> {
   const { locale: localeParam, currency: segment } = await params
-  const locale = toLocale(localeParam)
+  if (!isLocale(localeParam)) notFound()
   const currency = parseCurrency(segment)
   if (!currency) return {}
 
@@ -57,7 +57,7 @@ export async function generateMetadata({
 
 export default async function RatePage({ params }: { params: Promise<{ locale: string; currency: string }> }) {
   const { locale: localeParam, currency: segment } = await params
-  const locale = toLocale(localeParam)
+  const locale = isLocale(localeParam) ? localeParam : notFound()
   setRequestLocale(locale)
   const currency = parseCurrency(segment)
   if (!currency) notFound()

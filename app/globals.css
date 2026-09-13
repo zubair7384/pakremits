@@ -71,6 +71,12 @@ h3 {
   letter-spacing: -0.022em;
 }
 
+/* Chromium exposes a proprietary marker for <summary>. Keeping this as plain
+   CSS avoids Tailwind interpreting the vendor selector as an invalid variant. */
+.faq-summary::-webkit-details-marker {
+  display: none;
+}
+
 /* Urdu is a first-class locale: RTL flows from the html dir attribute, and
    Nastaliq needs the extra line-height to avoid clipping its descenders. */
 [dir='rtl'] body,

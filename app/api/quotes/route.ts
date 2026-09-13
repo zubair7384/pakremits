@@ -17,6 +17,8 @@ import { SESSION_COOKIE, recordComparisonRun } from '@/lib/proof/events'
 
 export const dynamic = 'force-dynamic'
 
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
 const QuerySchema = z.object({
   corridor: z.enum(CORRIDORS.map((c) => c.slug) as [string, ...string[]]),
   method: z.enum(DELIVERY_METHODS).default('bank'),
@@ -54,9 +56,9 @@ export async function GET(request: Request) {
     // Count the comparison. Deduplicated to one per session per minute inside
     // recordComparisonRun, so dragging the amount field is one event, not forty.
     const jar = await cookies()
-    let sessionId = jar.get(SESSION_COOKIE)?.value
-    const isNewSession = !sessionId
-    if (!sessionId) sessionId = randomUUID()
+    const storedSessionId = jar.get(SESSION_COOKIE)?.value
+    const hasValidSession = Boolean(storedSessionId && UUID_PATTERN.test(storedSessionId))
+    const sessionId = hasValidSession ? storedSessionId! : randomUUID()
 
     await recordComparisonRun(sessionId, comparison.corridorId ?? null)
 
@@ -70,7 +72,7 @@ export async function GET(request: Request) {
       },
     })
 
-    if (isNewSession) {
+    if (!hasValidSession) {
       response.cookies.set(SESSION_COOKIE, sessionId, {
         httpOnly: true,
         sameSite: 'lax',
