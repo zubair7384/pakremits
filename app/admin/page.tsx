@@ -21,10 +21,22 @@ const PKT = new Intl.DateTimeFormat('en-GB', {
   hour12: false,
 })
 
+/**
+ * Minutes since a timestamp.
+ *
+ * Module scope rather than the component body on purpose: a clock read during
+ * render is not idempotent, which react-hooks/purity flags. The read is still
+ * request-time — this page is force-dynamic, so it happens once per request,
+ * which is exactly what the staleness check wants.
+ */
+function minutesSince(date: Date): number {
+  return (Date.now() - date.getTime()) / 60_000
+}
+
 /** How long since a timestamp, in the roughest useful unit. */
 function ago(date: Date | null): string {
   if (!date) return 'never'
-  const minutes = Math.round((Date.now() - date.getTime()) / 60_000)
+  const minutes = Math.round(minutesSince(date))
   if (minutes < 1) return 'just now'
   if (minutes < 60) return `${minutes}m ago`
   const hours = Math.round(minutes / 60)
@@ -46,7 +58,7 @@ export default async function AdminDashboard() {
   ])
 
   const lastRun = crons.at(0)
-  const lastRunAge = lastRun ? (Date.now() - lastRun.startedAt.getTime()) / 60_000 : null
+  const lastRunAge = lastRun ? minutesSince(lastRun.startedAt) : null
   const cronLooksDead = lastRunAge === null || lastRunAge > STALE_AFTER_MINUTES
 
   const unmonetisedClicks = gap

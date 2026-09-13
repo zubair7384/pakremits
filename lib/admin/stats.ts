@@ -10,7 +10,7 @@
  * rather than throwing. A dashboard that 500s because one panel failed tells
  * you nothing about the other five.
  */
-import { and, desc, eq, gte, sql } from 'drizzle-orm'
+import { desc, sql } from 'drizzle-orm'
 import { db, toNum } from '@/lib/db'
 import {
   affiliateClicks,

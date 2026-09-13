@@ -9,8 +9,8 @@ import { CORRIDORS, CURRENCY_SYMBOLS, defaultAmountFor, formatSend } from '@/lib
 import { formatPkr } from '@/lib/ranking/compute'
 import { getBestRatePerCorridor, getComparison, getMidMarketSeries } from '@/lib/quotes'
 import type { SendCurrency } from '@/lib/db/schema'
-import { alternatesFor, localePath, toLocale } from '@/i18n/routing'
-import { corridorPath, staticPath } from '@/lib/routes'
+import { alternatesFor, toLocale } from '@/i18n/routing'
+import { corridorPath } from '@/lib/routes'
 import { PROOF_CARD, ProofStrip, heroSavingStat } from '@/components/proof-strip'
 import { RateMarquee } from '@/components/rate-marquee'
 import { CLAIM_FIRST_PAKISTAN_ONLY_SITE } from '@/lib/proof/config'
@@ -37,6 +37,20 @@ export async function generateMetadata({
 // Quotes change every 15 minutes; the GitHub Actions job pings /api/cron/revalidate
 // after each refresh, and this is the backstop if that ping is ever missed.
 export const revalidate = 900
+
+/**
+ * Minutes since a timestamp, for the "checked N minutes ago" badge.
+ *
+ * Module scope rather than the component body on purpose: a clock read during
+ * render is not idempotent, which react-hooks/purity flags. Moving it here does
+ * not make the number fresher — with `revalidate = 900` above, it is captured
+ * into the cached render and can be up to fifteen minutes behind. That is the
+ * same window the rate probe runs on, so the badge is never more stale than
+ * the figures it describes.
+ */
+function minutesSince(timestamp: Date | string): number {
+  return Math.round((Date.now() - new Date(timestamp).getTime()) / 60_000)
+}
 
 /** Currencies shown in the hero ticker, in the design's order. */
 const TICKER_CURRENCIES: SendCurrency[] = ['GBP', 'AED', 'SAR', 'USD']
@@ -111,7 +125,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   const sendAmountLabel = formatSend(comparison?.currencySymbol ?? '£', comparison?.amount ?? 500)
   const heroStat = heroSavingStat({ stats: proofStats, liveGapOnStandardAmount: saving })
   const capturedMinutesAgo = comparison?.capturedAt
-    ? Math.round((Date.now() - new Date(comparison.capturedAt).getTime()) / 60000)
+    ? minutesSince(comparison.capturedAt)
     : null
 
   return (
@@ -502,7 +516,6 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
       {/* FAQPage schema so the questions can win a rich result. */}
       <script
         type="application/ld+json"
-        // eslint-disable-next-line react/no-danger
         dangerouslySetInnerHTML={{
           __html: JSON.stringify({
             '@context': 'https://schema.org',

@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useId, useRef, useState } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
 import type { Comparison } from '@/lib/quotes'
@@ -7,6 +8,8 @@ import type { DeliveryMethod } from '@/lib/db/schema'
 import type { SortKey } from '@/lib/ranking/rank'
 import { formatPkr } from '@/lib/ranking/compute'
 import { formatSend } from '@/lib/corridors'
+import { staticPath } from '@/lib/routes'
+import type { Locale } from '@/i18n/routing'
 
 /**
  * The comparison panel.
@@ -507,15 +510,17 @@ export function ComparePanel({ initial, corridors }: Props) {
 
                 <div className="col-span-2 lg:col-span-1">
                   {q.isBenchmark ? (
-                    <a
-                      href="/how-we-rank#bank-benchmark"
+                    <Link
+                      // Through staticPath, not hard-coded: an Urdu reader
+                      // was being sent to the English page. See lib/routes.ts.
+                      href={`${staticPath('how-we-rank', locale as Locale)}#bank-benchmark`}
                       className="flex h-[42px] w-full items-center justify-center gap-2 rounded-control
                                  border-[1.5px] border-line bg-white text-[13.5px] font-medium
                                  whitespace-nowrap text-ink no-underline transition-colors
                                  hover:border-ink hover:bg-ink hover:text-white lg:w-[166px]"
                     >
                       {t('whySoLow')}
-                    </a>
+                    </Link>
                   ) : (
                     <a
                       href={`/go/${q.providerSlug}?corridor=${data.corridorSlug}&amount=${data.amount}&method=${data.deliveryMethod}`}

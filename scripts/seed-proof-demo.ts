@@ -14,7 +14,7 @@
  */
 import '../lib/load-env'
 import { randomUUID } from 'node:crypto'
-import { desc, eq, like, sql } from 'drizzle-orm'
+import { desc, eq, like } from 'drizzle-orm'
 import { db } from '../lib/db'
 import {
   affiliateClicks,
