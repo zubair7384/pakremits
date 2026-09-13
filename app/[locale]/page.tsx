@@ -11,7 +11,7 @@ import { getBestRatePerCorridor, getComparison, getMidMarketSeries } from '@/lib
 import type { SendCurrency } from '@/lib/db/schema'
 import { alternatesFor, toLocale } from '@/i18n/routing'
 import { corridorPath } from '@/lib/routes'
-import { PROOF_CARD, ProofStrip, heroSavingStat } from '@/components/proof-strip'
+import { PROOF_CARD, ProofStrip } from '@/components/proof-strip'
 import { RateMarquee } from '@/components/rate-marquee'
 import { CLAIM_FIRST_PAKISTAN_ONLY_SITE } from '@/lib/proof/config'
 import { getProofStats } from '@/lib/proof/stats'
@@ -123,7 +123,6 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   const saving = comparison?.savingVsBank ?? null
   const proofStats = await getProofStats()
   const sendAmountLabel = formatSend(comparison?.currencySymbol ?? '£', comparison?.amount ?? 500)
-  const heroStat = heroSavingStat({ stats: proofStats, liveGapOnStandardAmount: saving })
   const capturedMinutesAgo = comparison?.capturedAt
     ? minutesSince(comparison.capturedAt)
     : null
@@ -166,41 +165,6 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               {t('heroLede')}
             </p>
 
-            {/* Tagline follows the active locale: English on /en, Urdu only
-                once the reader has switched, where it needs the Urdu face. */}
-            <span
-              className={`${locale === 'ur' ? 'urdu ' : ''}mt-6.5 inline-block text-2xl leading-[1.9] text-gold`}
-              lang={locale === 'ur' ? 'ur' : undefined}
-            >
-              {t('heroTagline')}
-            </span>
-
-            <div className="mt-8.5 grid grid-cols-2 gap-7 border-t border-green-3 pt-6 sm:grid-cols-3">
-              {/* Below both thresholds this card renders nothing rather than a
-                  dash: an empty slot is honest, "—" implies a number exists. */}
-              {heroStat !== null && (
-                <div className="text-[13px] text-[#B2C6BC]">
-                  <strong className="money block font-display text-[22px] font-semibold tracking-[-0.02em] text-white">
-                    {heroStat.value}
-                  </strong>
-                  {heroStat.mode === 'sinceLaunch'
-                    ? tProof('savingsSinceLaunchLabel')
-                    : t('statSaving', { amount: sendAmountLabel })}
-                </div>
-              )}
-              <div className="text-[13px] text-[#B2C6BC]">
-                <strong className="block font-display text-[22px] font-semibold tracking-[-0.02em] text-white">
-                  {proofStats.refreshMinutes} min
-                </strong>
-                {t('statRefresh')}
-              </div>
-              <div className="text-[13px] text-[#B2C6BC]">
-                <strong className="block font-display text-[22px] font-semibold tracking-[-0.02em] text-white">
-                  {CORRIDORS.length}
-                </strong>
-                {t('statCountries')}
-              </div>
-            </div>
           </div>
 
           {/* Live ticker */}
@@ -292,6 +256,20 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             </div>
           </div>
         </div>
+
+        {/* Titles the comparison panel below. It lives in the hero rather than
+            in <main> because the panel lifts itself 88px over the hero's bottom
+            padding (-mt-22), so a heading in <main> would be covered by it.
+            Sitting here, the padding is what sets the gap between the two, and
+            the title can wrap on a phone without disturbing that overlap.
+            Follows the active locale, like the rest of the hero copy. */}
+        <h2
+          className={`${locale === 'ur' ? 'urdu ' : ''}mx-auto mt-12 max-w-[1120px] px-6
+                      text-2xl leading-[1.9] text-gold`}
+          lang={locale === 'ur' ? 'ur' : undefined}
+        >
+          {t('heroTagline')}
+        </h2>
       </header>
 
       <main className="mx-auto max-w-[1120px] px-6">
