@@ -12,7 +12,6 @@ export const en = {
     howWeRank: 'How we rank',
     faq: 'FAQ',
     setAlert: 'Set a rate alert',
-    language: 'Language',
     main: 'Main',
     openMenu: 'Open menu',
     closeMenu: 'Close menu',

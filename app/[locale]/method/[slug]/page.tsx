@@ -12,7 +12,7 @@ import { notFound } from 'next/navigation'
 import { ComparePanel } from '@/components/compare-panel'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { SiteFooter, SiteHeader } from '@/components/site-chrome'
-import { alternatesFor, toLocale } from '@/i18n/routing'
+import { alternatesFor, isLocale } from '@/i18n/routing'
 import { CORRIDORS, CURRENCY_SYMBOLS, defaultAmountFor } from '@/lib/corridors'
 import { METHOD_CONTENT, methodBySlug } from '@/lib/content/methods'
 import { methodPath } from '@/lib/routes'
@@ -33,7 +33,7 @@ export async function generateMetadata({
   params: Promise<{ locale: string; slug: string }>
 }): Promise<Metadata> {
   const { locale: localeParam, slug } = await params
-  const locale = toLocale(localeParam)
+  if (!isLocale(localeParam)) notFound()
   const content = methodBySlug(slug)
   if (!content) return {}
 
@@ -48,7 +48,7 @@ export async function generateMetadata({
 
 export default async function MethodPage({ params }: { params: Promise<{ locale: string; slug: string }> }) {
   const { locale: localeParam, slug } = await params
-  const locale = toLocale(localeParam)
+  const locale = isLocale(localeParam) ? localeParam : notFound()
   setRequestLocale(locale)
   const tCommon = await getTranslations({ locale, namespace: 'common' })
   const content = methodBySlug(slug)
@@ -145,7 +145,7 @@ export default async function MethodPage({ params }: { params: Promise<{ locale:
                     <details key={faq.q} open={index === 0} className="group border-b border-line">
                       <summary
                         className="flex cursor-pointer list-none items-center justify-between gap-4
-                                   py-5 text-[17px] font-medium [&::-webkit-details-marker]:hidden"
+                                   py-5 text-[17px] font-medium faq-summary"
                       >
                         {faq.q}
                         <svg

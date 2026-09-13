@@ -34,8 +34,6 @@ export const ur: Messages = {
     faq: 'عام سوالات',
     // TODO: native review
     setAlert: 'ریٹ الرٹ لگائیں',
-    // TODO: native review
-    language: 'زبان',
     // TODO: native review — accessibility label for the main nav
     main: 'مرکزی',
     // TODO: native review — accessibility label on the mobile menu button

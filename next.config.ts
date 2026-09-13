@@ -30,6 +30,34 @@ const withNextIntl = createNextIntlPlugin('./i18n/request.ts')
  * URLs plus an unprefixed default locale, and it is worth it.
  */
 const nextConfig: NextConfig = {
+  // Fly Launch detects this and generates a smaller production image that
+  // starts the self-contained `.next/standalone/server.js` output.
+  output: 'standalone',
+
+  // Avoid advertising framework details in every response.
+  poweredByHeader: false,
+
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), geolocation=(), microphone=()',
+          },
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=63072000; includeSubDomains',
+          },
+        ],
+      },
+    ]
+  },
+
   /**
    * Next 16 blocks cross-origin requests to dev resources by default, so
    * opening the dev server on 127.0.0.1 rather than localhost breaks hot
@@ -53,6 +81,38 @@ const nextConfig: NextConfig = {
        */
       { source: '/en', destination: '/', permanent: true },
       { source: '/en/:path*', destination: '/:path*', permanent: true },
+
+      // Old/internal router paths occasionally escape through copied URLs.
+      // Send valid-looking ones to their public equivalents instead of 404ing
+      // or exposing a second Urdu URL for the same page.
+      {
+        source: '/corridor/:slug',
+        destination: '/send-money-from-:slug-to-pakistan',
+        permanent: true,
+      },
+      { source: '/rate/:currency', destination: '/:currency-to-pkr', permanent: true },
+      {
+        source: '/method/rda',
+        destination: '/roshan-digital-account-transfer',
+        permanent: true,
+      },
+      { source: '/method/:slug', destination: '/send-money-to-:slug', permanent: true },
+      {
+        source: '/ur/corridor/:slug',
+        destination: '/ur/send-money-from-:slug-to-pakistan',
+        permanent: true,
+      },
+      { source: '/ur/rate/:currency', destination: '/ur/:currency-to-pkr', permanent: true },
+      {
+        source: '/ur/method/rda',
+        destination: '/ur/roshan-digital-account-transfer',
+        permanent: true,
+      },
+      {
+        source: '/ur/method/:slug',
+        destination: '/ur/send-money-to-:slug',
+        permanent: true,
+      },
     ]
   },
 

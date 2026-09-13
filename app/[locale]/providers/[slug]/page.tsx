@@ -11,7 +11,7 @@ import { notFound } from 'next/navigation'
 import { eq } from 'drizzle-orm'
 import { setRequestLocale } from 'next-intl/server'
 import { SiteFooter, SiteHeader } from '@/components/site-chrome'
-import { toLocale } from '@/i18n/routing'
+import { isLocale } from '@/i18n/routing'
 import { CORRIDORS, CURRENCY_SYMBOLS, formatSend } from '@/lib/corridors'
 import { db } from '@/lib/db'
 import { providers } from '@/lib/db/schema'
@@ -54,7 +54,7 @@ export async function generateMetadata({
   params: Promise<{ locale: string; slug: string }>
 }): Promise<Metadata> {
   const { locale: localeParam, slug } = await params
-  const locale = toLocale(localeParam)
+  if (!isLocale(localeParam)) notFound()
   const provider = await getProvider(slug).catch(() => null)
   if (!provider) return {}
 
@@ -69,7 +69,7 @@ export async function generateMetadata({
 
 export default async function ProviderPage({ params }: { params: Promise<{ locale: string; slug: string }> }) {
   const { locale: localeParam, slug } = await params
-  const locale = toLocale(localeParam)
+  const locale = isLocale(localeParam) ? localeParam : notFound()
   setRequestLocale(locale)
   const provider = await getProvider(slug)
   if (!provider || !provider.active || provider.isBenchmark) notFound()

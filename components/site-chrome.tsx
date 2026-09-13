@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
-import { LocaleSwitcher } from '@/components/locale-switcher'
 import { MobileNav } from '@/components/mobile-nav'
 import { type Locale, localePath } from '@/i18n/routing'
 import { corridorPath, methodPath, ratePath, staticPath } from '@/lib/routes'
@@ -60,10 +59,6 @@ export async function SiteHeader({ locale = 'en' }: { locale?: Locale }) {
         </nav>
 
         <div className="flex items-center gap-2.5 sm:gap-3.5">
-          {/* Hidden on the same breakpoint as the nav: below md both live in
-              the mobile panel instead, so neither is duplicated. */}
-          <LocaleSwitcher locale={locale} label={t('language')} className="hidden md:flex" />
-
           <Link
             href={`${localePath(locale, '/')}#alerts`}
             className="flex h-10 items-center rounded-full border border-[#2A6B54] px-3.5
@@ -78,9 +73,7 @@ export async function SiteHeader({ locale = 'en' }: { locale?: Locale }) {
             label={t('main')}
             openLabel={t('openMenu')}
             closeLabel={t('closeMenu')}
-          >
-            <LocaleSwitcher locale={locale} label={t('language')} />
-          </MobileNav>
+          />
         </div>
       </div>
     </div>
@@ -160,23 +153,9 @@ export async function SiteFooter({ locale = 'en' }: { locale?: Locale }) {
         </div>
 
         <div
-          className="mt-10 flex flex-wrap justify-between gap-4 border-t border-green-3 pt-5
-                     text-[12.5px] text-[#99B3A6]"
+          className="mt-10 border-t border-green-3 pt-5 text-[12.5px] text-[#99B3A6]"
         >
           <span>{t('copyright', { year: new Date().getFullYear() })}</span>
-          <span>
-            <Link href="/" className="no-underline hover:text-white">
-              English
-            </Link>{' '}
-            ·{' '}
-            <Link
-              href="/ur"
-              lang="ur"
-              className={`${locale === 'ur' ? 'urdu' : 'urdu-fixed'} no-underline hover:text-white`}
-            >
-              اردو
-            </Link>
-          </span>
         </div>
       </div>
     </footer>

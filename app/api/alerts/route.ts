@@ -70,18 +70,21 @@ export async function POST(request: Request) {
     // Phone channels are live immediately; email waits for the opt-in link.
     const confirmed = input.channel !== 'email'
 
-    await db.insert(rateAlerts).values({
-      userContact: contact,
-      channel: input.channel,
-      fromCurrency: input.fromCurrency,
-      targetRate: String(input.targetRate),
-      direction: input.direction,
-      confirmed,
-      confirmedAt: confirmed ? new Date() : null,
-      active: true,
-      wantsDigest: input.wantsDigest,
-      unsubscribeToken: token,
-    })
+    const [created] = await db
+      .insert(rateAlerts)
+      .values({
+        userContact: contact,
+        channel: input.channel,
+        fromCurrency: input.fromCurrency,
+        targetRate: String(input.targetRate),
+        direction: input.direction,
+        confirmed,
+        confirmedAt: confirmed ? new Date() : null,
+        active: true,
+        wantsDigest: input.wantsDigest,
+        unsubscribeToken: token,
+      })
+      .returning({ id: rateAlerts.id })
 
     if (input.channel === 'email') {
       const message = composeConfirmMessage({
@@ -100,8 +103,15 @@ export async function POST(request: Request) {
 
       if (!sent.ok) {
         console.error('[alerts] confirmation email failed:', sent.error)
-        // The row stays; they can sign up again and get a fresh link. Telling
-        // them "check your email" when we know it failed would be a lie.
+        // Do not leave an unconfirmable duplicate behind. Duplicate detection
+        // would otherwise make the next signup report success without sending
+        // a fresh link.
+        if (created) {
+          await db
+            .delete(rateAlerts)
+            .where(eq(rateAlerts.id, created.id))
+            .catch((error) => console.error('[alerts] failed signup cleanup failed:', error))
+        }
         return NextResponse.json(
           { error: 'We could not send the confirmation email. Try again shortly.' },
           { status: 502 },
