@@ -73,6 +73,9 @@ cp .env.example .env.local
 
 ### Supabase
 
+The complete schema, migration, seed, and refresh instructions are also
+available in [README-DB.md](./README-DB.md).
+
 1. Create a project at [supabase.com](https://supabase.com) — the free tier is enough.
 2. **Project Settings → Database → Connection string**. Copy two URLs into `.env.local`:
    - `DATABASE_URL` — the **Transaction** pooler URL (port `6543`). Used at runtime.
