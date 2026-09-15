@@ -100,7 +100,7 @@ export function IconSelect({
   }
 
   return (
-    <div ref={rootRef} className="relative">
+    <div ref={rootRef} className="relative min-w-0 w-full">
       <button
         id={id}
         type="button"
@@ -112,7 +112,7 @@ export function IconSelect({
         aria-activedescendant={open ? `${listboxId}-${activeIndex}` : undefined}
         onClick={() => (open ? setOpen(false) : openList())}
         onKeyDown={handleKeyDown}
-        className={`${className} flex items-center gap-3 text-left`}
+        className={`${className} flex max-w-full items-center gap-3 text-left`}
       >
         <span className="flex shrink-0 items-center" aria-hidden="true">
           {selected?.icon}

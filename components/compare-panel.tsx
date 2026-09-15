@@ -194,7 +194,7 @@ export function ComparePanel({ initial, corridors }: Props) {
   const rows = data.rows
 
   const fieldShell =
-    'h-[54px] w-full rounded-[12px] border-[1.5px] border-line bg-white ' +
+    'h-[54px] min-w-0 w-full max-w-full rounded-[12px] border-[1.5px] border-line bg-white ' +
     'transition-colors hover:border-[#B9C7BF]'
 
   const fieldClass =
@@ -246,8 +246,8 @@ export function ComparePanel({ initial, corridors }: Props) {
                    shadow-[0_40px_80px_-40px_rgba(11,61,46,.45),0_2px_6px_rgba(11,61,46,.06)]"
       >
         {/* Controls */}
-        <div className="grid items-end gap-3.5 p-7 sm:grid-cols-2 lg:grid-cols-[1.15fr_1.15fr_1.4fr_auto]">
-          <div>
+        <div className="grid grid-cols-[minmax(0,1fr)] items-end gap-3.5 p-7 sm:grid-cols-2 lg:grid-cols-[1.15fr_1.15fr_1.4fr_auto]">
+          <div className="min-w-0">
             <label htmlFor="from" className="mb-1.5 block text-[13px] text-muted">
               {t('sendingFrom')}
             </label>
@@ -270,7 +270,7 @@ export function ComparePanel({ initial, corridors }: Props) {
               />
           </div>
 
-          <div>
+          <div className="min-w-0">
             <label htmlFor="method" className="mb-1.5 block text-[13px] text-muted">
               {t('recipientGets')}
             </label>
@@ -284,7 +284,7 @@ export function ComparePanel({ initial, corridors }: Props) {
               />
           </div>
 
-          <div>
+          <div className="min-w-0">
             <label htmlFor="amt" className="mb-1.5 block text-[13px] text-muted">
               {t('youSend')}
             </label>
@@ -312,7 +312,7 @@ export function ComparePanel({ initial, corridors }: Props) {
           <button
             type="button"
             onClick={() => setAmountText((value) => value)}
-            className="flex h-[54px] items-center justify-center gap-2.5 rounded-[12px] bg-leaf
+            className="flex h-[54px] w-full items-center justify-center gap-2.5 rounded-[12px] bg-leaf
                        px-6 text-base font-medium whitespace-nowrap text-white transition-colors
                        hover:bg-leaf-dark active:scale-[.985]"
           >
