@@ -4,10 +4,10 @@ name: Refresh rates
 #
 # 1. Vercel's Hobby plan caps cron at once per day and rejects anything more
 #    frequent at deploy time, so the 15-minute schedule cannot live there.
-# 2. A full refresh across 8 corridors x 3 methods x 4 amounts takes ~4 minutes
-#    with polite per-host throttling — well past the 60s function limit. So the
-#    job runs the refresh script directly against the database rather than
-#    calling /api/cron/refresh-rates, which stays available for manual triggers.
+# 2. A full refresh across 8 corridors x 3 methods x 4 amounts can take close to
+#    15 minutes when providers throttle requests. That is well past a serverless
+#    function limit, so the job runs the refresh script directly against the
+#    database. The HTTP route remains available for manual triggers.
 #
 # Running here also means Playwright adapters have a Chromium to use, which
 # Vercel functions do not provide.
@@ -26,7 +26,11 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # Leave enough room for dependency setup plus a throttled provider pass.
+    timeout-minutes: 25
+    env:
+      FLY_APP: pakremits-staging
+      FLY_MPG_CLUSTER_ID: z7y24odn5v2rgqd1
     steps:
       - uses: actions/checkout@v4
 
@@ -35,12 +39,40 @@ jobs:
           node-version: 22
           cache: npm
 
+      # Fly Managed Postgres is private to the Fly network. A scoped SSH token
+      # lets flyctl create a local tunnel without granting deployment access.
+      - uses: superfly/flyctl-actions/setup-flyctl@ed8efb33836e8b2096c7fd3ba1c8afe303ebbff1
+
       - run: npm ci
+
+      - name: Install Chromium for browser-backed adapters
+        run: npx playwright install --with-deps chromium
+
+      - name: Connect to Fly Managed Postgres
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+          FLY_DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          set -euo pipefail
+          flyctl mpg proxy "$FLY_MPG_CLUSTER_ID" --local-port 16380 \
+            > /tmp/fly-mpg-proxy.log 2>&1 &
+          echo "$!" > /tmp/fly-mpg-proxy.pid
+
+          for _ in {1..30}; do
+            if (echo > /dev/tcp/127.0.0.1/16380) >/dev/null 2>&1; then
+              break
+            fi
+            sleep 1
+          done
+          (echo > /dev/tcp/127.0.0.1/16380) >/dev/null 2>&1 || {
+            cat /tmp/fly-mpg-proxy.log
+            exit 1
+          }
+
+          node -e "const fs=require('node:fs'); const url=new URL(process.env.FLY_DATABASE_URL); url.hostname='127.0.0.1'; url.port='16380'; url.searchParams.set('sslmode','disable'); fs.appendFileSync(process.env.GITHUB_ENV, 'DATABASE_URL='+url.toString()+'\n')"
 
       - name: Refresh rates
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          # Browser adapters only run here — Vercel has no Chromium.
           BHEJO_ALLOW_BROWSER: '1'
           BHEJO_DISABLED_ADAPTERS: ${{ vars.BHEJO_DISABLED_ADAPTERS }}
         run: npm run refresh
@@ -63,3 +95,7 @@ jobs:
             echo "::error::Revalidate returned $status"
             exit 1
           fi
+
+      - name: Close database tunnel
+        if: ${{ always() }}
+        run: kill "$(cat /tmp/fly-mpg-proxy.pid)" 2>/dev/null || true

@@ -1,7 +1,7 @@
 # syntax = docker/dockerfile:1
 
 # Adjust NODE_VERSION as desired
-ARG NODE_VERSION=22.15.1
+ARG NODE_VERSION=22.19.0
 FROM node:${NODE_VERSION}-slim AS base
 
 LABEL fly_launch_runtime="Next.js"
@@ -41,7 +41,7 @@ FROM base
 COPY --from=build /app /app
 
 # Entrypoint sets up the container.
-ENTRYPOINT [ "/app/docker-entrypoint.js" ]
+ENTRYPOINT [ "/app/docker-entrypoint.mjs" ]
 
 # Start the server by default, this can be overwritten at runtime
 EXPOSE 3000

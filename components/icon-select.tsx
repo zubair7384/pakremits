@@ -5,6 +5,8 @@ import { useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode 
 export interface IconSelectOption {
   value: string
   label: string
+  /** Optional compact label used only while the option is selected. */
+  selectedLabel?: string
   icon: ReactNode
 }
 
@@ -98,7 +100,7 @@ export function IconSelect({
   }
 
   return (
-    <div ref={rootRef} className="relative">
+    <div ref={rootRef} className="relative min-w-0 w-full">
       <button
         id={id}
         type="button"
@@ -110,12 +112,12 @@ export function IconSelect({
         aria-activedescendant={open ? `${listboxId}-${activeIndex}` : undefined}
         onClick={() => (open ? setOpen(false) : openList())}
         onKeyDown={handleKeyDown}
-        className={`${className} flex items-center gap-3 text-left`}
+        className={`${className} flex max-w-full items-center gap-3 text-left`}
       >
         <span className="flex shrink-0 items-center" aria-hidden="true">
           {selected?.icon}
         </span>
-        <span className="min-w-0 flex-1 truncate">{selected?.label}</span>
+        <span className="min-w-0 flex-1 truncate">{selected?.selectedLabel ?? selected?.label}</span>
         <svg
           viewBox="0 0 16 16"
           fill="none"
@@ -134,7 +136,7 @@ export function IconSelect({
           role="listbox"
           aria-label={label}
           className="absolute z-40 mt-2 max-h-80 w-full overflow-y-auto rounded-xl border
-                     border-line bg-white p-1.5 shadow-[0_18px_45px_rgba(11,61,46,.18)]"
+                     border-line bg-white p-1.5"
         >
           {options.map((option, index) => (
             <li

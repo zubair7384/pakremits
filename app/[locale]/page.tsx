@@ -38,20 +38,6 @@ export async function generateMetadata({
 // after each refresh, and this is the backstop if that ping is ever missed.
 export const revalidate = 900
 
-/**
- * Minutes since a timestamp, for the "checked N minutes ago" badge.
- *
- * Module scope rather than the component body on purpose: a clock read during
- * render is not idempotent, which react-hooks/purity flags. Moving it here does
- * not make the number fresher — with `revalidate = 900` above, it is captured
- * into the cached render and can be up to fifteen minutes behind. That is the
- * same window the rate probe runs on, so the badge is never more stale than
- * the figures it describes.
- */
-function minutesSince(timestamp: Date | string): number {
-  return Math.round((Date.now() - new Date(timestamp).getTime()) / 60_000)
-}
-
 /** Currencies shown in the hero ticker, in the design's order. */
 const TICKER_CURRENCIES: SendCurrency[] = ['GBP', 'AED', 'SAR', 'USD']
 
@@ -69,6 +55,23 @@ const CURRENCY_NAMES: Record<SendCurrency, string> = {
 const COUNTRY_BY_CURRENCY = new Map(
   CORRIDORS.map((corridor) => [corridor.fromCurrency, corridor.fromCountry]),
 )
+
+/**
+ * These small marks appear in the comparison table or its closed dropdowns.
+ * Resource hints start fetching them with the initial document so opening a
+ * selector never has to wait for an image request.
+ */
+const COMPARISON_IMAGE_ASSETS = [
+  '/provider-logos/remitly.png',
+  '/provider-logos/wise.png',
+  '/provider-logos/careem.png',
+  '/provider-logos/botim-v2.png',
+  '/payout-icons/jazzcash.png',
+  '/payout-icons/easypaisa.png',
+  '/payout-icons/sadapay.png',
+  '/payout-icons/nayapay.png',
+  '/payout-icons/rda.png',
+] as const
 
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
@@ -121,16 +124,12 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
     defaultAmount: defaultAmountFor(corridor.fromCurrency),
   }))
 
-  // Everything below is derived from live data. The copy rules forbid a
-  // hard-coded saving figure, so each of these is null-guarded rather than
-  // filled with a placeholder when the database is empty.
-  const providerCount = comparison?.rows.filter((r) => !r.quote.isBenchmark).length ?? 0
-  const capturedMinutesAgo = comparison?.capturedAt
-    ? minutesSince(comparison.capturedAt)
-    : null
-
   return (
     <>
+      {COMPARISON_IMAGE_ASSETS.map((href) => (
+        <link key={href} rel="preload" as="image" href={href} type="image/png" />
+      ))}
+
       <SiteHeader locale={locale} />
 
       <header className="bg-green px-0 pt-10 pb-32 text-mist">
@@ -144,22 +143,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               </p>
             )}
 
-            <span
-              className="inline-flex items-center gap-2 rounded-full border border-green-3
-                         py-1.5 pr-3 pl-2.5 text-[13px] text-[#B2C6BC]"
-            >
-              <i
-                className="inline-block h-2 w-2 rounded-full bg-up shadow-[0_0_0_3px_rgba(143,224,179,.25)]"
-                aria-hidden="true"
-              />
-              {providerCount > 0 && capturedMinutesAgo !== null
-                ? capturedMinutesAgo < 1
-                  ? t('liveJustNow', { count: providerCount })
-                  : t('liveChecked', { count: providerCount, minutes: capturedMinutesAgo })
-                : t('liveFallback')}
-            </span>
-
-            <h1 className="mt-5.5 max-w-[13ch] text-[clamp(40px,5.4vw,68px)] leading-[1.02] font-semibold">
+            <h1 className="max-w-[13ch] text-[clamp(40px,5.4vw,68px)] leading-[1.02] font-semibold">
               {t('heroTitle')}
             </h1>
 

@@ -283,6 +283,7 @@ export const ur: Messages = {
     youSend: 'آپ بھیج رہے ہیں',
     // TODO: native review
     compareButton: 'ریٹ کا موازنہ کریں',
+    resultsHeading: 'دستیاب ریٹ',
     // TODO: native review — PKT stays in Latin script, it is read that way
     capturedAt: 'ریٹ {time} PKT پر لیے گئے',
     // TODO: native review
