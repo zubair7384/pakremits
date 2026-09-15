@@ -2,9 +2,11 @@ import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
 import type { Locale } from '@/i18n/routing'
 import { corridorPath } from '@/lib/routes'
+import { CountryFlag } from '@/components/select-icons'
 
 export interface MarqueeItem {
   slug: string
+  countryCode: string
   countryName: string
   currency: string
   /** Best provider rate on the corridor right now, or null with no quotes. */
@@ -51,12 +53,8 @@ export async function RateMarquee({
         className="group/mq flex items-center gap-3.5 border-r border-line-2 px-7 py-4.5
                    whitespace-nowrap text-ink no-underline transition-colors hover:bg-mist"
       >
-        <span
-          className="grid h-8.5 w-8.5 flex-none place-items-center rounded-full bg-line-2
-                     text-xs font-medium text-muted"
-          aria-hidden="true"
-        >
-          {item.currency.slice(0, 2)}
+        <span className="flex h-8.5 w-10 flex-none items-center justify-center rounded-[8px] bg-line-2">
+          <CountryFlag countryCode={item.countryCode} />
         </span>
 
         <span className="text-[15px] leading-[1.2] font-medium">

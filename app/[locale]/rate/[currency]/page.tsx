@@ -9,6 +9,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { RateChart } from '@/components/rate-chart'
+import { ProviderLogo } from '@/components/provider-logo'
 import { setRequestLocale } from 'next-intl/server'
 import { SiteFooter, SiteHeader } from '@/components/site-chrome'
 import { alternatesFor, isLocale } from '@/i18n/routing'
@@ -185,16 +186,13 @@ export default async function RatePage({ params }: { params: Promise<{ locale: s
               <h2 className="text-[13px] font-medium text-faint">Best right now</h2>
               <div className="mt-3 flex flex-wrap items-center justify-between gap-5">
                 <div className="flex items-center gap-4">
-                  <span
-                    className="grid h-12 w-12 place-items-center rounded-[12px] font-display text-lg font-bold"
-                    style={{
-                      background: best.quote.brandColor,
-                      color: best.quote.brandTextColor,
-                    }}
-                    aria-hidden="true"
-                  >
-                    {best.quote.providerName.charAt(0)}
-                  </span>
+                  <ProviderLogo
+                    providerSlug={best.quote.providerSlug}
+                    providerName={best.quote.providerName}
+                    brandColor={best.quote.brandColor}
+                    brandTextColor={best.quote.brandTextColor}
+                    size="large"
+                  />
                   <div>
                     <div className="text-lg font-medium">{best.quote.providerName}</div>
                     <div className="text-[13.5px] text-muted">

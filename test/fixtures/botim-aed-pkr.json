@@ -1,0 +1,23 @@
+{
+  "body": {
+    "exchangeRate": {
+      "exchangeRate": "75.51223",
+      "transactionMode": "BANK_TRANSFER",
+      "toCurrencyCode": "PKR",
+      "fromCountryCode": "AE",
+      "toCountryCode": "PK",
+      "fromCurrencyCode": "AED"
+    },
+    "feeItemInfo": {
+      "serviceFee": { "amount": 0, "currency": "AED" },
+      "receivableFee": { "amount": 6.99, "currency": "AED" }
+    },
+    "supportedTransactionMode": [
+      { "transactionMode": "CASH_PICK_UP", "transactionModeDesc": "Cash Pickup", "selected": "N" },
+      { "transactionMode": "BANK_TRANSFER", "transactionModeDesc": "Bank Transfer", "selected": "Y" },
+      { "transactionMode": "MOBILE_WALLET", "transactionModeDesc": "Wallet", "selected": "N" }
+    ],
+    "offersInfo": { "content": "First two transfers are free!" }
+  },
+  "head": { "code": "200", "msg": "Apply successfully." }
+}

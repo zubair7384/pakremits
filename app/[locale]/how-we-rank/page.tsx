@@ -120,7 +120,7 @@ export default async function HowWeRankPage({
             <h2 className="text-[26px] leading-tight font-semibold">The bank benchmark row</h2>
             <div className="mt-3 space-y-4 text-[16.5px] text-muted">
               <p>
-                The grey “Typical high-street bank” row at the bottom of each table is not a live
+                The grey “Bank Transfer” row at the bottom of each table is not a live
                 quote from a specific bank. It is a reference point, calculated from the live
                 mid-market rate using a typical retail markup and a typical wire fee for that
                 corridor.

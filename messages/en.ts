@@ -55,6 +55,23 @@ export const en = {
       'Sponsored positions. Providers pay us the same whether they rank first or last, and we ' +
       'say so on every page.',
 
+    trustTitle: 'A comparison you can check',
+    trustLede:
+      'The details that affect your transfer stay visible, from quote freshness to the final payout.',
+    trustRouteValue: 'More ways to send',
+    trustRouteTitle: 'Flexible payout choices',
+    trustRouteBody: 'Compare bank, mobile wallet, cash pickup and RDA options in one place.',
+    trustRefreshValue: 'Ready when you are',
+    trustRefreshTitle: 'Freshness you can see',
+    trustRefreshBody: 'Keep an eye on the market with rates updated throughout the day.',
+    trustRankingValue: 'PKR received',
+    trustRankingTitle: 'One fair ranking rule',
+    trustRankingBody: 'We combine the exchange rate and fee, then rank by what reaches the recipient.',
+    trustPayoutValue: 'Made for Pakistan',
+    trustPayoutTitle: 'Local needs in focus',
+    trustPayoutBody:
+      'Built around the corridors and payout choices Pakistani families use most.',
+
     cardRankedTitle: 'Ranked by rupees received',
     cardRankedBody:
       'We compute the exact amount landing in the account after fees and the real exchange ' +
@@ -87,6 +104,16 @@ export const en = {
       'Pakistan’s central bank subsidises transfers through approved channels, which is why ' +
       'licensed services often show zero fees and slightly better rates than the mid-market. We ' +
       'mark providers where the scheme applies.',
+    faq5Q: 'Why do the results change when I change the amount or payout method?',
+    faq5A:
+      'Providers use different fees, exchange rates and offers for each transfer size and payout ' +
+      'method. We recalculate the ranking for your choices so the first result is the option that ' +
+      'delivers the most rupees for that comparison.',
+    faq6Q: 'Does PakRemits send or hold my money?',
+    faq6A:
+      'No. PakRemits compares available quotes and sends you to the provider you choose. You ' +
+      'create the transfer and pay on that provider’s website or app, and PakRemits never holds ' +
+      'your funds.',
 
     alertsTitle: 'Tell me when the pound hits <rate>{rateValue}</rate>',
     alertsBody:

@@ -11,6 +11,10 @@ import { describe, expect, it } from 'vitest'
 import remitlyFixture from '../fixtures/remitly-gbp-pkr-500.json'
 import remitlyUsdFixture from '../fixtures/remitly-usd-pkr-1000.json'
 import wiseFixture from '../fixtures/wise-gbp-pkr-500.json'
+import botimFixture from '../fixtures/botim-aed-pkr.json'
+import careemFixture from '../fixtures/careem-aed-pkr.json'
+import { parseBotimRate, botimAdapter } from '@/lib/providers/http/botim'
+import { parseCareemRates, careemAdapter } from '@/lib/providers/http/careem'
 import { parseRemitlyEstimate, remitlyAdapter } from '@/lib/providers/http/remitly'
 import { assertParseMatchesProvider, parseWisePrice, wiseAdapter } from '@/lib/providers/http/wise'
 import { canonicalReceived } from '@/lib/providers/refresh'
@@ -22,6 +26,15 @@ const gbpRequest: QuoteRequest = {
   fromCountry3: 'GBR',
   to: 'PKR',
   amount: 500,
+  method: 'bank',
+}
+
+const aedRequest: QuoteRequest = {
+  from: 'AED',
+  fromCountry: 'AE',
+  fromCountry3: 'ARE',
+  to: 'PKR',
+  amount: 1000,
   method: 'bank',
 }
 
@@ -155,6 +168,58 @@ describe('Remitly parser', () => {
     expect(remitlyAdapter.supports(gbpRequest)).toBe(true)
     expect(remitlyAdapter.supports({ ...gbpRequest, method: 'rda' })).toBe(false)
     expect(remitlyAdapter.supports({ ...gbpRequest, method: 'neobank' })).toBe(false)
+  })
+})
+
+describe('BOTIM parser', () => {
+  it('reads the public AED to PKR bank quote and fee offer', () => {
+    const quote = parseBotimRate(botimFixture as never, aedRequest)
+
+    expect(quote.providerSlug).toBe('botim')
+    expect(quote.rate).toBe(75.51223)
+    expect(quote.fee).toBe(0)
+    expect(quote.promo).toBe(true)
+    expect(quote.promoNote).toBe('First two transfers are free!')
+    expect(canonicalReceived(1000, quote)).toBe(75512.23)
+  })
+
+  it('supports only UAE bank, wallet, and cash transfers', () => {
+    expect(botimAdapter.supports(aedRequest)).toBe(true)
+    expect(botimAdapter.supports({ ...aedRequest, method: 'wallet' })).toBe(true)
+    expect(botimAdapter.supports({ ...aedRequest, method: 'cash' })).toBe(true)
+    expect(botimAdapter.supports({ ...aedRequest, method: 'rda' })).toBe(false)
+    expect(botimAdapter.supports({ ...aedRequest, from: 'GBP' })).toBe(false)
+  })
+
+  it('rejects a response for the wrong payout method', () => {
+    expect(() =>
+      parseBotimRate(botimFixture as never, { ...aedRequest, method: 'wallet' }),
+    ).toThrow(/payout mismatch/)
+  })
+})
+
+describe('Careem Pay parser', () => {
+  it('reads the public Pakistan rate and current fee waiver', () => {
+    const quote = parseCareemRates(careemFixture as never, aedRequest)
+
+    expect(quote.providerSlug).toBe('careem')
+    expect(quote.rate).toBe(75.72)
+    expect(quote.fee).toBe(0)
+    expect(quote.deliverySpeedMinutes).toBe(60)
+    expect(quote.promo).toBe(true)
+    expect(canonicalReceived(1000, quote)).toBe(75720)
+  })
+
+  it('supports only UAE bank transfers', () => {
+    expect(careemAdapter.supports(aedRequest)).toBe(true)
+    expect(careemAdapter.supports({ ...aedRequest, method: 'wallet' })).toBe(false)
+    expect(careemAdapter.supports({ ...aedRequest, from: 'GBP' })).toBe(false)
+  })
+
+  it('rejects amounts outside the public limits', () => {
+    expect(() =>
+      parseCareemRates(careemFixture as never, { ...aedRequest, amount: 100000 }),
+    ).toThrow(/outside/)
   })
 })
 

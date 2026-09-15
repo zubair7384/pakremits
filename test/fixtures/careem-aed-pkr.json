@@ -1,0 +1,12 @@
+[
+  {
+    "destinationCountry": "PK",
+    "destinationCurrency": "PKR",
+    "estimatedTime": "Money should arrive within 1 hour",
+    "fee": 7.35,
+    "feeThresholdAmount": 735,
+    "maxAmount": 55000,
+    "minAmount": 10,
+    "rate": 75.72
+  }
+]

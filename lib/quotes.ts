@@ -153,7 +153,7 @@ function benchmarkRow(
 ): ComparisonRow {
   return {
     providerSlug: 'typical-bank',
-    providerName: 'Typical high-street bank',
+    providerName: 'Bank Transfer',
     brandColor: '#8A8F8C',
     brandTextColor: '#FFFFFF',
     rate: benchmark.rate,
@@ -399,7 +399,13 @@ export async function getMidMarketSeries(
 
 /** Best available rate per corridor, for the home page's corridor chips. */
 export async function getBestRatePerCorridor(): Promise<
-  { slug: string; countryName: string; currency: SendCurrency; bestRate: number | null }[]
+  {
+    slug: string
+    countryCode: string
+    countryName: string
+    currency: SendCurrency
+    bestRate: number | null
+  }[]
 > {
   const corridorRows = await safeRead('getBestRatePerCorridor', [], () =>
     db.select().from(corridors).where(eq(corridors.active, true)),
@@ -415,6 +421,7 @@ export async function getBestRatePerCorridor(): Promise<
 
       return {
         slug: corridor.slug,
+        countryCode: corridor.fromCountry,
         countryName: corridor.fromCountryName,
         currency: corridor.fromCurrency,
         bestRate: best ? best.quote.rate : null,

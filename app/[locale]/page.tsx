@@ -5,17 +5,16 @@ import { ComparePanel } from '@/components/compare-panel'
 import { RateAlertForm } from '@/components/rate-alert-form'
 import { SiteFooter, SiteHeader } from '@/components/site-chrome'
 import { Sparkline } from '@/components/sparkline'
-import { CORRIDORS, CURRENCY_SYMBOLS, defaultAmountFor, formatSend } from '@/lib/corridors'
+import { CORRIDORS, CURRENCY_SYMBOLS, defaultAmountFor } from '@/lib/corridors'
 import { formatPkr } from '@/lib/ranking/compute'
 import { getBestRatePerCorridor, getComparison, getMidMarketSeries } from '@/lib/quotes'
 import type { SendCurrency } from '@/lib/db/schema'
 import { notFound } from 'next/navigation'
 import { alternatesFor, isLocale } from '@/i18n/routing'
 import { corridorPath } from '@/lib/routes'
-import { PROOF_CARD, ProofStrip } from '@/components/proof-strip'
 import { RateMarquee } from '@/components/rate-marquee'
+import { CountryFlag } from '@/components/select-icons'
 import { CLAIM_FIRST_PAKISTAN_ONLY_SITE } from '@/lib/proof/config'
-import { getProofStats } from '@/lib/proof/stats'
 
 export async function generateMetadata({
   params,
@@ -67,6 +66,10 @@ const CURRENCY_NAMES: Record<SendCurrency, string> = {
   EUR: 'Euro',
 }
 
+const COUNTRY_BY_CURRENCY = new Map(
+  CORRIDORS.map((corridor) => [corridor.fromCurrency, corridor.fromCountry]),
+)
+
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale: localeParam } = await params
@@ -80,6 +83,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
     { q: t('faq2Q'), a: t('faq2A') },
     { q: t('faq3Q'), a: t('faq3A') },
     { q: t('faq4Q'), a: t('faq4A') },
+    { q: t('faq5Q'), a: t('faq5A') },
+    { q: t('faq6Q'), a: t('faq6A') },
   ]
 
   const [comparison, chips, series] = await Promise.all([
@@ -109,6 +114,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
   const corridorOptions = CORRIDORS.map((corridor) => ({
     slug: corridor.slug,
+    countryCode: corridor.fromCountry,
     countryName: corridor.fromCountryName,
     currency: corridor.fromCurrency,
     symbol: CURRENCY_SYMBOLS[corridor.fromCurrency],
@@ -119,11 +125,6 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   // hard-coded saving figure, so each of these is null-guarded rather than
   // filled with a placeholder when the database is empty.
   const providerCount = comparison?.rows.filter((r) => !r.quote.isBenchmark).length ?? 0
-  // `savingVsBank` is the brief's `liveGapOnStandardAmount`: best provider
-  // payout minus bank benchmark payout, for whatever is currently in the widget.
-  const saving = comparison?.savingVsBank ?? null
-  const proofStats = await getProofStats()
-  const sendAmountLabel = formatSend(comparison?.currencySymbol ?? '£', comparison?.amount ?? 500)
   const capturedMinutesAgo = comparison?.capturedAt
     ? minutesSince(comparison.capturedAt)
     : null
@@ -190,12 +191,10 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                              py-3.5 first:border-t-0 sm:grid-cols-[1fr_84px_auto]"
                 >
                   <div className="flex items-center gap-2.5">
-                    <span
-                      className="grid h-7 w-7 place-items-center rounded-full bg-green-3 text-[11px]
-                                 font-medium text-white"
-                      aria-hidden="true"
-                    >
-                      {series.currency}
+                    <span className="flex h-7 w-9 flex-none items-center justify-center rounded-[7px] bg-green-3">
+                      <CountryFlag
+                        countryCode={COUNTRY_BY_CURRENCY.get(series.currency) ?? 'IE'}
+                      />
                     </span>
                     <div>
                       <b className="text-[15px] font-medium text-[#E6EFE9]">
@@ -337,38 +336,71 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           />
         </section>
 
-        {/*
-          Proof strip. Replaces a card that showed `saving * 12` rounded to the
-          nearest thousand — a projection of a projection, and exactly the kind
-          of figure the proof rules forbid. Everything here is a live sum.
-        */}
-        {/* The two counted facts are passed into the strip's own grid rather
-            than sitting in a second one below it: the design has all four cards
-            in one four-up row, at one width and one height. */}
-        <ProofStrip
-          locale={locale}
-          stats={proofStats}
-          liveGapOnStandardAmount={saving}
-          sendAmountLabel={sendAmountLabel}
-        >
-          <li className={PROOF_CARD}>
-            <div className="font-display text-[44px] leading-none font-semibold tracking-[-0.025em] text-green">
-              {providerCount}
-            </div>
-            <p className="mt-2.5 text-[14.5px] text-muted">
-              {t('statComparedBody')}
-            </p>
-          </li>
+        <section className="mt-16" aria-labelledby="trust-cards-title">
+          <div className="max-w-[54ch]">
+            <h2
+              id="trust-cards-title"
+              className="text-[clamp(28px,3.5vw,34px)] leading-[1.1] font-semibold"
+            >
+              {t('trustTitle')}
+            </h2>
+            <p className="mt-3 text-[16px] text-muted">{t('trustLede')}</p>
+          </div>
 
-          <li className={PROOF_CARD}>
-            <div className="font-display text-[44px] leading-none font-semibold tracking-[-0.025em] text-green">
-              0
-            </div>
-            <p className="mt-2.5 text-[14.5px] text-muted">
-              {t('statSponsoredBody')}
-            </p>
-          </li>
-        </ProofStrip>
+          <ul className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              {
+                value: t('trustRouteValue'),
+                title: t('trustRouteTitle'),
+                body: t('trustRouteBody'),
+                path: 'M7 12.5 10.2 16 17.5 8.5M4 5h16v14H4z',
+              },
+              {
+                value: t('trustRefreshValue'),
+                title: t('trustRefreshTitle'),
+                body: t('trustRefreshBody'),
+                path: 'M12 7v5l3 2M20 12a8 8 0 1 1-2.3-5.6M20 4v5h-5',
+              },
+              {
+                value: t('trustRankingValue'),
+                title: t('trustRankingTitle'),
+                body: t('trustRankingBody'),
+                path: 'M5 18V9m7 9V5m7 13v-6M3 21h18',
+              },
+              {
+                value: t('trustPayoutValue'),
+                title: t('trustPayoutTitle'),
+                body: t('trustPayoutBody'),
+                path: 'M3 9h18L12 4 3 9Zm2 2v6m4-6v6m6-6v6m4-6v6M3 20h18',
+              },
+            ].map((card) => (
+              <li
+                key={card.title}
+                className="flex min-h-60 flex-col rounded-panel border border-line bg-white p-6"
+              >
+                <div className="grid h-10 w-10 place-items-center rounded-[11px] bg-[#E4F3EB] text-leaf">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-5 w-5"
+                    aria-hidden="true"
+                  >
+                    <path d={card.path} />
+                  </svg>
+                </div>
+                <div className="mt-5 min-h-9 font-display text-[25px] leading-tight font-semibold tracking-[-0.02em] text-green">
+                  {card.value}
+                </div>
+                <h3 className="mt-2 text-[15px] font-semibold text-ink">{card.title}</h3>
+                <p className="mt-2 text-[14px] leading-relaxed text-muted">{card.body}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
 
         {/* Corridors */}
         <section id="corridors" className="mt-24">
@@ -390,12 +422,10 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                            no-underline transition-all hover:-translate-y-px hover:border-leaf"
               >
                 <span className="flex items-center gap-3 text-[15px] font-medium">
-                  <span
-                    className="grid h-8 w-8 place-items-center rounded-full bg-line-2 text-xs
-                               font-medium text-muted"
-                    aria-hidden="true"
-                  >
-                    {chip.currency.slice(0, 2)}
+                  <span className="grid h-8 w-9 place-items-center" aria-hidden="true">
+                    <CountryFlag
+                      countryCode={COUNTRY_BY_CURRENCY.get(chip.currency as SendCurrency) ?? 'EU'}
+                    />
                   </span>
                   {chip.countryName}
                 </span>

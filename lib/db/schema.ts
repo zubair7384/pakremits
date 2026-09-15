@@ -86,7 +86,7 @@ export const providers = pgTable('providers', {
    */
   featured: boolean('featured').notNull().default(false),
   /**
-   * Synthetic reference row ("Typical high-street bank") used for the
+   * Synthetic reference row ("Bank Transfer") used for the
    * "₨ X more than your bank" line. Excluded from the affiliate CTA.
    */
   isBenchmark: boolean('is_benchmark').notNull().default(false),
@@ -253,7 +253,7 @@ export type RateAlert = typeof rateAlerts.$inferSelect
  * ──────────────────────────────────────────────────────────────────────────── */
 
 /**
- * Typical high-street bank pricing per corridor and rail.
+ * Bank transfer benchmark pricing per corridor and rail.
  *
  * Previously a hard-coded constant in lib/quotes.ts. It moves into the database
  * because the savings figure is only defensible if the benchmark it is measured
