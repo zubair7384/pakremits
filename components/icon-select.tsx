@@ -5,6 +5,8 @@ import { useEffect, useId, useRef, useState, type KeyboardEvent, type ReactNode 
 export interface IconSelectOption {
   value: string
   label: string
+  /** Optional compact label used only while the option is selected. */
+  selectedLabel?: string
   icon: ReactNode
 }
 
@@ -115,7 +117,7 @@ export function IconSelect({
         <span className="flex shrink-0 items-center" aria-hidden="true">
           {selected?.icon}
         </span>
-        <span className="min-w-0 flex-1 truncate">{selected?.label}</span>
+        <span className="min-w-0 flex-1 truncate">{selected?.selectedLabel ?? selected?.label}</span>
         <svg
           viewBox="0 0 16 16"
           fill="none"

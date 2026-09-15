@@ -1,5 +1,14 @@
 import type { DeliveryMethod } from '@/lib/db/schema'
 
+export type PayoutOption =
+  | 'bank'
+  | 'jazzcash'
+  | 'easypaisa'
+  | 'sadapay'
+  | 'nayapay'
+  | 'cash'
+  | 'rda'
+
 const flagClass = 'h-5 w-7 rounded-[4px] shadow-[0_0_0_1px_rgba(11,61,46,.12)]'
 
 export function CountryFlag({ countryCode }: { countryCode: string }) {
@@ -94,7 +103,23 @@ export function CountryFlag({ countryCode }: { countryCode: string }) {
   )
 }
 
-export function PayoutMethodIcon({ method }: { method: DeliveryMethod }) {
+function PayoutLogo({ slug }: { slug: Exclude<PayoutOption, 'bank' | 'cash'> }) {
+  return (
+    // Supplied brand artwork is already transparent and square. A shared box
+    // keeps every mark visually aligned without stretching it.
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={`/payout-icons/${slug}.png`}
+      alt=""
+      className="h-7 w-7 shrink-0 object-contain"
+      width={28}
+      height={28}
+      aria-hidden="true"
+    />
+  )
+}
+
+export function PayoutMethodIcon({ method }: { method: PayoutOption | DeliveryMethod }) {
   const common = {
     viewBox: '0 0 24 24',
     fill: 'none',
@@ -107,14 +132,18 @@ export function PayoutMethodIcon({ method }: { method: DeliveryMethod }) {
   if (method === 'bank') {
     return <svg {...common}><path d="m3 9 9-5 9 5M5 10h14M6 10v7m4-7v7m4-7v7m4-7v7M4 20h16M3 17h18" /></svg>
   }
-  if (method === 'wallet') {
-    return <svg {...common}><path d="M4 7.5h14a2 2 0 0 1 2 2v8.5H6a2 2 0 0 1-2-2zM4 8V6a2 2 0 0 1 2-2h11v3.5M15 12h5v4h-5a2 2 0 0 1 0-4Z" /></svg>
+  if (method === 'jazzcash' || method === 'easypaisa') {
+    return <PayoutLogo slug={method} />
   }
-  if (method === 'neobank') {
-    return <svg {...common}><rect x="6" y="2.5" width="12" height="19" rx="2.5" /><path d="M9 6h6M10 18h4M9 10h6v4H9z" /></svg>
+  if (method === 'sadapay' || method === 'nayapay') {
+    return <PayoutLogo slug={method} />
   }
   if (method === 'cash') {
     return <svg {...common}><path d="M3 7h16v10H3zM6 4h15v10M6 10a2 2 0 0 0 0 4m10-4a2 2 0 0 1 0 4" /><circle cx="11" cy="12" r="2.2" /></svg>
   }
-  return <span className="flex h-5 min-w-7 items-center justify-center rounded bg-leaf px-1 text-[8px] font-bold tracking-wide text-white">RDA</span>
+  if (method === 'rda') return <PayoutLogo slug="rda" />
+  if (method === 'wallet') {
+    return <svg {...common}><path d="M4 7.5h14a2 2 0 0 1 2 2v8.5H6a2 2 0 0 1-2-2zM4 8V6a2 2 0 0 1 2-2h11v3.5M15 12h5v4h-5a2 2 0 0 1 0-4Z" /></svg>
+  }
+  return <svg {...common}><rect x="6" y="2.5" width="12" height="19" rx="2.5" /><path d="M9 6h6M10 18h4M9 10h6v4H9z" /></svg>
 }
