@@ -4,10 +4,10 @@ name: Refresh rates
 #
 # 1. Vercel's Hobby plan caps cron at once per day and rejects anything more
 #    frequent at deploy time, so the 15-minute schedule cannot live there.
-# 2. A full refresh across 8 corridors x 3 methods x 4 amounts takes ~4 minutes
-#    with polite per-host throttling — well past the 60s function limit. So the
-#    job runs the refresh script directly against the database rather than
-#    calling /api/cron/refresh-rates, which stays available for manual triggers.
+# 2. A full refresh across 8 corridors x 3 methods x 4 amounts can take close to
+#    15 minutes when providers throttle requests. That is well past a serverless
+#    function limit, so the job runs the refresh script directly against the
+#    database. The HTTP route remains available for manual triggers.
 #
 # Running here also means Playwright adapters have a Chromium to use, which
 # Vercel functions do not provide.
@@ -26,7 +26,8 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # Leave enough room for dependency setup plus a throttled provider pass.
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
 
