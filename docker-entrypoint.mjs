@@ -1,16 +1,19 @@
 #!/usr/bin/env node
 
-const { spawn } = require('node:child_process')
+import { spawn } from 'node:child_process'
 
 const env = { ...process.env }
 
 ;(async() => {
-  // If running the web server then prerender pages
+  // Finish prerendering after Fly injects DATABASE_URL, then start the
+  // self-contained server produced by Next's standalone output mode.
   if (process.argv.slice(-3).join(' ') === 'npm run start') {
     await exec('npx next build --experimental-build-mode generate')
+    await exec('node .next/standalone/server.js')
+    return
   }
 
-  // launch application
+  // Launch any one-off command passed to the image.
   await exec(process.argv.slice(2).join(' '))
 })()
 
