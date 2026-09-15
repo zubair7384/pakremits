@@ -10,6 +10,9 @@ import { formatPkr } from '@/lib/ranking/compute'
 import { formatSend } from '@/lib/corridors'
 import { staticPath } from '@/lib/routes'
 import type { Locale } from '@/i18n/routing'
+import { IconSelect, type IconSelectOption } from '@/components/icon-select'
+import { CountryFlag, PayoutMethodIcon } from '@/components/select-icons'
+import { ProviderLogo } from '@/components/provider-logo'
 
 /**
  * The comparison panel.
@@ -22,6 +25,7 @@ import type { Locale } from '@/i18n/routing'
 
 interface CorridorOption {
   slug: string
+  countryCode: string
   countryName: string
   currency: string
   symbol: string
@@ -62,21 +66,6 @@ const PKT = new Intl.DateTimeFormat('en-GB', {
   minute: '2-digit',
   hour12: false,
 })
-
-function ChevronIcon() {
-  return (
-    <svg
-      viewBox="0 0 16 16"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      className="pointer-events-none absolute top-1/2 right-4 h-4 w-4 -translate-y-1/2 text-muted"
-      aria-hidden="true"
-    >
-      <path d="M4 6l4 4 4-4" />
-    </svg>
-  )
-}
 
 function BoltIcon() {
   return (
@@ -187,8 +176,20 @@ export function ComparePanel({ initial, corridors }: Props) {
     'transition-colors hover:border-[#B9C7BF]'
 
   const fieldClass =
-    `${fieldShell} appearance-none pr-11 pl-4 text-base text-ink ` +
+    `${fieldShell} px-4 text-base text-ink ` +
     'focus:border-leaf focus:outline-none focus:ring-4 focus:ring-leaf/15'
+
+  const corridorSelectOptions: IconSelectOption[] = corridors.map((option) => ({
+    value: option.slug,
+    label: `${option.countryName} · ${option.currency}`,
+    icon: <CountryFlag countryCode={option.countryCode} />,
+  }))
+
+  const methodSelectOptions: IconSelectOption[] = METHOD_KEYS.map((value) => ({
+    value,
+    label: tm(value),
+    icon: <PayoutMethodIcon method={value} />,
+  }))
 
   /**
    * The amount field is a flex row, not an input with a fixed left pad: symbols
@@ -216,12 +217,12 @@ export function ComparePanel({ initial, corridors }: Props) {
             <label htmlFor="from" className="mb-1.5 block text-[13px] text-muted">
               {t('sendingFrom')}
             </label>
-            <div className="relative">
-              <select
+            <IconSelect
                 id="from"
+                label={t('sendingFrom')}
                 value={corridor}
-                onChange={(event) => {
-                  const next = event.target.value
+                options={corridorSelectOptions}
+                onChange={(next) => {
                   setCorridor(next)
                   // Reset the amount to this corridor's standard figure.
                   // Currencies differ by an order of magnitude — £500 is about
@@ -232,36 +233,21 @@ export function ComparePanel({ initial, corridors }: Props) {
                   if (target) setAmountText(String(target.defaultAmount))
                 }}
                 className={fieldClass}
-              >
-                {corridors.map((option) => (
-                  <option key={option.slug} value={option.slug}>
-                    {option.countryName} · {option.currency}
-                  </option>
-                ))}
-              </select>
-              <ChevronIcon />
-            </div>
+              />
           </div>
 
           <div>
             <label htmlFor="method" className="mb-1.5 block text-[13px] text-muted">
               {t('recipientGets')}
             </label>
-            <div className="relative">
-              <select
+            <IconSelect
                 id="method"
+                label={t('recipientGets')}
                 value={method}
-                onChange={(event) => setMethod(event.target.value as DeliveryMethod)}
+                options={methodSelectOptions}
+                onChange={(value) => setMethod(value as DeliveryMethod)}
                 className={fieldClass}
-              >
-                {METHOD_KEYS.map((value) => (
-                  <option key={value} value={value}>
-                    {tm(value)}
-                  </option>
-                ))}
-              </select>
-              <ChevronIcon />
-            </div>
+              />
           </div>
 
           <div>
@@ -406,14 +392,12 @@ export function ComparePanel({ initial, corridors }: Props) {
                                 : ''
                             }`}
               >
-                <div
-                  className="grid h-11 w-11 place-items-center rounded-[12px] font-display
-                             text-[15px] font-bold"
-                  style={{ background: q.brandColor, color: q.brandTextColor }}
-                  aria-hidden="true"
-                >
-                  {q.providerName.charAt(0)}
-                </div>
+                <ProviderLogo
+                  providerSlug={q.providerSlug}
+                  providerName={q.providerName}
+                  brandColor={q.brandColor}
+                  brandTextColor={q.brandTextColor}
+                />
 
                 <div>
                   <div className="flex flex-wrap items-center gap-2 text-base font-medium">

@@ -93,6 +93,7 @@ export default async function CorridorPage({ params }: { params: Promise<{ local
 
   const corridorOptions = CORRIDORS.map((c) => ({
     slug: c.slug,
+    countryCode: c.fromCountry,
     countryName: c.fromCountryName,
     currency: c.fromCurrency,
     symbol: CURRENCY_SYMBOLS[c.fromCurrency],

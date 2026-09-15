@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 
 /**
  * The home comparison flow.
@@ -24,6 +24,11 @@ function parsePkr(text: string): number {
  * correct for accessibility; the selector just has to say which one it means.
  */
 const results = '#compare [aria-live]'
+
+async function chooseOption(page: Page, controlId: string, optionName: string) {
+  await page.locator(`#${controlId}`).click()
+  await page.getByRole('option', { name: optionName, exact: true }).click()
+}
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/')
@@ -79,7 +84,7 @@ test('recomputes when the amount changes', async ({ page }) => {
 
 test('resets the amount to the corridor default when the country changes', async ({ page }) => {
   await page.fill('#amt', '137')
-  await page.selectOption('#from', 'uae')
+  await chooseOption(page, 'from', 'United Arab Emirates · AED')
 
   // £137 must not carry over as د.إ137 — the currencies differ by an order of
   // magnitude and the rates were captured at a different band.
@@ -91,16 +96,16 @@ test('drops providers that do not serve the chosen delivery method', async ({ pa
   const namesFor = async () =>
     (await page.locator(`${results} > div .font-medium`).allTextContents()).join(' ')
 
-  await page.selectOption('#method', 'bank')
+  await chooseOption(page, 'method', 'Bank account')
   await expect.poll(namesFor, { timeout: 15_000 }).toContain('Wise')
 
   // Wise pays out to Pakistani bank accounts only.
-  await page.selectOption('#method', 'wallet')
+  await chooseOption(page, 'method', 'JazzCash or Easypaisa')
   await expect.poll(namesFor, { timeout: 15_000 }).not.toContain('Wise')
 })
 
 test('says so honestly when no provider serves a rail', async ({ page }) => {
-  await page.selectOption('#method', 'rda')
+  await chooseOption(page, 'method', 'Roshan Digital Account')
   await expect(page.locator(results)).toContainText(/No provider we track delivers/i, {
     timeout: 15_000,
   })

@@ -22,12 +22,13 @@ test('the comparison panel is fully operable by keyboard', async ({ page }) => {
   }
   expect(reached, 'the "Sending from" select should be reachable by Tab').toBe(true)
 
-  // Deliberately not ArrowDown: on macOS Chromium that opens the dropdown
-  // rather than changing the value, and how a native select responds to keys is
-  // the browser's business, not ours. What is ours is that the control is in
-  // the tab order and that changing it drives the table — selectOption fires
-  // the same change event a keyboard selection would.
-  await page.selectOption('#from', 'uae')
+  // Open the visual listbox, move to the next country, and commit it entirely
+  // with the keyboard. The selected flag is decorative, so the accessible
+  // value remains the complete country and currency label.
+  await page.keyboard.press('Enter')
+  await page.keyboard.press('ArrowDown')
+  await page.keyboard.press('Enter')
+  await expect(page.locator('#from')).toContainText('United Arab Emirates')
   await expect
     .poll(async () => page.inputValue('#amt'), { timeout: 15_000 })
     .not.toBe('500')

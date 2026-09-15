@@ -37,7 +37,7 @@ const ace = quote({
 })
 const bank = quote({
   providerSlug: 'typical-bank',
-  providerName: 'Typical high-street bank',
+  providerName: 'Bank Transfer',
   amountReceived: 168392,
   fee: 15,
   deliverySpeedMinutes: 4320,

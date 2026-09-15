@@ -19,7 +19,7 @@ export interface RankableQuote {
   deliverySpeedMinutes: number | null
   /** Pins below the best deal with a "Sponsored" label. Never above it. */
   featured: boolean
-  /** The "Typical high-street bank" reference row. Always sorts last. */
+  /** The "Bank Transfer" reference row. Always sorts last. */
   isBenchmark: boolean
 }
 

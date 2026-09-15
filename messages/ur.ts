@@ -104,6 +104,37 @@ export const ur: Messages = {
       'اور ہم یہ بات ہر صفحے پر لکھتے ہیں۔',
 
     // TODO: native review
+    trustTitle: 'ایسا موازنہ جسے آپ خود جانچ سکیں',
+    // TODO: native review
+    trustLede:
+      'ریٹ کی تازگی سے لے کر حتمی وصولی تک، آپ کی ٹرانسفر پر اثر ڈالنے والی ہر اہم تفصیل واضح رہتی ہے۔',
+    // TODO: native review
+    trustRouteValue: 'بھیجنے کے کئی طریقے',
+    // TODO: native review
+    trustRouteTitle: 'وصولی کے لچکدار طریقے',
+    // TODO: native review
+    trustRouteBody: 'بینک، موبائل والٹ، نقد وصولی اور RDA آپشنز کا ایک جگہ موازنہ کریں۔',
+    // TODO: native review
+    trustRefreshValue: 'جب آپ تیار ہوں',
+    // TODO: native review
+    trustRefreshTitle: 'تازگی واضح ہے',
+    // TODO: native review
+    trustRefreshBody: 'دن بھر تازہ ہونے والے ریٹس کے ساتھ مارکیٹ پر نظر رکھیں۔',
+    // TODO: native review
+    trustRankingValue: 'وصول شدہ PKR',
+    // TODO: native review
+    trustRankingTitle: 'درجہ بندی کا ایک منصفانہ اصول',
+    // TODO: native review
+    trustRankingBody: 'ہم ایکسچینج ریٹ اور فیس ملا کر وصول کنندہ تک پہنچنے والی رقم کے مطابق ترتیب دیتے ہیں۔',
+    // TODO: native review
+    trustPayoutValue: 'پاکستان کے لیے بنایا گیا',
+    // TODO: native review
+    trustPayoutTitle: 'مقامی ضروریات پر توجہ',
+    // TODO: native review
+    trustPayoutBody:
+      'ان روٹس اور وصولی کے طریقوں کے لیے بنایا گیا جنہیں پاکستانی خاندان سب سے زیادہ استعمال کرتے ہیں۔',
+
+    // TODO: native review
     cardRankedTitle: 'وصول ہونے والے روپوں کے حساب سے درجہ بندی',
     // TODO: native review
     cardRankedBody:
@@ -149,6 +180,18 @@ export const ur: Messages = {
       'پاکستان کا مرکزی بینک منظور شدہ ذرائع سے آنے والی رقوم پر سبسڈی دیتا ہے، اسی لیے ' +
       'لائسنس یافتہ سروسز اکثر صفر فیس اور مڈ مارکیٹ سے کچھ بہتر ریٹ دکھاتی ہیں۔ جہاں یہ ' +
       'اسکیم لاگو ہوتی ہے، ہم اسے نمایاں کرتے ہیں۔',
+    // TODO: native review
+    faq5Q: 'رقم یا وصولی کا طریقہ بدلنے پر نتائج کیوں بدل جاتے ہیں؟',
+    // TODO: native review
+    faq5A:
+      'ہر سروس مختلف رقم اور وصولی کے طریقے کے لیے الگ فیس، ایکسچینج ریٹ اور آفر استعمال کر سکتی ہے۔ ' +
+      'ہم آپ کے انتخاب کے مطابق درجہ بندی دوبارہ بناتے ہیں تاکہ سب سے زیادہ روپے پہنچانے والا آپشن پہلے آئے۔',
+    // TODO: native review
+    faq6Q: 'کیا PakRemits میری رقم بھیجتا یا اپنے پاس رکھتا ہے؟',
+    // TODO: native review
+    faq6A:
+      'نہیں۔ PakRemits دستیاب ریٹس کا موازنہ کرتا ہے اور آپ کو منتخب سروس کی ویب سائٹ یا ایپ پر بھیجتا ہے۔ ' +
+      'آپ وہیں ٹرانسفر بناتے اور ادائیگی کرتے ہیں، اور PakRemits کبھی آپ کی رقم اپنے پاس نہیں رکھتا۔',
 
     // TODO: native review
     alertsTitle: 'جب پاؤنڈ <rate>{rateValue}</rate> پر پہنچے تو مجھے بتائیں',
