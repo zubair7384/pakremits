@@ -56,6 +56,23 @@ const COUNTRY_BY_CURRENCY = new Map(
   CORRIDORS.map((corridor) => [corridor.fromCurrency, corridor.fromCountry]),
 )
 
+/**
+ * These small marks appear in the comparison table or its closed dropdowns.
+ * Resource hints start fetching them with the initial document so opening a
+ * selector never has to wait for an image request.
+ */
+const COMPARISON_IMAGE_ASSETS = [
+  '/provider-logos/remitly.png',
+  '/provider-logos/wise.png',
+  '/provider-logos/careem.png',
+  '/provider-logos/botim-v2.png',
+  '/payout-icons/jazzcash.png',
+  '/payout-icons/easypaisa.png',
+  '/payout-icons/sadapay.png',
+  '/payout-icons/nayapay.png',
+  '/payout-icons/rda.png',
+] as const
+
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale: localeParam } = await params
@@ -109,6 +126,10 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
 
   return (
     <>
+      {COMPARISON_IMAGE_ASSETS.map((href) => (
+        <link key={href} rel="preload" as="image" href={href} type="image/png" />
+      ))}
+
       <SiteHeader locale={locale} />
 
       <header className="bg-green px-0 pt-10 pb-32 text-mist">

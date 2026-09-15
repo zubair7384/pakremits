@@ -136,7 +136,7 @@ export function IconSelect({
           role="listbox"
           aria-label={label}
           className="absolute z-40 mt-2 max-h-80 w-full overflow-y-auto rounded-xl border
-                     border-line bg-white p-1.5 shadow-[0_18px_45px_rgba(11,61,46,.18)]"
+                     border-line bg-white p-1.5"
         >
           {options.map((option, index) => (
             <li

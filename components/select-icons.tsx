@@ -111,9 +111,9 @@ function PayoutLogo({ slug }: { slug: Exclude<PayoutOption, 'bank' | 'cash'> }) 
     <img
       src={`/payout-icons/${slug}.png`}
       alt=""
-      className="h-7 w-7 shrink-0 object-contain"
-      width={28}
-      height={28}
+    className="h-5 w-5 shrink-0 object-contain"
+    width={20}
+    height={20}
       aria-hidden="true"
     />
   )
