@@ -176,6 +176,7 @@ export const en = {
     recipientGets: 'Recipient gets it in',
     youSend: 'You send',
     compareButton: 'Compare rates',
+    resultsHeading: 'Available rates',
     capturedAt: 'Quotes captured {time} PKT',
     noQuotesYet: 'No quotes yet',
     stale: 'stale',

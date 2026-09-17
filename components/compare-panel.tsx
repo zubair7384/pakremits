@@ -11,7 +11,11 @@ import { formatSend } from '@/lib/corridors'
 import { staticPath } from '@/lib/routes'
 import type { Locale } from '@/i18n/routing'
 import { IconSelect, type IconSelectOption } from '@/components/icon-select'
-import { CountryFlag, PayoutMethodIcon } from '@/components/select-icons'
+import {
+  CountryFlag,
+  PayoutMethodIcon,
+  type PayoutOption,
+} from '@/components/select-icons'
 import { ProviderLogo } from '@/components/provider-logo'
 
 /**
@@ -38,7 +42,31 @@ interface Props {
   corridors: CorridorOption[]
 }
 
-const METHOD_KEYS: DeliveryMethod[] = ['bank', 'wallet', 'neobank', 'cash', 'rda']
+const PAYOUT_OPTIONS: PayoutOption[] = [
+  'bank',
+  'jazzcash',
+  'easypaisa',
+  'sadapay',
+  'nayapay',
+  'cash',
+  'rda',
+]
+
+const PAYOUT_METHOD: Record<PayoutOption, DeliveryMethod> = {
+  bank: 'bank',
+  jazzcash: 'wallet',
+  easypaisa: 'wallet',
+  sadapay: 'neobank',
+  nayapay: 'neobank',
+  cash: 'cash',
+  rda: 'rda',
+}
+
+function initialPayoutOption(method: DeliveryMethod): PayoutOption {
+  if (method === 'wallet') return 'jazzcash'
+  if (method === 'neobank') return 'sadapay'
+  return method
+}
 const SORT_KEYS: SortKey[] = ['received', 'fastest', 'lowest-fee']
 
 /** Sort key → catalogue key. Kept explicit so a new sort cannot silently
@@ -59,13 +87,6 @@ const SORT_LABEL_KEY: Record<SortKey, 'sortReceived' | 'sortFastest' | 'sortLowe
 function Isolated({ children }: { children: React.ReactNode }) {
   return <bdi>{children}</bdi>
 }
-
-const PKT = new Intl.DateTimeFormat('en-GB', {
-  timeZone: 'Asia/Karachi',
-  hour: '2-digit',
-  minute: '2-digit',
-  hour12: false,
-})
 
 function BoltIcon() {
   return (
@@ -102,7 +123,10 @@ export function ComparePanel({ initial, corridors }: Props) {
   const promoLabel = (note: string): string =>
     note === 'New-customer rate' ? t('promoNewCustomer') : note
   const [corridor, setCorridor] = useState(initial.corridorSlug)
-  const [method, setMethod] = useState<DeliveryMethod>(initial.deliveryMethod)
+  const [payoutOption, setPayoutOption] = useState<PayoutOption>(() =>
+    initialPayoutOption(initial.deliveryMethod),
+  )
+  const method = PAYOUT_METHOD[payoutOption]
   const [amountText, setAmountText] = useState(String(initial.amount))
   const [sort, setSort] = useState<SortKey>('received')
   const [data, setData] = useState<Comparison>(initial)
@@ -168,11 +192,9 @@ export function ComparePanel({ initial, corridors }: Props) {
   }, [corridor, method, amountText, sort, data, initial])
 
   const rows = data.rows
-  const realProviderCount = rows.filter((r) => !r.quote.isBenchmark).length
-  const capturedLabel = data.capturedAt ? PKT.format(new Date(data.capturedAt)) : null
 
   const fieldShell =
-    'h-[54px] w-full rounded-[12px] border-[1.5px] border-line bg-white ' +
+    'h-[54px] min-w-0 w-full max-w-full rounded-[12px] border-[1.5px] border-line bg-white ' +
     'transition-colors hover:border-[#B9C7BF]'
 
   const fieldClass =
@@ -182,12 +204,24 @@ export function ComparePanel({ initial, corridors }: Props) {
   const corridorSelectOptions: IconSelectOption[] = corridors.map((option) => ({
     value: option.slug,
     label: `${option.countryName} · ${option.currency}`,
+    selectedLabel: `${option.countryCode === 'GB' ? 'UK' : option.countryCode === 'AE' ? 'UAE' : option.countryName} · ${option.currency}`,
     icon: <CountryFlag countryCode={option.countryCode} />,
   }))
 
-  const methodSelectOptions: IconSelectOption[] = METHOD_KEYS.map((value) => ({
+  const payoutLabels: Record<PayoutOption, string> = {
+    bank: tm('bank'),
+    jazzcash: 'JazzCash',
+    easypaisa: 'Easypaisa',
+    sadapay: 'SadaPay',
+    nayapay: 'NayaPay',
+    cash: tm('cash'),
+    rda: tm('rda'),
+  }
+
+  const methodSelectOptions: IconSelectOption[] = PAYOUT_OPTIONS.map((value) => ({
     value,
-    label: tm(value),
+    label: payoutLabels[value],
+    selectedLabel: value === 'rda' ? 'RDA' : undefined,
     icon: <PayoutMethodIcon method={value} />,
   }))
 
@@ -203,17 +237,17 @@ export function ComparePanel({ initial, corridors }: Props) {
 
   return (
     <section id="compare" className="relative -mt-22">
+      <h2 id={headingId} className="sr-only">
+        {t('heading')}
+      </h2>
+
       <div
-        className="overflow-hidden rounded-panel-lg border border-line bg-white
+        className="relative z-20 rounded-panel-lg border border-line bg-white
                    shadow-[0_40px_80px_-40px_rgba(11,61,46,.45),0_2px_6px_rgba(11,61,46,.06)]"
       >
-        <h2 id={headingId} className="sr-only">
-          {t('heading')}
-        </h2>
-
         {/* Controls */}
-        <div className="grid items-end gap-3.5 bg-white p-7 sm:grid-cols-2 lg:grid-cols-[1.15fr_1.15fr_1.4fr_auto]">
-          <div>
+        <div className="grid grid-cols-[minmax(0,1fr)] items-end gap-3.5 p-7 sm:grid-cols-2 lg:grid-cols-[1.15fr_1.15fr_1.4fr_auto]">
+          <div className="min-w-0">
             <label htmlFor="from" className="mb-1.5 block text-[13px] text-muted">
               {t('sendingFrom')}
             </label>
@@ -236,21 +270,21 @@ export function ComparePanel({ initial, corridors }: Props) {
               />
           </div>
 
-          <div>
+          <div className="min-w-0">
             <label htmlFor="method" className="mb-1.5 block text-[13px] text-muted">
               {t('recipientGets')}
             </label>
             <IconSelect
                 id="method"
                 label={t('recipientGets')}
-                value={method}
+                value={payoutOption}
                 options={methodSelectOptions}
-                onChange={(value) => setMethod(value as DeliveryMethod)}
+                onChange={(value) => setPayoutOption(value as PayoutOption)}
                 className={fieldClass}
               />
           </div>
 
-          <div>
+          <div className="min-w-0">
             <label htmlFor="amt" className="mb-1.5 block text-[13px] text-muted">
               {t('youSend')}
             </label>
@@ -278,41 +312,25 @@ export function ComparePanel({ initial, corridors }: Props) {
           <button
             type="button"
             onClick={() => setAmountText((value) => value)}
-            className="flex h-[54px] items-center justify-center gap-2.5 rounded-[12px] bg-leaf
-                       px-6 text-base font-medium text-white transition-colors hover:bg-leaf-dark
-                       active:scale-[.985]"
+            className="flex h-[54px] w-full items-center justify-center gap-2.5 rounded-[12px] bg-leaf
+                       px-6 text-base font-medium whitespace-nowrap text-white transition-colors
+                       hover:bg-leaf-dark active:scale-[.985]"
           >
             {t('compareButton')}
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4.5 w-4.5">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4.5 w-4.5 shrink-0">
               <path d="M5 12h14M13 6l6 6-6 6" />
             </svg>
           </button>
         </div>
+      </div>
 
+      <div className="mt-4 overflow-hidden rounded-panel-lg border border-line bg-white shadow-[0_18px_45px_-32px_rgba(11,61,46,.35)]">
         {/* Meta bar */}
         <div
-          className="flex flex-col items-start justify-between gap-3 border-y border-line bg-mist
+          className="flex flex-col items-start justify-between gap-3 border-b border-line bg-mist
                      px-7 py-3.5 text-[13px] text-muted sm:flex-row sm:items-center"
         >
-          <div className="flex flex-wrap items-center gap-4.5">
-            <span className="inline-flex items-center gap-1.5">
-              <i
-                className={`inline-block h-[7px] w-[7px] rounded-full ${
-                  data.stale ? 'bg-gold' : 'bg-leaf'
-                }`}
-                aria-hidden="true"
-              />
-              {capturedLabel ? t('capturedAt', { time: capturedLabel }) : t('noQuotesYet')}
-              {data.stale && (
-                <span className="ml-1.5 rounded-full bg-gold-bg px-2 py-0.5 text-[11.5px] text-gold-dark">
-                  {t('stale')}
-                </span>
-              )}
-            </span>
-            <span className="hidden sm:inline">
-              {t('deliversThisWay', { count: realProviderCount })}
-            </span>
-          </div>
+          <h3 className="font-display text-lg font-semibold text-ink">{t('resultsHeading')}</h3>
 
           <div
             // flex-wrap on the group, nowrap inside each pill: Urdu labels are
