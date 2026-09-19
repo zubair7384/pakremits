@@ -14,6 +14,7 @@ import { careemAdapter } from './http/careem'
 import { remitlyAdapter } from './http/remitly'
 import { wiseAdapter } from './http/wise'
 import { westernUnionAdapter } from './browser/western-union'
+import { xoomAdapter } from './browser/xoom'
 import type { ProviderAdapter, QuoteRequest } from './types'
 
 /**
@@ -26,6 +27,7 @@ const ALL_ADAPTERS: readonly ProviderAdapter[] = [
   careemAdapter,
   botimAdapter,
   alAnsariAdapter,
+  xoomAdapter,
   westernUnionAdapter,
   // Tier B (site XHR APIs) — endpoints probed, adapters pending:
   //   worldremit, xe, paysend, taptap-send, ria, moneygram, small-world

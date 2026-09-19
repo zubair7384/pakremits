@@ -15,6 +15,7 @@ import botimFixture from '../fixtures/botim-aed-pkr.json'
 import careemFixture from '../fixtures/careem-aed-pkr.json'
 import alAnsariFixture from '../fixtures/al-ansari-aed-pkr.json'
 import westernUnionFixture from '../fixtures/western-union-gbp-pkr-500.json'
+import xoomFixture from '../fixtures/xoom-usd-pkr-200.json'
 import { parseAlAnsariRate, alAnsariAdapter } from '@/lib/providers/http/al-ansari'
 import {
   parseWesternUnionCatalog,
@@ -24,6 +25,7 @@ import { parseBotimRate, botimAdapter } from '@/lib/providers/http/botim'
 import { parseCareemRates, careemAdapter } from '@/lib/providers/http/careem'
 import { parseRemitlyEstimate, remitlyAdapter } from '@/lib/providers/http/remitly'
 import { assertParseMatchesProvider, parseWisePrice, wiseAdapter } from '@/lib/providers/http/wise'
+import { parseXoomRemittance, xoomAdapter } from '@/lib/providers/browser/xoom'
 import { canonicalReceived } from '@/lib/providers/refresh'
 import type { QuoteRequest } from '@/lib/providers/types'
 
@@ -286,6 +288,48 @@ describe('Western Union parser', () => {
         method: 'cash',
       }),
     ).toBe(false)
+  })
+})
+
+describe('Xoom parser', () => {
+  const usdRequest: QuoteRequest = {
+    from: 'USD',
+    fromCountry: 'US',
+    fromCountry3: 'USA',
+    to: 'PKR',
+    amount: 200,
+    method: 'bank',
+  }
+
+  it('selects bank-funded pricing from the public calculator response', () => {
+    const quote = parseXoomRemittance(xoomFixture, usdRequest)
+
+    expect(quote.providerSlug).toBe('xoom')
+    expect(quote.rate).toBe(268.435)
+    expect(quote.fee).toBe(0)
+    expect(quote.providerQuotedReceive).toBe(53687)
+    expect(quote.source).toBe('scrape')
+  })
+
+  it('maps mobile wallet and cash pickup separately', () => {
+    const wallet = parseXoomRemittance(xoomFixture, { ...usdRequest, method: 'wallet' })
+    const cash = parseXoomRemittance(xoomFixture, { ...usdRequest, method: 'cash' })
+
+    expect(wallet.rate).toBe(266.1213)
+    expect(cash.rate).toBe(264.5238)
+  })
+
+  it('supports verified origins and available payout rails only', () => {
+    expect(xoomAdapter.supports(usdRequest)).toBe(true)
+    expect(xoomAdapter.supports({ ...usdRequest, method: 'wallet' })).toBe(true)
+    expect(xoomAdapter.supports({ ...usdRequest, method: 'rda' })).toBe(false)
+    expect(xoomAdapter.supports({ ...usdRequest, fromCountry: 'AE' })).toBe(false)
+  })
+
+  it('rejects mismatched calculator responses', () => {
+    expect(() =>
+      parseXoomRemittance({ ...xoomFixture, destinationCurrency: 'INR' }, usdRequest),
+    ).toThrow(/different currency corridor/)
   })
 })
 

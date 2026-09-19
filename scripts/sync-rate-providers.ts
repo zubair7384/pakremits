@@ -5,6 +5,32 @@ import { providers } from '../lib/db/schema'
 
 const RATE_PROVIDERS = [
   {
+    slug: 'taptap-send',
+    name: 'Taptap Send',
+    brandColor: '#9AD9B4',
+    brandTextColor: '#086A3B',
+    homepageUrl: 'https://www.taptapsend.com/en/send-money-to/pakistan',
+    affiliateNetwork: 'none' as const,
+    supportsBank: true,
+    supportsWallet: true,
+    supportsNeobank: false,
+    supportsCash: true,
+    supportsRda: false,
+  },
+  {
+    slug: 'xoom',
+    name: 'Xoom',
+    brandColor: '#1473E6',
+    brandTextColor: '#FFFFFF',
+    homepageUrl: 'https://www.xoom.com/pakistan/send-money',
+    affiliateNetwork: 'none' as const,
+    supportsBank: true,
+    supportsWallet: true,
+    supportsNeobank: false,
+    supportsCash: true,
+    supportsRda: false,
+  },
+  {
     slug: 'western-union',
     name: 'Western Union',
     brandColor: '#142832',

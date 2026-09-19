@@ -24,6 +24,13 @@ describe('provider availability', () => {
     })
   })
 
+  it('maps Taptap Send and Xoom to their verified online corridors', () => {
+    expect(providerSupportsCorridor('taptap-send', 'uae')).toBe(true)
+    expect(providerSupportsCorridor('taptap-send', 'saudi-arabia')).toBe(false)
+    expect(providerSupportsCorridor('xoom', 'uk')).toBe(true)
+    expect(providerSupportsCorridor('xoom', 'uae')).toBe(false)
+  })
+
   it('does not infer availability for providers without a verified map', () => {
     expect(providerAvailability('unknown')).toBeNull()
     expect(providerSupportsCorridor('unknown', 'uk')).toBe(false)

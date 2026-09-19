@@ -250,7 +250,7 @@ which is why `/admin` surfaces the last successful run.
 | Seed script with providers, corridors and 30 days of history | done |
 | README a stranger can deploy from | done |
 | Lighthouse mobile ≥ 95 | **92** — see below |
-| Providers: 14 in the brief | **6 live** — see [Provider access](#provider-access-as-verified-on-19-sep-2026) |
+| Providers: 14 in the brief | **7 live** — see [Provider access](#provider-access-as-verified-on-19-sep-2026) |
 
 ### Accessibility
 
@@ -422,6 +422,7 @@ The result is that **the 14-provider target is not reachable by scraping.**
 | **BOTIM** | Public anonymous remittance calculator endpoint | None |
 | **Al Ansari Exchange** | Allow-all policy for its public calculator and WordPress action | None; IPv4 is forced because one advertised IPv6 edge is unreachable |
 | **Western Union** | Public send flow and catalog path are allowed | Requires the first-party page session, so Playwright runs only in GitHub Actions |
+| **Xoom** | Public consumer page and first-party guest quote endpoint | Requires the first-party page session, so Playwright runs only in GitHub Actions |
 
 Western Union's Qatar route remains catalogue-only: it works interactively but
 the localized pricing page times out from GitHub-hosted runners.
@@ -434,7 +435,7 @@ the localized pricing page times out from GitHub-hosted runners.
 | Small World | `Disallow:` (allow-all), but returns 403 to a plain fetch. Likely geo or UA gating; worth a second look. |
 | ACE Money Transfer | robots only excludes `/?utm=` and `/cdn-cgi/`. Also 403 to a plain fetch. |
 | Paysend | No `robots.txt` at all. Server-rendered; needs URL discovery. |
-| Taptap Send | Mobile-app API. Returns `BAD_HEADER` without app headers I do not have. |
+| Taptap Send | Its anonymous website feed returns valid Pakistan rates, but the API host returns HTTP 403 for `robots.txt`. It remains catalogue-only because PakRemits refuses automated collection when a provider policy cannot be read. |
 
 ### Excluded, and why
 

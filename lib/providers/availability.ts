@@ -14,6 +14,14 @@ export interface ProviderAvailability {
 }
 
 const AVAILABILITY: Readonly<Record<string, ProviderAvailability>> = {
+  'taptap-send': {
+    corridorSlugs: ['uk', 'uae', 'usa', 'canada', 'australia', 'eurozone'],
+    methods: ['bank', 'wallet', 'cash'],
+  },
+  xoom: {
+    corridorSlugs: ['uk', 'usa', 'canada', 'australia', 'eurozone'],
+    methods: ['bank', 'wallet', 'cash'],
+  },
   'western-union': {
     corridorSlugs: [
       'uk',
