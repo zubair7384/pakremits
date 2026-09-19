@@ -14,6 +14,14 @@ export interface ProviderAvailability {
 }
 
 const AVAILABILITY: Readonly<Record<string, ProviderAvailability>> = {
+  'enjaz-pay': {
+    corridorSlugs: ['saudi-arabia'],
+    methods: ['bank', 'cash'],
+  },
+  telemoney: {
+    corridorSlugs: ['saudi-arabia'],
+    methods: ['bank', 'cash'],
+  },
   'taptap-send': {
     corridorSlugs: ['uk', 'uae', 'usa', 'canada', 'australia', 'eurozone'],
     methods: ['bank', 'wallet', 'cash'],

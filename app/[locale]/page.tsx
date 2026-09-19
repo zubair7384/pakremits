@@ -71,6 +71,8 @@ const COMPARISON_IMAGE_ASSETS = [
   '/provider-logos/al-ansari.png',
   '/provider-logos/taptap-send.png',
   '/provider-logos/xoom.png',
+  '/provider-logos/enjaz-pay.png',
+  '/provider-logos/telemoney.png',
   '/payout-icons/jazzcash.png',
   '/payout-icons/easypaisa.png',
   '/payout-icons/sadapay.png',

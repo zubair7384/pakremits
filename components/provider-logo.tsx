@@ -99,7 +99,9 @@ export function ProviderLogo({
     providerSlug === 'western-union' ||
     providerSlug === 'al-ansari' ||
     providerSlug === 'taptap-send' ||
-    providerSlug === 'xoom'
+    providerSlug === 'xoom' ||
+    providerSlug === 'enjaz-pay' ||
+    providerSlug === 'telemoney'
   ) {
     const source =
       providerSlug === 'moneygram'
@@ -110,7 +112,11 @@ export function ProviderLogo({
             ? '/provider-logos/al-ansari.png'
             : providerSlug === 'taptap-send'
               ? '/provider-logos/taptap-send.png'
-              : '/provider-logos/xoom.png'
+              : providerSlug === 'xoom'
+                ? '/provider-logos/xoom.png'
+                : providerSlug === 'enjaz-pay'
+                  ? '/provider-logos/enjaz-pay.png'
+                  : '/provider-logos/telemoney.png'
 
     return (
       <span className={`${sizeClass} overflow-hidden rounded-[12px]`} aria-hidden="true">

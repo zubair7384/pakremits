@@ -31,6 +31,17 @@ describe('provider availability', () => {
     expect(providerSupportsCorridor('xoom', 'uae')).toBe(false)
   })
 
+  it('limits Enjaz Pay and TeleMoney to their verified Saudi payout methods', () => {
+    expect(providerAvailability('enjaz-pay')).toEqual({
+      corridorSlugs: ['saudi-arabia'],
+      methods: ['bank', 'cash'],
+    })
+    expect(providerAvailability('telemoney')).toEqual({
+      corridorSlugs: ['saudi-arabia'],
+      methods: ['bank', 'cash'],
+    })
+  })
+
   it('does not infer availability for providers without a verified map', () => {
     expect(providerAvailability('unknown')).toBeNull()
     expect(providerSupportsCorridor('unknown', 'uk')).toBe(false)

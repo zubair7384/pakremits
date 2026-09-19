@@ -5,6 +5,32 @@ import { providers } from '../lib/db/schema'
 
 const RATE_PROVIDERS = [
   {
+    slug: 'enjaz-pay',
+    name: 'Enjaz Pay',
+    brandColor: '#FFFFFF',
+    brandTextColor: '#786F6A',
+    homepageUrl: 'https://www.bankalbilad.com.sa/en/personal/enjaz/pages/api-pakistan.aspx',
+    affiliateNetwork: 'none' as const,
+    supportsBank: true,
+    supportsWallet: false,
+    supportsNeobank: false,
+    supportsCash: true,
+    supportsRda: false,
+  },
+  {
+    slug: 'telemoney',
+    name: 'TeleMoney',
+    brandColor: '#FF304B',
+    brandTextColor: '#FFFFFF',
+    homepageUrl: 'https://anb.com.sa/en/web/anb/telemoney',
+    affiliateNetwork: 'none' as const,
+    supportsBank: true,
+    supportsWallet: false,
+    supportsNeobank: false,
+    supportsCash: true,
+    supportsRda: false,
+  },
+  {
     slug: 'taptap-send',
     name: 'Taptap Send',
     brandColor: '#9AD9B4',

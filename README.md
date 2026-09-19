@@ -436,6 +436,8 @@ the localized pricing page times out from GitHub-hosted runners.
 | ACE Money Transfer | robots only excludes `/?utm=` and `/cdn-cgi/`. Also 403 to a plain fetch. |
 | Paysend | No `robots.txt` at all. Server-rendered; needs URL discovery. |
 | Taptap Send | Its anonymous website feed returns valid Pakistan rates, but the API host returns HTTP 403 for `robots.txt`. It remains catalogue-only because PakRemits refuses automated collection when a provider policy cannot be read. |
+| TeleMoney | Pakistan bank and cash services are verified. ANB offers a credentialed exchange-rate API with PKR, but its rate must be checked against the consumer remittance quote before publication. |
+| Enjaz Pay | Pakistan bank and cash services are verified. Bank Albilad's production APIs require onboarding, IP allowlisting, and mutual TLS; no anonymous consumer quote is published. |
 
 ### Excluded, and why
 
