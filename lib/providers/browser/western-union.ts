@@ -54,7 +54,10 @@ const METHODS_BY_COUNTRY: Record<string, readonly QuoteRequest['method'][]> = {
   US: ['bank', 'wallet', 'cash'],
   CA: ['bank', 'wallet', 'cash'],
   AU: ['bank', 'wallet', 'cash'],
-  QA: ['cash'],
+  // The Qatar send page works from a residential browser but repeatedly times
+  // out from GitHub's runner network. Keep its catalogue availability separate
+  // and do not create a scheduled slot until WU makes that page reachable.
+  QA: [],
   IE: ['bank', 'wallet', 'cash'],
 }
 const PAYIN_PRIORITY = ['EB', 'TR', 'PA', 'GP', 'AP', 'CC', 'CA'] as const

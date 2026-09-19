@@ -423,6 +423,9 @@ The result is that **the 14-provider target is not reachable by scraping.**
 | **Al Ansari Exchange** | Allow-all policy for its public calculator and WordPress action | None; IPv4 is forced because one advertised IPv6 edge is unreachable |
 | **Western Union** | Public send flow and catalog path are allowed | Requires the first-party page session, so Playwright runs only in GitHub Actions |
 
+Western Union's Qatar route remains catalogue-only: it works interactively but
+the localized pricing page times out from GitHub-hosted runners.
+
 ### Buildable, not yet written
 
 | Provider | Notes |

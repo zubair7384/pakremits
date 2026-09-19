@@ -276,6 +276,16 @@ describe('Western Union parser', () => {
     expect(westernUnionAdapter.supports(gbpRequest)).toBe(true)
     expect(westernUnionAdapter.supports({ ...gbpRequest, method: 'rda' })).toBe(false)
     expect(westernUnionAdapter.supports({ ...gbpRequest, fromCountry: 'XX' })).toBe(false)
+    expect(
+      westernUnionAdapter.supports({
+        ...gbpRequest,
+        from: 'QAR',
+        fromCountry: 'QA',
+        fromCountry3: 'QAT',
+        amount: 1000,
+        method: 'cash',
+      }),
+    ).toBe(false)
   })
 })
 
