@@ -11,12 +11,14 @@ import { notFound } from 'next/navigation'
 import { eq } from 'drizzle-orm'
 import { setRequestLocale } from 'next-intl/server'
 import { SiteFooter, SiteHeader } from '@/components/site-chrome'
+import { ProviderLogo } from '@/components/provider-logo'
 import { isLocale } from '@/i18n/routing'
 import { CORRIDORS, CURRENCY_SYMBOLS, formatSend } from '@/lib/corridors'
 import { db } from '@/lib/db'
 import { providers } from '@/lib/db/schema'
 import { formatPkr } from '@/lib/ranking/compute'
 import { getComparison } from '@/lib/quotes'
+import { providerAvailability, providerSupportsCorridor } from '@/lib/providers/availability'
 import { corridorPath } from '@/lib/routes'
 
 export const revalidate = 900
@@ -58,11 +60,13 @@ export async function generateMetadata({
   const provider = await getProvider(slug).catch(() => null)
   if (!provider) return {}
 
+  const availability = providerAvailability(slug)
+
   return {
     title: `${provider.name} review — rates to Pakistan | PakRemits`,
-    description:
-      `${provider.name}'s live exchange rate and fees for sending money to Pakistan, across ` +
-      'every corridor we track, compared against the mid-market rate.',
+    description: availability
+      ? `${provider.name} availability, payout methods and live comparable quotes for sending money to Pakistan.`
+      : `${provider.name}'s live exchange rate and fees for sending money to Pakistan, across every corridor we track, compared against the mid-market rate.`,
     alternates: { canonical: `/providers/${slug}` },
   }
 }
@@ -97,6 +101,7 @@ export default async function ProviderPage({ params }: { params: Promise<{ local
 
   const served = perCorridor.filter((entry) => entry.row)
   const winning = served.filter((entry) => entry.isBest).length
+  const availability = providerAvailability(slug)
 
   return (
     <>
@@ -122,13 +127,13 @@ export default async function ProviderPage({ params }: { params: Promise<{ local
         </nav>
 
         <div className="mt-6 flex flex-wrap items-center gap-5">
-          <span
-            className="grid h-16 w-16 place-items-center rounded-[14px] font-display text-2xl font-bold"
-            style={{ background: provider.brandColor, color: provider.brandTextColor }}
-            aria-hidden="true"
-          >
-            {provider.name.charAt(0)}
-          </span>
+          <ProviderLogo
+            providerSlug={provider.slug}
+            providerName={provider.name}
+            brandColor={provider.brandColor}
+            brandTextColor={provider.brandTextColor}
+            size="hero"
+          />
           <h1 className="text-[clamp(30px,4vw,44px)] leading-tight font-semibold">
             {provider.name} for sending to Pakistan
           </h1>
@@ -137,9 +142,9 @@ export default async function ProviderPage({ params }: { params: Promise<{ local
         <p className="mt-5 max-w-[62ch] text-[17px] text-muted">
           {served.length === 0 ? (
             <>
-              We do not currently have live quotes for {provider.name} in any corridor. That
-              usually means the provider does not serve these routes, or we cannot obtain a quote
-              without working around their site.
+              We do not currently have live quotes for {provider.name}. Its supported sending
+              routes are shown below, but it will enter the rate ranking only when we can obtain a
+              genuine rate and fee without working around its site.
             </>
           ) : (
             <>
@@ -221,7 +226,11 @@ export default async function ProviderPage({ params }: { params: Promise<{ local
                         </>
                       ) : (
                         <td colSpan={4} className="p-4 text-right text-[13.5px] text-faint">
-                          Not available in this corridor
+                          {providerSupportsCorridor(slug, entry.corridor.slug)
+                            ? 'Supported — live quote unavailable'
+                            : availability
+                              ? 'Not supported online'
+                              : 'Live quote unavailable'}
                         </td>
                       )}
                     </tr>
