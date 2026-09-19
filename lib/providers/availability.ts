@@ -34,6 +34,10 @@ const AVAILABILITY: Readonly<Record<string, ProviderAvailability>> = {
     corridorSlugs: ['uk', 'usa', 'canada', 'australia', 'eurozone'],
     methods: ['bank', 'wallet', 'cash'],
   },
+  'al-ansari': {
+    corridorSlugs: ['uae'],
+    methods: ['bank'],
+  },
 }
 
 export function providerAvailability(slug: string): ProviderAvailability | null {
@@ -43,4 +47,3 @@ export function providerAvailability(slug: string): ProviderAvailability | null 
 export function providerSupportsCorridor(providerSlug: string, corridorSlug: string): boolean {
   return AVAILABILITY[providerSlug]?.corridorSlugs.includes(corridorSlug) ?? false
 }
-

@@ -94,11 +94,17 @@ export function ProviderLogo({
     )
   }
 
-  if (providerSlug === 'moneygram' || providerSlug === 'western-union') {
+  if (
+    providerSlug === 'moneygram' ||
+    providerSlug === 'western-union' ||
+    providerSlug === 'al-ansari'
+  ) {
     const source =
       providerSlug === 'moneygram'
         ? '/provider-logos/moneygram.png'
-        : '/provider-logos/western-union.png'
+        : providerSlug === 'western-union'
+          ? '/provider-logos/western-union.png'
+          : '/provider-logos/al-ansari.png'
 
     return (
       <span className={`${sizeClass} overflow-hidden rounded-[12px]`} aria-hidden="true">

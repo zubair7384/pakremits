@@ -17,6 +17,13 @@ describe('provider availability', () => {
     expect(providerSupportsCorridor('moneygram', 'uae')).toBe(false)
   })
 
+  it('limits Al Ansari Exchange to UAE bank transfers', () => {
+    expect(providerAvailability('al-ansari')).toEqual({
+      corridorSlugs: ['uae'],
+      methods: ['bank'],
+    })
+  })
+
   it('does not infer availability for providers without a verified map', () => {
     expect(providerAvailability('unknown')).toBeNull()
     expect(providerSupportsCorridor('unknown', 'uk')).toBe(false)

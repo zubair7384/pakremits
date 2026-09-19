@@ -11,8 +11,8 @@ English and Urdu. 26 pages prerender.
 
 Lighthouse mobile is **92** against the brief's target of 95. Desktop is 100
 across all four categories. The gap and what is left to close it are in
-[Performance](#performance) below. Two of the fourteen providers in the original brief are live; see
-[Provider access](#provider-access-as-surveyed-on-2-sep-2026) for why the rest
+[Performance](#performance) below. Six providers now have live collectors; see
+[Provider access](#provider-access-as-verified-on-19-sep-2026) for why the rest
 are not, which is the main open question for the project.
 
 ---
@@ -209,14 +209,16 @@ generated files, standalone output, and the build-time/runtime environment split
 Vercel's Hobby plan **caps cron jobs at once per day** and rejects any more
 frequent expression at deploy time
 ([docs](https://vercel.com/docs/cron-jobs/usage-and-pricing)). A 15-minute
-refresh therefore runs from GitHub Actions instead, which also gives us a place
-to run Playwright adapters later — Vercel functions have no Chromium.
+refresh therefore runs from GitHub Actions, which provides Chromium for the
+Western Union browser adapter.
 
 The job also does not call the site over HTTP. A full refresh across the grid
 takes about four minutes with polite per-host throttling, well past the 60s
 function limit, so `.github/workflows/refresh-rates.yml` runs `npm run refresh`
 directly against the database and then pings `/api/cron/revalidate` to drop the
-cached pages. `/api/cron/refresh-rates` still exists for manual triggering.
+cached pages. It first runs `npm run providers:sync`, so newly collected
+providers exist in the database before quotes are written.
+`/api/cron/refresh-rates` still exists for manual triggering.
 
 In your GitHub repo:
 
@@ -243,12 +245,12 @@ which is why `/admin` surfaces the last successful run.
 | Colour contrast AA | done — 33 assertions in `test/unit/contrast.test.ts`, Lighthouse a11y 100 |
 | `aria-live` on the results panel | done — asserted in e2e |
 | Fonts self-hosted via `next/font` | done |
-| Unit tests for `computeReceived` and each adapter parser | done — 156 unit tests |
+| Unit tests for `computeReceived` and each adapter parser | done — 190 unit tests |
 | One Playwright e2e for the home comparison flow | done — 18 specs × 2 form factors |
 | Seed script with providers, corridors and 30 days of history | done |
 | README a stranger can deploy from | done |
 | Lighthouse mobile ≥ 95 | **92** — see below |
-| Providers: 14 in the brief | **2 live** — see [Provider access](#provider-access-as-surveyed-on-2-sep-2026) |
+| Providers: 14 in the brief | **6 live** — see [Provider access](#provider-access-as-verified-on-19-sep-2026) |
 
 ### Accessibility
 
@@ -404,7 +406,7 @@ leaves the rotation immediately with no deploy.
 
 ---
 
-## Provider access, as surveyed on 2 Sep 2026
+## Provider access, as verified on 19 Sep 2026
 
 Every provider in the original brief was checked against two gates: what its
 `robots.txt` permits, and whether the quote flow sits behind bot protection.
@@ -416,6 +418,10 @@ The result is that **the 14-provider target is not reachable by scraping.**
 | --- | --- | --- |
 | **Wise** | Explicitly *allows* it: `Allow: *gateway*sourceCurrency=*` | None |
 | **Remitly** | No `robots.txt` on `api.remitly.io` (404 → unrestricted) | None |
+| **Careem Pay** | Public anonymous remittance-widget endpoint | None |
+| **BOTIM** | Public anonymous remittance calculator endpoint | None |
+| **Al Ansari Exchange** | Allow-all policy for its public calculator and WordPress action | None; IPv4 is forced because one advertised IPv6 edge is unreachable |
+| **Western Union** | Public send flow and catalog path are allowed | Requires the first-party page session, so Playwright runs only in GitHub Actions |
 
 ### Buildable, not yet written
 
@@ -432,13 +438,11 @@ The result is that **the 14-provider target is not reachable by scraping.**
 | Provider | Reason |
 | --- | --- |
 | **Xe** | `robots.txt` disallows `/currencytransfers/` — which is exactly where the money-transfer quote flow lives. The currency *converter* is allowed, but that is a mid-market rate, not a send quote. |
-| **MoneyGram** | `robots.txt` names AI agents individually and disallows them site-wide, sets `Content-Signal: ai-train=no, use=reference`, and applies `Crawl-delay: 5`. The operator has opted out explicitly. |
+| **MoneyGram** | Its current policy permits the public corridor, with `Crawl-delay: 5`, but the quote endpoint returns a DataDome CAPTCHA/HTTP 403 to automated sessions. Use the authenticated developer API or provider allowlisting. |
 | **WorldRemit** | PerimeterX. GraphQL introspection is disabled and the API requires a bot-detection token. |
-| **Western Union** | Akamai bot protection. |
 | **Lycaremit** | Cloudflare challenge. |
 
-The last three are excluded on a rule, not a difficulty judgement: getting quotes
-from them means defeating bot detection, and this project does not do that. The
+Blocked providers require defeating bot detection, and this project does not do that. The
 legitimate routes to those providers are, in order of preference:
 
 1. **Affiliate network data feeds.** Impact and CJ often expose a product/rate

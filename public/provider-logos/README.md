@@ -8,5 +8,6 @@ These marks are stored locally so comparison rows do not depend on third-party i
 - `careem.png` — Careem app mark supplied by the project owner and normalized to a 512px square icon on 15 September 2026.
 - `moneygram.png` — MoneyGram mark supplied by the project owner on 19 September 2026.
 - `western-union.png` — Western Union mark supplied by the project owner on 19 September 2026.
+- `al-ansari.png` — Al Ansari Exchange mark supplied by the project owner on 19 September 2026.
 
 The marks identify their respective providers. Their respective owners retain ownership of the trademarks.

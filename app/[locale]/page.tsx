@@ -68,6 +68,7 @@ const COMPARISON_IMAGE_ASSETS = [
   '/provider-logos/botim-v2.png',
   '/provider-logos/moneygram.png',
   '/provider-logos/western-union.png',
+  '/provider-logos/al-ansari.png',
   '/payout-icons/jazzcash.png',
   '/payout-icons/easypaisa.png',
   '/payout-icons/sadapay.png',

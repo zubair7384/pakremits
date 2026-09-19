@@ -18,7 +18,7 @@ import {
 } from '@/lib/db/schema'
 import { CORRIDORS, STANDARD_AMOUNTS } from '@/lib/corridors'
 import { computeReceived } from '@/lib/ranking/compute'
-import { adaptersFor } from './registry'
+import { activeAdapters, adaptersFor } from './registry'
 import { AdapterError, jitteredDelay, type Quote, type QuoteRequest } from './types'
 
 /** Delivery methods we ask every adapter about. */
@@ -170,43 +170,47 @@ export async function refreshAllRates(): Promise<RefreshResult> {
 
   const providerBySlug = new Map(providerRows.map((p) => [p.slug, p]))
 
-  for (const corridor of corridorRows) {
-    const config = CORRIDORS.find((c) => c.slug === corridor.slug)
-    if (!config) {
-      console.warn(`[refresh] no static config for corridor "${corridor.slug}", skipping`)
-      continue
-    }
+  try {
+    for (const corridor of corridorRows) {
+      const config = CORRIDORS.find((c) => c.slug === corridor.slug)
+      if (!config) {
+        console.warn(`[refresh] no static config for corridor "${corridor.slug}", skipping`)
+        continue
+      }
 
-    const amounts = STANDARD_AMOUNTS[corridor.fromCurrency] ?? [100, 500, 1000, 2000]
+      const amounts = STANDARD_AMOUNTS[corridor.fromCurrency] ?? [100, 500, 1000, 2000]
 
-    for (const method of METHODS) {
-      for (const amount of amounts) {
-        const request: QuoteRequest = {
-          from: corridor.fromCurrency,
-          fromCountry: config.fromCountry,
-          fromCountry3: config.fromCountry3,
-          to: 'PKR',
-          amount,
-          method,
+      for (const method of METHODS) {
+        for (const amount of amounts) {
+          const request: QuoteRequest = {
+            from: corridor.fromCurrency,
+            fromCountry: config.fromCountry,
+            fromCountry3: config.fromCountry3,
+            to: 'PKR',
+            amount,
+            method,
+          }
+
+          const adapters = adaptersFor(request)
+
+          await Promise.all(
+            adapters.map(async (adapter) => {
+              const provider = providerBySlug.get(adapter.slug)
+              if (!provider) {
+                console.warn(`[refresh] adapter "${adapter.slug}" has no provider row; run the seed`)
+                return
+              }
+              await refreshSlot(adapter, provider, corridor, request, result)
+            }),
+          )
+
+          // Be a good citizen: space out our requests to each provider.
+          await jitteredDelay()
         }
-
-        const adapters = adaptersFor(request)
-
-        await Promise.all(
-          adapters.map(async (adapter) => {
-            const provider = providerBySlug.get(adapter.slug)
-            if (!provider) {
-              console.warn(`[refresh] adapter "${adapter.slug}" has no provider row; run the seed`)
-              return
-            }
-            await refreshSlot(adapter, provider, corridor, request, result)
-          }),
-        )
-
-        // Be a good citizen: space out our requests to each provider.
-        await jitteredDelay()
       }
     }
+  } finally {
+    await Promise.allSettled(activeAdapters().map((adapter) => adapter.dispose?.()))
   }
 
   result.durationMs = Date.now() - started

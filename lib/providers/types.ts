@@ -78,6 +78,8 @@ export interface ProviderAdapter {
   /** Which corridors and delivery methods this adapter can actually answer for. */
   supports(request: QuoteRequest): boolean
   getQuote(request: QuoteRequest): Promise<Quote>
+  /** Release browser sessions or other run-scoped resources after a full refresh. */
+  dispose?(): Promise<void>
 }
 
 /**

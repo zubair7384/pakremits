@@ -9,9 +9,11 @@
  * change takes it out of the rotation without a deploy.
  */
 import { botimAdapter } from './http/botim'
+import { alAnsariAdapter } from './http/al-ansari'
 import { careemAdapter } from './http/careem'
 import { remitlyAdapter } from './http/remitly'
 import { wiseAdapter } from './http/wise'
+import { westernUnionAdapter } from './browser/western-union'
 import type { ProviderAdapter, QuoteRequest } from './types'
 
 /**
@@ -23,8 +25,10 @@ const ALL_ADAPTERS: readonly ProviderAdapter[] = [
   remitlyAdapter,
   careemAdapter,
   botimAdapter,
+  alAnsariAdapter,
+  westernUnionAdapter,
   // Tier B (site XHR APIs) — endpoints probed, adapters pending:
-  //   worldremit, xe, paysend, taptap-send, western-union, ria, moneygram, small-world
+  //   worldremit, xe, paysend, taptap-send, ria, moneygram, small-world
   // Tier C (Playwright, GitHub Actions only):
   //   ace, lycaremit
   // Tier D (manual via /admin/quotes): sadapay, nayapay, typical-bank benchmark
