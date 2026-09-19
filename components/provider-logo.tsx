@@ -3,7 +3,7 @@ interface ProviderLogoProps {
   providerName: string
   brandColor: string
   brandTextColor: string
-  size?: 'default' | 'large'
+  size?: 'default' | 'large' | 'hero'
 }
 
 /**
@@ -19,7 +19,7 @@ export function ProviderLogo({
   brandTextColor,
   size = 'default',
 }: ProviderLogoProps) {
-  const sizeClass = size === 'large' ? 'h-12 w-12' : 'h-11 w-11'
+  const sizeClass = size === 'hero' ? 'h-16 w-16' : size === 'large' ? 'h-12 w-12' : 'h-11 w-11'
 
   if (providerSlug === 'remitly') {
     return (
@@ -90,6 +90,39 @@ export function ProviderLogo({
           height={512}
           className="h-full w-full object-cover"
         />
+      </span>
+    )
+  }
+
+  if (
+    providerSlug === 'moneygram' ||
+    providerSlug === 'western-union' ||
+    providerSlug === 'al-ansari' ||
+    providerSlug === 'taptap-send' ||
+    providerSlug === 'xoom' ||
+    providerSlug === 'enjaz-pay' ||
+    providerSlug === 'telemoney'
+  ) {
+    const source =
+      providerSlug === 'moneygram'
+        ? '/provider-logos/moneygram.png'
+        : providerSlug === 'western-union'
+          ? '/provider-logos/western-union.png'
+          : providerSlug === 'al-ansari'
+            ? '/provider-logos/al-ansari.png'
+            : providerSlug === 'taptap-send'
+              ? '/provider-logos/taptap-send.png'
+              : providerSlug === 'xoom'
+                ? '/provider-logos/xoom.png'
+                : providerSlug === 'enjaz-pay'
+                  ? '/provider-logos/enjaz-pay.png'
+                  : '/provider-logos/telemoney.png'
+
+    return (
+      <span className={`${sizeClass} overflow-hidden rounded-[12px]`} aria-hidden="true">
+        {/* Official provider artwork supplied for this project. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={source} alt="" width={256} height={256} className="h-full w-full object-cover" />
       </span>
     )
   }
