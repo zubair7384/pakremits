@@ -221,6 +221,14 @@ lists canonical public pages; private alert/admin/API URLs and internal rewrite
 targets are intentionally excluded. Robots directives guide cooperative
 crawlers; they do not password-protect staging.
 
+Public pages load the Google Tag Manager container configured by
+`NEXT_PUBLIC_GTM_ID` using Next.js's `GoogleTagManager` integration, with a
+`noscript` fallback. The staging config uses `GTM-N4ZV897G`. Set the same
+variable in both build args and runtime env for the production Fly app and
+redeploy. Admin and private alert-management pages do not load GTM, so their
+URLs and alert tokens are not sent to the container. Review the tags enabled in
+GTM and the privacy notice before publishing new tracking tags.
+
 ## Deploying to Vercel
 
 1. Push to GitHub, import the repo at [vercel.com/new](https://vercel.com/new).

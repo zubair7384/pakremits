@@ -37,9 +37,10 @@ export default function PrivacyPage() {
           paid and how we know which comparisons are useful.
         </p>
         <p>
-          <b className="text-ink">Analytics are aggregate and cookieless.</b> We use a
-          privacy-focused analytics tool that does not set cookies or build a profile of you, which
-          is why this site has no cookie banner interrupting you.
+          <b className="text-ink">Site measurement.</b> We load Google Tag Manager on public pages
+          to manage measurement tags. Any tags enabled through that container may have their own
+          data and cookie practices. We review those tags before enabling them and update this
+          notice when our measurement changes.
         </p>
       </div>
 
