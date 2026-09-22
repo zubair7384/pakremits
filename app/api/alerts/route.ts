@@ -37,6 +37,13 @@ export async function POST(request: Request) {
   }
 
   const input = parsed.data
+  // Phone delivery still needs verified opt-in and approved templates.
+  if (process.env.NODE_ENV === 'production' && input.channel !== 'email') {
+    return NextResponse.json(
+      { error: 'Phone alerts are not available yet. Please use email.' },
+      { status: 503 },
+    )
+  }
   const contact = normaliseContact(input.channel, input.contact)
 
   try {

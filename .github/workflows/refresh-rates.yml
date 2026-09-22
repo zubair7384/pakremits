@@ -75,6 +75,9 @@ jobs:
         env:
           BHEJO_ALLOW_BROWSER: '1'
           BHEJO_DISABLED_ADAPTERS: ${{ vars.BHEJO_DISABLED_ADAPTERS }}
+          NEXT_PUBLIC_SITE_URL: ${{ vars.SITE_URL }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          RESEND_FROM: 'PakRemits alerts <alerts@pakremits.com>'
         run: |
           npm run providers:sync
           npm run refresh

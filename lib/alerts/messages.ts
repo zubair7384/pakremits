@@ -14,7 +14,14 @@ import { formatSend } from '@/lib/corridors'
  * sentence case, PKR with the symbol and thousands separators, no marketing
  * filler, and every figure passed in rather than hard-coded.
  */
-const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://bhejo.pk'
+function siteUrl(): string {
+  const configured = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '')
+  if (configured) return configured
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('NEXT_PUBLIC_SITE_URL must be configured to send alert links')
+  }
+  return 'http://localhost:3000'
+}
 
 export interface AlertContext {
   fromCurrency: SendCurrency
@@ -37,7 +44,7 @@ export interface AlertContext {
 /** Affiliate link, tagged so alert conversions are separable in reporting. */
 function goLink(context: AlertContext): string {
   return (
-    `${SITE}/go/${context.bestProviderSlug}` +
+    `${siteUrl()}/go/${context.bestProviderSlug}` +
     `?amount=${context.amountSent}&method=bank&utm_source=alert&utm_medium=${'email'}`
   )
 }
@@ -83,8 +90,8 @@ export function composeTriggerMessage(context: AlertContext, channel: Channel) {
       '',
       'Quotes move. The provider confirms the final rate before you pay.',
       '',
-      `Manage or stop this alert: ${SITE}/alerts/manage/${context.token}`,
-      `Unsubscribe in one click: ${SITE}/alerts/unsubscribe/${context.token}`,
+      `Manage or stop this alert: ${siteUrl()}/alerts/manage/${context.token}`,
+      `Unsubscribe in one click: ${siteUrl()}/alerts/unsubscribe/${context.token}`,
     ].join('\n'),
   }
 }
@@ -104,7 +111,7 @@ export function composeConfirmMessage(context: {
       `You asked us to tell you when ${context.fromCurrency} → PKR ${condition} ` +
         `${context.targetRate.toFixed(2)}.`,
       '',
-      `Confirm it here: ${SITE}/alerts/confirm/${context.token}`,
+      `Confirm it here: ${siteUrl()}/alerts/confirm/${context.token}`,
       '',
       'We will not send anything until you do. If this was not you, ignore this ' +
         'message and nothing further will arrive — the unconfirmed alert is ' +
@@ -137,9 +144,9 @@ export function composeDigestMessage(context: {
         ? ['', `Paying the most right now: ${context.bestProviderName}.`]
         : []),
       '',
-      `Full comparison: ${SITE}/${context.fromCurrency.toLowerCase()}-to-pkr`,
+      `Full comparison: ${siteUrl()}/${context.fromCurrency.toLowerCase()}-to-pkr`,
       '',
-      `Stop the digest: ${SITE}/alerts/manage/${context.token}`,
+      `Stop the digest: ${siteUrl()}/alerts/manage/${context.token}`,
     ].join('\n'),
   }
 }
