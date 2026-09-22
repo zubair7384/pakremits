@@ -2,6 +2,11 @@ import type { Metadata } from 'next'
 
 const site = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
 
+/** Indexing is opt-in so a newly deployed staging or preview app stays private to crawlers. */
+export function searchIndexingEnabled(): boolean {
+  return process.env.ROBOTS_ALLOW_INDEXING === 'true'
+}
+
 /** Keep search and social previews aligned while each page supplies its own copy. */
 export function publicPageMetadata({
   title,

@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next'
-import { eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import { CORRIDORS } from '@/lib/corridors'
 import { db } from '@/lib/db'
 import { providers, rateQuotes } from '@/lib/db/schema'
@@ -9,9 +9,8 @@ import { methodPath } from '@/lib/routes'
 /**
  * Dynamic sitemap.
  *
- * Only the public URLs go in — the internal /corridor/[slug] and /rate/[currency]
- * paths that the rewrites point at must never appear here, or search engines
- * will index both forms and split the ranking signal between them.
+ * Lists every canonical public page. Private alert URLs, admin/API routes,
+ * affiliate redirects and the internal rewrite targets must stay out.
  */
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
 
@@ -74,22 +73,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     alternates: withUrdu(`/${corridor.fromCurrency.toLowerCase()}-to-pkr`),
   }))
 
-  /**
-   * Provider pages, but only for providers we can actually quote.
-   *
-   * A seeded provider with no adapter renders a page whose entire content is
-   * "we have no live quotes for this service" — thin enough that Google is
-   * likely to treat it as a soft 404, and submitting a batch of those drags on
-   * the whole site. They stay reachable and linked from /providers; they just
-   * do not get actively submitted until they have data worth indexing.
-   */
+  /** Public provider pages include catalogue-only providers and exclude the bank benchmark. */
   let providerPages: MetadataRoute.Sitemap = []
   try {
     const rows = await db
-      .selectDistinct({ slug: providers.slug })
-      .from(rateQuotes)
-      .innerJoin(providers, eq(rateQuotes.providerId, providers.id))
-      .where(eq(providers.active, true))
+      .select({ slug: providers.slug })
+      .from(providers)
+      .where(and(eq(providers.active, true), eq(providers.isBenchmark, false)))
 
     providerPages = rows.map((row) => ({
       url: `${SITE}/providers/${row.slug}`,
@@ -98,7 +88,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.5,
     }))
   } catch (error) {
-    // A sitemap missing provider pages beats a 500 that costs us the whole file.
+    // Keep the static and country pages available during a database outage.
     console.error('[sitemap] could not list providers:', error)
   }
 
@@ -120,7 +110,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .selectDistinct({ slug: providers.slug })
       .from(rateQuotes)
       .innerJoin(providers, eq(rateQuotes.providerId, providers.id))
-      .where(eq(providers.active, true))
+      .where(and(eq(providers.active, true), eq(providers.isBenchmark, false)))
 
     const slugs = rows.map((r) => r.slug).sort()
     for (let i = 0; i < slugs.length; i++) {

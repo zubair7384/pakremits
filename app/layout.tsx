@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
+import { searchIndexingEnabled } from '@/lib/seo'
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'),
+  robots: searchIndexingEnabled() ? undefined : { index: false, follow: false },
 }
 
 /**

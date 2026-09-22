@@ -8,10 +8,12 @@ primary_region = "sin"
 [build.args]
   NEXT_PUBLIC_SITE_URL = "https://stage.pakremits.com"
   NEXT_PUBLIC_TURNSTILE_SITE_KEY = "0x4AAAAAAE_350mcTdqSXIkb"
+  ROBOTS_ALLOW_INDEXING = "false"
 
 [env]
   HOSTNAME = "0.0.0.0"
   NODE_ENV = "production"
+  ROBOTS_ALLOW_INDEXING = "false"
   NEXT_PUBLIC_SITE_URL = "https://stage.pakremits.com"
   NEXT_PUBLIC_TURNSTILE_SITE_KEY = "0x4AAAAAAE_350mcTdqSXIkb"
   RESEND_FROM = "PakRemits alerts <alerts@pakremits.com>"

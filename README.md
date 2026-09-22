@@ -198,6 +198,29 @@ will ask the Fly app to revalidate its cached quote pages.
 Fly's official [Next.js guide](https://fly.io/nextjs/) documents the detector,
 generated files, standalone output, and the build-time/runtime environment split.
 
+### Staging and production URLs, sitemap, and crawling
+
+`fly.staging.toml` sets `NEXT_PUBLIC_SITE_URL=https://stage.pakremits.com`
+both at build time and at runtime. Canonical links, Open Graph URLs, alert
+confirmation links, redirects, and `/sitemap.xml` all use that value. For the
+production Fly app, set it to `https://pakremits.com` in **both** `[build.args]`
+and `[env]`, then redeploy; `NEXT_PUBLIC_*` values are compiled into the site.
+Also change the GitHub Actions repository variable `SITE_URL` to the production
+URL when the scheduled job should revalidate production pages.
+
+Staging sets `ROBOTS_ALLOW_INDEXING=false` at build and runtime. Its
+`/robots.txt` says
+`User-agent: *` and `Disallow: /`, and pages emit `noindex`. The sitemap remains
+available for inspection but is not advertised in staging robots.txt. At
+production launch, set `ROBOTS_ALLOW_INDEXING=true` in **both** `[build.args]`
+and `[env]` on the production app, redeploy, and verify `/robots.txt`,
+`/sitemap.xml`, page canonicals, and alert email links use `pakremits.com`.
+Configure a separate production
+Turnstile widget for the root domain before switching traffic. The sitemap
+lists canonical public pages; private alert/admin/API URLs and internal rewrite
+targets are intentionally excluded. Robots directives guide cooperative
+crawlers; they do not password-protect staging.
+
 ## Deploying to Vercel
 
 1. Push to GitHub, import the repo at [vercel.com/new](https://vercel.com/new).
