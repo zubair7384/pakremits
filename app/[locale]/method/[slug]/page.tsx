@@ -2,9 +2,8 @@
  * Delivery-method pages, reached via rewrites from /send-money-to-[slug] and
  * /roshan-digital-account-transfer.
  *
- * The comparison panel is pre-set to the relevant rail, so a reader who lands
- * here from "send money to jazzcash" sees wallet rates immediately rather than
- * bank rates they would have to switch away from.
+ * The comparison panel is pre-set to the relevant choice. RDA keeps its label
+ * while using general bank-deposit quotes, with a qualification in the panel.
  */
 import type { Metadata } from 'next'
 import Link from 'next/link'
@@ -103,7 +102,11 @@ export default async function MethodPage({ params }: { params: Promise<{ locale:
 
         <div className="mx-auto max-w-[1120px] px-6">
           {comparison && hasQuotes ? (
-            <ComparePanel initial={comparison} corridors={corridorOptions} />
+            <ComparePanel
+              initial={comparison}
+              corridors={corridorOptions}
+              initialPayout={slug === 'rda' ? 'rda' : undefined}
+            />
           ) : (
             <section className="relative -mt-20 rounded-panel-lg border border-line bg-white p-10">
               <h2 className="font-display text-xl font-semibold">

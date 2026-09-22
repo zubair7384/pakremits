@@ -33,7 +33,7 @@ const ALL_ADAPTERS: readonly ProviderAdapter[] = [
   //   worldremit, xe, paysend, taptap-send, ria, moneygram, small-world
   // Tier C (Playwright, GitHub Actions only):
   //   ace, lycaremit
-  // Tier D (manual via /admin/quotes): sadapay, nayapay, typical-bank benchmark
+  // Tier D (manual via /admin/quotes): provider quote overrides and the bank benchmark
 ]
 
 function disabledSlugs(): Set<string> {

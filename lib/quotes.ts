@@ -189,7 +189,10 @@ export async function getComparison(options: {
   sortBy?: SortKey
   includeBenchmark?: boolean
 }): Promise<Comparison | null> {
-  const { corridorSlug, method = 'bank', sortBy = 'received', includeBenchmark = true } = options
+  const { corridorSlug, method: selectedMethod = 'bank', sortBy = 'received', includeBenchmark = true } = options
+  // These are named account destinations, not separately quoted payout rails.
+  // Use the bank-deposit quote and benchmark rather than empty legacy slots.
+  const method = selectedMethod === 'neobank' || selectedMethod === 'rda' ? 'bank' : selectedMethod
 
   const config = corridorConfigBySlug(corridorSlug)
 

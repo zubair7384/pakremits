@@ -200,10 +200,9 @@ export const METHOD_CONTENT: MethodContent[] = [
           'For regular family support, use the comparison on this site and send straight to your ' +
             'recipient’s existing account or wallet. Routing through an RDA adds a hop without ' +
             'adding value, and the money still has to get from your RDA to them afterwards.',
-          'Coverage on this page will be thinner than on the corridor pages, because funding an ' +
-            'RDA generally happens through the bank’s own channel rather than through the ' +
-            'international transfer services we compare. Where we cannot obtain a live quote we ' +
-            'show nothing rather than an estimate.',
+          'The comparison above shows general PKR bank-deposit quotes, not prices specifically ' +
+            'quoted for a Roshan Digital Account. Before sending, check that the provider can ' +
+            'deposit into your particular account and confirm the final price and currency.',
         ],
       },
     ],

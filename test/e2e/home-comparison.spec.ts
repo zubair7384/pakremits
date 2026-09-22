@@ -104,11 +104,17 @@ test('drops providers that do not serve the chosen delivery method', async ({ pa
   await expect.poll(namesFor, { timeout: 15_000 }).not.toContain('Wise')
 })
 
-test('says so honestly when no provider serves a rail', async ({ page }) => {
-  await chooseOption(page, 'method', 'Roshan Digital Account')
-  await expect(page.locator(results)).toContainText(/No provider we track delivers/i, {
-    timeout: 15_000,
-  })
+test('named bank accounts keep their labels and show bank-deposit quotes', async ({ page }) => {
+  await chooseOption(page, 'method', 'Bank account')
+  const bankRows = await page.locator(`${results} > div b`).allTextContents()
+  expect(bankRows.length).toBeGreaterThan(0)
+
+  for (const account of ['SadaPay', 'NayaPay', 'Roshan Digital Account']) {
+    await chooseOption(page, 'method', account)
+    await expect(page.getByText(/general PKR bank-deposit quotes/i)).toBeVisible()
+    await expect(page.locator('#method')).toContainText(account === 'Roshan Digital Account' ? 'RDA' : account)
+    expect(await page.locator(`${results} > div b`).allTextContents()).toEqual(bankRows)
+  }
 })
 
 test('the fastest sort reorders rows but the gold highlight stays on the most rupees', async ({

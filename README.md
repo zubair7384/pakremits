@@ -98,6 +98,13 @@ npm run seed      # providers, corridors, 30 days of mid-market history
 npm run refresh   # walks the full grid and writes live quotes
 ```
 
+SadaPay, NayaPay, and Roshan Digital Account remain separate account choices in
+the comparison selector. They display the existing `bank` quote and benchmark
+rows, not separate account-specific prices. The UI labels these as general PKR
+bank-deposit quotes and asks users to confirm account eligibility with the
+provider. Legacy `neobank` and `rda` quote requests also resolve to the `bank`
+rail; no new quote-collection jobs or database migration are needed.
+
 The seed pulls real 30-day history from Wise. If that call fails it writes a
 deterministic synthetic walk marked `source: 'synthetic'`, so the charts render
 on a fresh deploy and the fake data is trivially identifiable.
