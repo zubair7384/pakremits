@@ -9,7 +9,7 @@ import { describe, expect, it } from 'vitest'
 import { RATE_LIMIT_HOURS, decideTrigger, digestDue } from '@/lib/alerts/decide'
 import { AlertInputSchema, normaliseContact } from '@/lib/alerts/validate'
 import { generateAlertToken, isPlausibleToken } from '@/lib/alerts/tokens'
-import { composeConfirmMessage, composeTriggerMessage } from '@/lib/alerts/messages'
+import { composeConfirmMessage, composeDigestMessage, composeTriggerMessage } from '@/lib/alerts/messages'
 
 const NOW = new Date('2026-09-02T12:00:00Z')
 const hoursAgo = (h: number) => new Date(NOW.getTime() - h * 3_600_000)
@@ -276,6 +276,7 @@ describe('message composition', () => {
     expect(message.text).toContain('/alerts/manage/')
     expect(message.html).toContain('Pak<span style="color:#e9b44c">Remits</span>')
     expect(message.headers?.['List-Unsubscribe-Post']).toBe('List-Unsubscribe=One-Click')
+    expect(message.html).toContain('Unsubscribe from this alert</a>')
   })
 
   it('escapes provider names in HTML email', () => {
@@ -310,5 +311,21 @@ describe('message composition', () => {
     })
     expect(message.text).toContain('/alerts/confirm/')
     expect(message.text).toContain('deleted automatically')
+    expect(message.text).toContain('/alerts/unsubscribe/')
+    expect(message.html).toContain('Unsubscribe from this alert</a>')
+    expect(message.headers?.['List-Unsubscribe-Post']).toBe('List-Unsubscribe=One-Click')
+  })
+
+  it('gives the weekly digest the same visible unsubscribe button', () => {
+    const message = composeDigestMessage({
+      fromCurrency: 'GBP',
+      currentRate: 381.25,
+      weekChangePercent: 0.8,
+      bestProviderName: 'Remitly',
+      token: 'z'.repeat(43),
+    })
+    expect(message.text).toContain('/alerts/unsubscribe/')
+    expect(message.html).toContain('Unsubscribe from this alert</a>')
+    expect(message.headers?.['List-Unsubscribe-Post']).toBe('List-Unsubscribe=One-Click')
   })
 })

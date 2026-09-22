@@ -133,6 +133,8 @@ export function composeConfirmMessage(context: {
       'We will not send anything until you do. If this was not you, ignore this ' +
         'message and nothing further will arrive — the unconfirmed alert is ' +
         'deleted automatically.',
+      '',
+      `Remove this request now: ${siteUrl()}/alerts/unsubscribe/${context.token}`,
     ].join('\n'),
     html: renderAlertEmail({
       preview: `Confirm your ${context.fromCurrency} to PKR rate alert`,
@@ -141,7 +143,9 @@ export function composeConfirmMessage(context: {
       body: `You asked us to email you when ${context.fromCurrency} to PKR ${condition} ${context.targetRate.toFixed(2)}.`,
       action: { label: 'Confirm alert', url: `${siteUrl()}/alerts/confirm/${context.token}` },
       note: 'If you did not request this, ignore this email. We will not send any alerts unless you confirm.',
+      unsubscribeUrl: `${siteUrl()}/alerts/unsubscribe/${context.token}`,
     }),
+    headers: unsubscribeHeaders(`${siteUrl()}/alerts/unsubscribe/${context.token}`),
   }
 }
 
@@ -171,7 +175,8 @@ export function composeDigestMessage(context: {
       '',
       `Full comparison: ${siteUrl()}/${context.fromCurrency.toLowerCase()}-to-pkr`,
       '',
-      `Stop the digest: ${siteUrl()}/alerts/manage/${context.token}`,
+      `Manage this alert: ${siteUrl()}/alerts/manage/${context.token}`,
+      `Unsubscribe from this alert: ${siteUrl()}/alerts/unsubscribe/${context.token}`,
     ].join('\n'),
     html: renderAlertEmail({
       preview: `${context.fromCurrency} to PKR is ${context.currentRate.toFixed(2)} this week`,

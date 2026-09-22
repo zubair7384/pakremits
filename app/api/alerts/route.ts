@@ -112,6 +112,7 @@ export async function POST(request: Request) {
         subject: message.subject,
         text: message.text,
         html: message.html,
+        headers: message.headers,
       })
 
       if (!sent.ok) {
