@@ -32,9 +32,10 @@ async function unsubscribe(token: string): Promise<'done' | 'invalid' | 'error'>
 export async function GET(request: Request, context: { params: Promise<{ token: string }> }) {
   const { token } = await context.params
   const outcome = await unsubscribe(token)
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? request.url
 
   return NextResponse.redirect(
-    new URL(outcome === 'done' ? '/alerts/removed' : `/?alert=${outcome}`, request.url),
+    new URL(outcome === 'done' ? '/alerts/removed' : `/?alert=${outcome}`, baseUrl),
     302,
   )
 }

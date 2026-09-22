@@ -18,10 +18,11 @@ export async function GET(
   context: { params: Promise<{ token: string }> },
 ) {
   const { token } = await context.params
-  const manage = new URL(`/alerts/manage/${token}`, request.url)
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? request.url
+  const manage = new URL(`/alerts/manage/${token}`, baseUrl)
 
   if (!isPlausibleToken(token)) {
-    return NextResponse.redirect(new URL('/?alert=invalid', request.url), 302)
+    return NextResponse.redirect(new URL('/?alert=invalid', baseUrl), 302)
   }
 
   try {
@@ -33,7 +34,7 @@ export async function GET(
 
     if (!alert) {
       // Most likely an unconfirmed alert that aged out after 48 hours.
-      return NextResponse.redirect(new URL('/?alert=expired', request.url), 302)
+      return NextResponse.redirect(new URL('/?alert=expired', baseUrl), 302)
     }
 
     if (!alert.confirmed) {
@@ -47,6 +48,6 @@ export async function GET(
     return NextResponse.redirect(manage, 302)
   } catch (error) {
     console.error('[alerts] confirm failed:', error)
-    return NextResponse.redirect(new URL('/?alert=error', request.url), 302)
+    return NextResponse.redirect(new URL('/?alert=error', baseUrl), 302)
   }
 }
