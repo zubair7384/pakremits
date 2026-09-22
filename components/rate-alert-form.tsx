@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { SEND_CURRENCIES } from '@/lib/db/schema'
+import { TurnstileWidget } from './turnstile-widget'
 
 /**
  * The rate alert form from the design.
@@ -12,12 +13,15 @@ import { SEND_CURRENCIES } from '@/lib/db/schema'
  */
 type Status = { kind: 'idle' } | { kind: 'sending' } | { kind: 'ok'; needsConfirmation: boolean } | { kind: 'error'; message: string }
 
-export function RateAlertForm({ defaultRate }: { defaultRate?: number }) {
+export function RateAlertForm({ defaultRate, turnstileSiteKey }: { defaultRate?: number; turnstileSiteKey: string }) {
   const t = useTranslations('alerts')
   const [status, setStatus] = useState<Status>({ kind: 'idle' })
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
+  const [resetNonce, setResetNonce] = useState(0)
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (!turnstileToken) return
     const form = new FormData(event.currentTarget)
     setStatus({ kind: 'sending' })
 
@@ -36,6 +40,7 @@ export function RateAlertForm({ defaultRate }: { defaultRate?: number }) {
           // rather than dropped from the contract.
           direction: 'above',
           wantsDigest: form.get('wantsDigest') === 'on',
+          turnstileToken,
         }),
       })
 
@@ -46,12 +51,16 @@ export function RateAlertForm({ defaultRate }: { defaultRate?: number }) {
       }
 
       if (!response.ok || !payload.ok) {
+        setTurnstileToken(null)
+        setResetNonce((value) => value + 1)
         setStatus({ kind: 'error', message: payload.error ?? t('genericError') })
         return
       }
 
       setStatus({ kind: 'ok', needsConfirmation: Boolean(payload.needsConfirmation) })
     } catch {
+      setTurnstileToken(null)
+      setResetNonce((value) => value + 1)
       setStatus({ kind: 'error', message: t('genericError') })
     }
   }
@@ -122,9 +131,13 @@ export function RateAlertForm({ defaultRate }: { defaultRate?: number }) {
         {t('digestOptIn')}
       </label>
 
+      {turnstileSiteKey ? (
+        <TurnstileWidget siteKey={turnstileSiteKey} onToken={setTurnstileToken} resetNonce={resetNonce} />
+      ) : <p className="mt-3 text-sm text-[#F5A3A3]">Alerts are temporarily unavailable.</p>}
+
       <button
         type="submit"
-        disabled={status.kind === 'sending'}
+        disabled={status.kind === 'sending' || !turnstileToken}
         className="mt-4.5 flex h-[54px] w-full items-center justify-center rounded-[12px] bg-gold
                    px-6 font-medium text-[#4A3608] hover:bg-[#D9A43E] disabled:opacity-60"
       >

@@ -13,6 +13,7 @@ import { AlertInputSchema, normaliseContact } from '@/lib/alerts/validate'
 import { generateAlertToken } from '@/lib/alerts/tokens'
 import { composeConfirmMessage } from '@/lib/alerts/messages'
 import { send } from '@/lib/notify'
+import { verifyTurnstile } from '@/lib/alerts/turnstile'
 
 export const dynamic = 'force-dynamic'
 
@@ -37,6 +38,10 @@ export async function POST(request: Request) {
   }
 
   const input = parsed.data
+  const expectedHostname = new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000').hostname
+  if (!(await verifyTurnstile(input.turnstileToken, expectedHostname))) {
+    return NextResponse.json({ error: 'Bot check failed or expired. Please try again.' }, { status: 403 })
+  }
   // Phone delivery still needs verified opt-in and approved templates.
   if (process.env.NODE_ENV === 'production' && input.channel !== 'email') {
     return NextResponse.json(
@@ -106,6 +111,7 @@ export async function POST(request: Request) {
         channel: 'email',
         subject: message.subject,
         text: message.text,
+        html: message.html,
       })
 
       if (!sent.ok) {

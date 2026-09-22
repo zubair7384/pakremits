@@ -321,6 +321,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           {/* Seeded with the next round number above the current rate, which is
               what someone setting a target actually wants as a starting point. */}
           <RateAlertForm
+            turnstileSiteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || (process.env.NODE_ENV !== 'production' ? '1x00000000000000000000AA' : '')}
             defaultRate={
               ticker[0]?.latest ? Math.ceil(ticker[0].latest / 5) * 5 : undefined
             }

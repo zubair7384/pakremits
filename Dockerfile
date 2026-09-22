@@ -19,6 +19,8 @@ FROM base AS build
 # Public URLs are also read during Next.js compilation for metadata and links.
 ARG NEXT_PUBLIC_SITE_URL
 ENV NEXT_PUBLIC_SITE_URL=${NEXT_PUBLIC_SITE_URL}
+ARG NEXT_PUBLIC_TURNSTILE_SITE_KEY
+ENV NEXT_PUBLIC_TURNSTILE_SITE_KEY=${NEXT_PUBLIC_TURNSTILE_SITE_KEY}
 
 # Install packages needed to build node modules
 RUN apt-get update -qq && \

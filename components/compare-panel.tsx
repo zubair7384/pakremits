@@ -346,7 +346,7 @@ export function ComparePanel({ initial, corridors }: Props) {
                 type="button"
                 onClick={() => setSort(value)}
                 aria-pressed={sort === value}
-                className={`rounded-full px-3 py-[5px] text-[13px] whitespace-nowrap transition-colors ${
+                className={`cursor-pointer rounded-full px-3 py-[5px] text-[13px] whitespace-nowrap transition-colors ${
                   sort === value ? 'bg-ink text-white' : 'text-muted hover:text-ink'
                 }`}
               >

@@ -584,6 +584,24 @@ value against a fee-deducted one silently favours the former.
 
 ---
 
+## Alert form bot protection and email
+
+The alert signup uses Cloudflare Turnstile in Managed mode. Create a widget for
+the site's hostname, set `NEXT_PUBLIC_TURNSTILE_SITE_KEY` at build and runtime, and keep
+`TURNSTILE_SECRET_KEY` as a server-side secret. Both are required in production;
+signup fails closed if verification is missing or invalid. For local development,
+Cloudflare's official test keys are used automatically when these variables are
+unset. Use a separate real widget for staging and production.
+
+Confirmation, rate alert, and weekly digest emails share a branded HTML template
+and include matching plain-text content. Set `RESEND_API_KEY`, `RESEND_FROM`, and
+`NEXT_PUBLIC_SITE_URL`; verify the sender domain's SPF, DKIM, and DMARC records
+with your email provider. Rate alerts and digests include one-click unsubscribe
+headers. These practices support deliverability, but inbox placement cannot be
+guaranteed.
+
+---
+
 ## Local Postgres without Supabase
 
 For development you can skip Supabase entirely:

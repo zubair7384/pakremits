@@ -182,6 +182,7 @@ export async function evaluateAlerts(now: Date = new Date()): Promise<Evaluation
         channel: alert.channel,
         subject: message.subject,
         text: message.text,
+        ...('html' in message ? { html: message.html, headers: message.headers } : {}),
       })
 
       if (sent.ok) {
@@ -229,6 +230,8 @@ export async function evaluateAlerts(now: Date = new Date()): Promise<Evaluation
         channel: 'email',
         subject: digest.subject,
         text: digest.text,
+        html: digest.html,
+        headers: digest.headers,
       })
 
       if (sent.ok) {

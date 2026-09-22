@@ -148,10 +148,15 @@ describe('AlertInputSchema', () => {
     targetRate: 380,
     direction: 'above' as const,
     wantsDigest: false,
+    turnstileToken: 'test-token',
   }
 
   it('accepts a well-formed email alert', () => {
     expect(AlertInputSchema.safeParse(valid).success).toBe(true)
+  })
+
+  it('requires a Turnstile token', () => {
+    expect(AlertInputSchema.safeParse({ ...valid, turnstileToken: '' }).success).toBe(false)
   })
 
   it('rejects a malformed email', () => {
@@ -269,6 +274,14 @@ describe('message composition', () => {
     const message = composeTriggerMessage(context, 'email')
     expect(message.text).toContain('/alerts/unsubscribe/')
     expect(message.text).toContain('/alerts/manage/')
+    expect(message.html).toContain('Pak<span style="color:#e9b44c">Remits</span>')
+    expect(message.headers?.['List-Unsubscribe-Post']).toBe('List-Unsubscribe=One-Click')
+  })
+
+  it('escapes provider names in HTML email', () => {
+    const message = composeTriggerMessage({ ...context, bestProviderName: '<script>alert(1)</script>' }, 'email')
+    expect(message.html).toContain('&lt;script&gt;')
+    expect(message.html).not.toContain('<script>')
   })
 
   it('keeps WhatsApp to the facts and one link', () => {

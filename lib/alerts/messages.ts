@@ -2,6 +2,7 @@ import type { Channel } from '@/lib/notify'
 import type { SendCurrency } from '@/lib/db/schema'
 import { formatPkr } from '@/lib/ranking/compute'
 import { formatSend } from '@/lib/corridors'
+import { renderAlertEmail, unsubscribeHeaders } from './email-template'
 
 /**
  * Alert message composition.
@@ -93,6 +94,22 @@ export function composeTriggerMessage(context: AlertContext, channel: Channel) {
       `Manage or stop this alert: ${siteUrl()}/alerts/manage/${context.token}`,
       `Unsubscribe in one click: ${siteUrl()}/alerts/unsubscribe/${context.token}`,
     ].join('\n'),
+    html: renderAlertEmail({
+      preview: headline,
+      label: 'Rate alert',
+      title: headline,
+      body: best,
+      facts: [
+        { label: 'Target rate', value: context.targetRate.toFixed(2) },
+        { label: 'Best provider', value: context.bestProviderName },
+        { label: 'Recipient gets', value: formatPkr(context.amountReceived) },
+      ],
+      action: { label: 'See this rate', url: goLink(context) },
+      note: 'Quotes can change. The provider confirms the final rate before you pay.',
+      manageUrl: `${siteUrl()}/alerts/manage/${context.token}`,
+      unsubscribeUrl: `${siteUrl()}/alerts/unsubscribe/${context.token}`,
+    }),
+    headers: unsubscribeHeaders(`${siteUrl()}/alerts/unsubscribe/${context.token}`),
   }
 }
 
@@ -117,6 +134,14 @@ export function composeConfirmMessage(context: {
         'message and nothing further will arrive — the unconfirmed alert is ' +
         'deleted automatically.',
     ].join('\n'),
+    html: renderAlertEmail({
+      preview: `Confirm your ${context.fromCurrency} to PKR rate alert`,
+      label: 'One quick step',
+      title: 'Confirm your rate alert',
+      body: `You asked us to email you when ${context.fromCurrency} to PKR ${condition} ${context.targetRate.toFixed(2)}.`,
+      action: { label: 'Confirm alert', url: `${siteUrl()}/alerts/confirm/${context.token}` },
+      note: 'If you did not request this, ignore this email. We will not send any alerts unless you confirm.',
+    }),
   }
 }
 
@@ -148,5 +173,16 @@ export function composeDigestMessage(context: {
       '',
       `Stop the digest: ${siteUrl()}/alerts/manage/${context.token}`,
     ].join('\n'),
+    html: renderAlertEmail({
+      preview: `${context.fromCurrency} to PKR is ${context.currentRate.toFixed(2)} this week`,
+      label: 'Weekly rate update',
+      title: `${context.fromCurrency} to PKR: ${context.currentRate.toFixed(2)}`,
+      body: direction ? `The rate is ${direction}.` : 'See how this week’s rates compare.',
+      facts: context.bestProviderName ? [{ label: 'Leading provider', value: context.bestProviderName }] : [],
+      action: { label: 'Compare rates', url: `${siteUrl()}/${context.fromCurrency.toLowerCase()}-to-pkr` },
+      manageUrl: `${siteUrl()}/alerts/manage/${context.token}`,
+      unsubscribeUrl: `${siteUrl()}/alerts/unsubscribe/${context.token}`,
+    }),
+    headers: unsubscribeHeaders(`${siteUrl()}/alerts/unsubscribe/${context.token}`),
   }
 }

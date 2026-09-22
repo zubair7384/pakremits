@@ -33,6 +33,7 @@ export const resendNotifier: Notifier = {
           subject: message.subject,
           text: message.text,
           ...(message.html ? { html: message.html } : {}),
+          ...(message.headers ? { headers: message.headers } : {}),
         }),
         signal: AbortSignal.timeout(15_000),
       })
