@@ -24,6 +24,7 @@ import {
 import { CORRIDOR_CONTENT } from '@/lib/content/corridors'
 import { formatPkr } from '@/lib/ranking/compute'
 import { getComparison, getMidMarketSeries } from '@/lib/quotes'
+import { publicPageMetadata } from '@/lib/seo'
 
 export const revalidate = 900
 
@@ -54,25 +55,14 @@ export async function generateMetadata({
   const content = CORRIDOR_CONTENT[corridor.fromCurrency]
   const path = corridorPath(slug)
 
-  return {
-    // Dated title, as the brief specifies — it earns the click on a query
-    // where freshness is the whole point.
-    title: `${content.title} — live rates, ${TODAY.format(new Date())}`,
+  return publicPageMetadata({
+    title: `Send money from ${corridor.articleName} to Pakistan: compare rates | PakRemits`,
     description: content.metaDescription,
+    path,
     alternates: alternatesFor(path),
-    openGraph: {
-      title: content.title,
-      description: content.metaDescription,
-      url: `${SITE}${path}`,
-      type: 'article',
-      // Explicit, because the derived URL would be the internal route path.
-      images: [{ url: `${SITE}/og/corridor/${slug}.png`, width: 1200, height: 630 }],
-    },
-    twitter: {
-      card: 'summary_large_image',
-      images: [`${SITE}/og/corridor/${slug}.png`],
-    },
-  }
+    type: 'article',
+    image: `/og/corridor/${slug}.png`,
+  })
 }
 
 export default async function CorridorPage({ params }: { params: Promise<{ locale: string; slug: string }> }) {

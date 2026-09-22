@@ -132,7 +132,9 @@ export function RateAlertForm({ defaultRate, turnstileSiteKey }: { defaultRate?:
       </label>
 
       {turnstileSiteKey ? (
-        <TurnstileWidget siteKey={turnstileSiteKey} onToken={setTurnstileToken} resetNonce={resetNonce} />
+        <div className="mt-5">
+          <TurnstileWidget siteKey={turnstileSiteKey} onToken={setTurnstileToken} resetNonce={resetNonce} />
+        </div>
       ) : <p className="mt-3 text-sm text-[#F5A3A3]">Alerts are temporarily unavailable.</p>}
 
       <button

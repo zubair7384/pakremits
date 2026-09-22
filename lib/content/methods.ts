@@ -31,8 +31,7 @@ export const METHOD_CONTENT: MethodContent[] = [
     method: 'wallet',
     title: 'Send money to JazzCash from abroad',
     metaDescription:
-      'Which services pay out directly into a JazzCash wallet, what they charge, and how long ' +
-      'it takes. Live rates refreshed every 15 minutes.',
+      'Compare available ways to send money to a JazzCash wallet in Pakistan. See supported providers, transfer fees, rates and expected delivery times.',
     intro: [
       'JazzCash is Pakistan’s largest mobile wallet, and receiving a transfer straight into one ' +
         'is usually the fastest way to get money to someone who does not use a bank account. ' +
@@ -98,8 +97,7 @@ export const METHOD_CONTENT: MethodContent[] = [
     method: 'wallet',
     title: 'Send money to Easypaisa from abroad',
     metaDescription:
-      'Which international services pay out into an Easypaisa wallet, what they charge, and how ' +
-      'fast it arrives. Live rates updated every 15 minutes.',
+      'Compare available ways to send money to an Easypaisa wallet in Pakistan. Check supported transfer services, fees, exchange rates and delivery times.',
     intro: [
       'Easypaisa is the other major Pakistani mobile wallet, and for receiving money from abroad ' +
         'it works much like JazzCash: fast, no bank account required, and subject to receiving ' +

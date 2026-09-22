@@ -20,6 +20,7 @@ import { formatPkr } from '@/lib/ranking/compute'
 import { getComparison } from '@/lib/quotes'
 import { providerAvailability, providerSupportsCorridor } from '@/lib/providers/availability'
 import { corridorPath } from '@/lib/routes'
+import { publicPageMetadata } from '@/lib/seo'
 
 export const revalidate = 900
 
@@ -62,13 +63,13 @@ export async function generateMetadata({
 
   const availability = providerAvailability(slug)
 
-  return {
-    title: `${provider.name} review — rates to Pakistan | PakRemits`,
+  return publicPageMetadata({
+    title: `${provider.name} money transfer rates to Pakistan | PakRemits`,
     description: availability
-      ? `${provider.name} availability, payout methods and live comparable quotes for sending money to Pakistan.`
-      : `${provider.name}'s live exchange rate and fees for sending money to Pakistan, across every corridor we track, compared against the mid-market rate.`,
-    alternates: { canonical: `/providers/${slug}` },
-  }
+      ? `See where ${provider.name} sends money to Pakistan, supported payout methods and comparable quotes where available.`
+      : `Compare ${provider.name} transfer rates and fees to Pakistan with other available services. See the amount received in PKR.`,
+    path: `/providers/${slug}`,
+  })
 }
 
 export default async function ProviderPage({ params }: { params: Promise<{ locale: string; slug: string }> }) {

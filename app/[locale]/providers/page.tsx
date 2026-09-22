@@ -8,16 +8,15 @@ import { ProviderLogo } from '@/components/provider-logo'
 import { isLocale } from '@/i18n/routing'
 import { db } from '@/lib/db'
 import { providers } from '@/lib/db/schema'
+import { publicPageMetadata } from '@/lib/seo'
 
 export const revalidate = 3600
 
-export const metadata: Metadata = {
-  title: 'Money transfer providers to Pakistan — PakRemits',
-  description:
-    'The money transfer services PakRemits tracks for Pakistan, the payout methods they support, ' +
-    'and which services have live comparable quotes.',
-  alternates: { canonical: '/providers' },
-}
+export const metadata: Metadata = publicPageMetadata({
+  title: 'Money transfer providers to Pakistan | PakRemits',
+  description: 'Explore providers that send money to Pakistan. Compare available rates and see which support bank deposits, cash pickup and Pakistani mobile wallets.',
+  path: '/providers',
+})
 
 const RAILS = [
   { key: 'supportsBank', label: 'Bank account' },

@@ -1,13 +1,12 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { publicPageMetadata } from '@/lib/seo'
 
-export const metadata: Metadata = {
-  title: 'About PakRemits',
-  description:
-    'Why PakRemits exists, what it does differently from other remittance comparison sites, and ' +
-    'what it deliberately does not do.',
-  alternates: { canonical: '/about' },
-}
+export const metadata: Metadata = publicPageMetadata({
+  title: 'About PakRemits | Compare transfers to Pakistan',
+  description: 'Learn how PakRemits compares money transfers to Pakistan by the rupees received after fees and exchange rates, and why we show our working.',
+  path: '/about',
+})
 
 export default function AboutPage() {
   return (

@@ -1,12 +1,11 @@
 import type { Metadata } from 'next'
+import { publicPageMetadata } from '@/lib/seo'
 
-export const metadata: Metadata = {
-  title: 'Privacy — PakRemits',
-  description:
-    'What PakRemits collects, what it does not, and how to have your rate-alert contact details ' +
-    'deleted.',
-  alternates: { canonical: '/privacy' },
-}
+export const metadata: Metadata = publicPageMetadata({
+  title: 'PakRemits privacy policy | Rate alerts and data',
+  description: 'Read what PakRemits stores when you set a rate alert, how comparison visits are handled and how to delete your alert and contact details.',
+  path: '/privacy',
+})
 
 export default function PrivacyPage() {
   return (

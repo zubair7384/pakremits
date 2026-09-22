@@ -22,6 +22,7 @@ import { providers, rateQuotes } from '@/lib/db/schema'
 import { formatPkr } from '@/lib/ranking/compute'
 import { getComparison } from '@/lib/quotes'
 import { corridorPath } from '@/lib/routes'
+import { publicPageMetadata } from '@/lib/seo'
 
 export const revalidate = 900
 
@@ -89,13 +90,11 @@ export async function generateMetadata({
   const b = rows.find((r) => r.slug === parsed[1])
   if (!a || !b) return {}
 
-  return {
-    title: `${a.name} vs ${b.name} for sending to Pakistan | PakRemits`,
-    description:
-      `Which pays more rupees, ${a.name} or ${b.name}? Compared across every corridor we track, ` +
-      'using live rates rather than a review written last year.',
-    alternates: { canonical: `/compare/${pair}` },
-  }
+  return publicPageMetadata({
+    title: `${a.name} vs ${b.name}: transfer rates to Pakistan | PakRemits`,
+    description: `Compare ${a.name} and ${b.name} for sending money to Pakistan. Check available exchange rates, fees, delivery options and rupees received.`,
+    path: `/compare/${pair}`,
+  })
 }
 
 export default async function ComparePairPage({

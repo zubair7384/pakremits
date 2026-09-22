@@ -15,6 +15,7 @@ import { corridorPath } from '@/lib/routes'
 import { RateMarquee } from '@/components/rate-marquee'
 import { CountryFlag } from '@/components/select-icons'
 import { CLAIM_FIRST_PAKISTAN_ONLY_SITE } from '@/lib/proof/config'
+import { publicPageMetadata } from '@/lib/seo'
 
 export async function generateMetadata({
   params,
@@ -22,16 +23,13 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>
 }): Promise<Metadata> {
   const { locale: localeParam } = await params
-  const locale = isLocale(localeParam) ? localeParam : notFound()
-  const t = await getTranslations({ locale, namespace: 'home' })
-
-  return {
-    title: `PakRemits — ${t('heroTagline')}`,
-    description: t('heroLede'),
-    // hreflang for both locales plus x-default, generated from one helper so
-    // the URL shape is defined in a single place.
+  if (!isLocale(localeParam)) notFound()
+  return publicPageMetadata({
+    title: 'Compare money transfer rates to Pakistan | PakRemits',
+    description: 'Compare exchange rates and fees for sending money to Pakistan from the UK, UAE, Saudi Arabia, USA, Canada, Australia, Qatar and Europe. See what arrives in PKR.',
+    path: '/',
     alternates: alternatesFor('/'),
-  }
+  })
 }
 
 // Quotes change every 15 minutes; the GitHub Actions job pings /api/cron/revalidate

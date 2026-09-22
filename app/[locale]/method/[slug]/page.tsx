@@ -18,6 +18,7 @@ import { METHOD_CONTENT, methodBySlug } from '@/lib/content/methods'
 import { methodPath } from '@/lib/routes'
 import { getComparison } from '@/lib/quotes'
 import { corridorPath } from '@/lib/routes'
+import { publicPageMetadata } from '@/lib/seo'
 
 export const revalidate = 900
 
@@ -38,12 +39,13 @@ export async function generateMetadata({
   if (!content) return {}
 
   const path = methodPath(slug)
-  return {
+  return publicPageMetadata({
     title: `${content.title} | PakRemits`,
     description: content.metaDescription,
+    path,
     alternates: alternatesFor(path),
-    openGraph: { url: `${SITE}${path}`, type: 'article' },
-  }
+    type: 'article',
+  })
 }
 
 export default async function MethodPage({ params }: { params: Promise<{ locale: string; slug: string }> }) {

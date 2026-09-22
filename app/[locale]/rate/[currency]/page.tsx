@@ -18,6 +18,7 @@ import { SEND_CURRENCIES, type SendCurrency } from '@/lib/db/schema'
 import { formatPkr, round } from '@/lib/ranking/compute'
 import { getComparison, getMidMarketSeries } from '@/lib/quotes'
 import { corridorPath } from '@/lib/routes'
+import { publicPageMetadata } from '@/lib/seo'
 
 export const revalidate = 900
 
@@ -26,7 +27,6 @@ export function generateStaticParams() {
 }
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
-const TODAY = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
 
 /** Parse the URL segment back into a currency code, or null if unknown. */
 function parseCurrency(segment: string): SendCurrency | null {
@@ -46,14 +46,13 @@ export async function generateMetadata({
 
   const path = `/${currency.toLowerCase()}-to-pkr`
 
-  return {
-    title: `${currency} to PKR rate today — ${TODAY.format(new Date())} | PakRemits`,
-    description:
-      `Today's ${currency} to PKR mid-market rate, a 30-day chart, and the service paying the ` +
-      'most rupees right now. Updated every 15 minutes.',
+  const corridor = corridorByCurrency(currency)!
+  return publicPageMetadata({
+    title: `${currency} to PKR exchange rate and transfer comparison | PakRemits`,
+    description: `Check the ${currency} to PKR exchange rate, rate history and available transfer quotes from ${corridor.articleName} to Pakistan. Compare fees and rupees received.`,
+    path,
     alternates: alternatesFor(path),
-    openGraph: { url: `${SITE}${path}`, type: 'website' },
-  }
+  })
 }
 
 export default async function RatePage({ params }: { params: Promise<{ locale: string; currency: string }> }) {
