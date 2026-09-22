@@ -5,6 +5,9 @@ primary_region = "sin"
 [build]
   dockerfile = "Dockerfile"
 
+[build.args]
+  NEXT_PUBLIC_SITE_URL = "https://stage.pakremits.com"
+
 [env]
   HOSTNAME = "0.0.0.0"
   NODE_ENV = "production"
