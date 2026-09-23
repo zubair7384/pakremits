@@ -15,6 +15,7 @@ import { corridorPath } from '@/lib/routes'
 import { RateMarquee } from '@/components/rate-marquee'
 import { CountryFlag } from '@/components/select-icons'
 import { CLAIM_FIRST_PAKISTAN_ONLY_SITE } from '@/lib/proof/config'
+import { publicPageMetadata } from '@/lib/seo'
 
 export async function generateMetadata({
   params,
@@ -22,16 +23,13 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>
 }): Promise<Metadata> {
   const { locale: localeParam } = await params
-  const locale = isLocale(localeParam) ? localeParam : notFound()
-  const t = await getTranslations({ locale, namespace: 'home' })
-
-  return {
-    title: `PakRemits — ${t('heroTagline')}`,
-    description: t('heroLede'),
-    // hreflang for both locales plus x-default, generated from one helper so
-    // the URL shape is defined in a single place.
+  if (!isLocale(localeParam)) notFound()
+  return publicPageMetadata({
+    title: 'Compare money transfer rates to Pakistan | PakRemits',
+    description: 'Compare exchange rates and fees for sending money to Pakistan from the UK, UAE, Saudi Arabia, USA, Canada, Australia, Qatar and Europe. See what arrives in PKR.',
+    path: '/',
     alternates: alternatesFor('/'),
-  }
+  })
 }
 
 // Quotes change every 15 minutes; the GitHub Actions job pings /api/cron/revalidate
@@ -66,6 +64,13 @@ const COMPARISON_IMAGE_ASSETS = [
   '/provider-logos/wise.png',
   '/provider-logos/careem.png',
   '/provider-logos/botim-v2.png',
+  '/provider-logos/moneygram.png',
+  '/provider-logos/western-union.png',
+  '/provider-logos/al-ansari.png',
+  '/provider-logos/taptap-send.png',
+  '/provider-logos/xoom.png',
+  '/provider-logos/enjaz-pay.png',
+  '/provider-logos/telemoney.png',
   '/payout-icons/jazzcash.png',
   '/payout-icons/easypaisa.png',
   '/payout-icons/sadapay.png',
@@ -314,6 +319,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           {/* Seeded with the next round number above the current rate, which is
               what someone setting a target actually wants as a starting point. */}
           <RateAlertForm
+            turnstileSiteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || (process.env.NODE_ENV !== 'production' ? '1x00000000000000000000AA' : '')}
             defaultRate={
               ticker[0]?.latest ? Math.ceil(ticker[0].latest / 5) * 5 : undefined
             }

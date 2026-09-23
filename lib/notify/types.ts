@@ -22,6 +22,8 @@ export interface Message {
   text: string
   /** Optional HTML body, used by email only. */
   html?: string
+  /** Optional email transport headers, e.g. one-click unsubscribe. */
+  headers?: Record<string, string>
 }
 
 export interface SendResult {

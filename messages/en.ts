@@ -78,8 +78,8 @@ export const en = {
       'rate, then sort by that. Nothing else moves a provider up.',
     cardPakistanTitle: 'Built for Pakistan only',
     cardPakistanBody:
-      'JazzCash, Easypaisa, Sadapay, Nayapay, Roshan Digital Accounts and cash pickup are all ' +
-      'covered. Global comparison sites skip most of them.',
+      'Compare wallet and cash-pickup routes, or choose SadaPay, NayaPay or a Roshan Digital ' +
+      'Account to see general bank-deposit rates with those familiar account names.',
     cardBonusTitle: 'Bonuses and incentives shown',
     cardBonusBody:
       'We flag first-transfer promos and the State Bank’s remittance incentive where they ' +
@@ -177,6 +177,8 @@ export const en = {
     youSend: 'You send',
     compareButton: 'Compare rates',
     resultsHeading: 'Available rates',
+    bankAccountRateNote:
+      'Showing general PKR bank-deposit quotes for {account}, not account-specific prices. Confirm this provider can pay into the account before sending.',
     capturedAt: 'Quotes captured {time} PKT',
     noQuotesYet: 'No quotes yet',
     stale: 'stale',

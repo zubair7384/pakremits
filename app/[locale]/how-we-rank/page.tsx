@@ -5,6 +5,7 @@ import { setRequestLocale } from 'next-intl/server'
 import { SiteFooter, SiteHeader } from '@/components/site-chrome'
 import { SavingsMethodology } from '@/components/savings-methodology'
 import { isLocale } from '@/i18n/routing'
+import { publicPageMetadata } from '@/lib/seo'
 
 /**
  * The methodology page.
@@ -14,13 +15,11 @@ import { isLocale } from '@/i18n/routing'
  * a vague promise about independence is worth nothing, so this names the file
  * that does the ranking and the test that enforces it.
  */
-export const metadata: Metadata = {
-  title: 'How we rank — PakRemits',
-  description:
-    'PakRemits ranks money transfer services by the exact rupee amount that reaches the recipient. ' +
-    'How the figure is calculated, where our money comes from, and what we do not cover.',
-  alternates: { canonical: '/how-we-rank' },
-}
+export const metadata: Metadata = publicPageMetadata({
+  title: 'How PakRemits ranks money transfer rates to Pakistan',
+  description: 'Learn how PakRemits compares transfer rates and fees by the rupees a recipient receives, how affiliate links work and when quotes may be unavailable.',
+  path: '/how-we-rank',
+})
 
 /**
  * The savings total and the benchmark table are read from the database, so this

@@ -13,8 +13,8 @@ import { computeReceived } from '@/lib/ranking/compute'
  * worst possible moment. Rows written here are marked `source: 'manual'` so the
  * provenance is visible in /admin and never mistaken for live data.
  *
- * Also the only way Sadapay, Nayapay, and the bank benchmark get quotes at all,
- * since none of them expose a sending API.
+ * Named account destinations use bank-deposit quotes in the public comparison;
+ * overrides here remain provider quotes, not account-specific rates.
  */
 const OverrideSchema = z.object({
   providerId: z.coerce.number().int().positive(),

@@ -2,6 +2,7 @@ import type { Channel } from '@/lib/notify'
 import type { SendCurrency } from '@/lib/db/schema'
 import { formatPkr } from '@/lib/ranking/compute'
 import { formatSend } from '@/lib/corridors'
+import { renderAlertEmail, unsubscribeHeaders } from './email-template'
 
 /**
  * Alert message composition.
@@ -14,7 +15,14 @@ import { formatSend } from '@/lib/corridors'
  * sentence case, PKR with the symbol and thousands separators, no marketing
  * filler, and every figure passed in rather than hard-coded.
  */
-const SITE = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://bhejo.pk'
+function siteUrl(): string {
+  const configured = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '')
+  if (configured) return configured
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('NEXT_PUBLIC_SITE_URL must be configured to send alert links')
+  }
+  return 'http://localhost:3000'
+}
 
 export interface AlertContext {
   fromCurrency: SendCurrency
@@ -37,7 +45,7 @@ export interface AlertContext {
 /** Affiliate link, tagged so alert conversions are separable in reporting. */
 function goLink(context: AlertContext): string {
   return (
-    `${SITE}/go/${context.bestProviderSlug}` +
+    `${siteUrl()}/go/${context.bestProviderSlug}` +
     `?amount=${context.amountSent}&method=bank&utm_source=alert&utm_medium=${'email'}`
   )
 }
@@ -83,9 +91,25 @@ export function composeTriggerMessage(context: AlertContext, channel: Channel) {
       '',
       'Quotes move. The provider confirms the final rate before you pay.',
       '',
-      `Manage or stop this alert: ${SITE}/alerts/manage/${context.token}`,
-      `Unsubscribe in one click: ${SITE}/alerts/unsubscribe/${context.token}`,
+      `Manage or stop this alert: ${siteUrl()}/alerts/manage/${context.token}`,
+      `Unsubscribe in one click: ${siteUrl()}/alerts/unsubscribe/${context.token}`,
     ].join('\n'),
+    html: renderAlertEmail({
+      preview: headline,
+      label: 'Rate alert',
+      title: headline,
+      body: best,
+      facts: [
+        { label: 'Target rate', value: context.targetRate.toFixed(2) },
+        { label: 'Best provider', value: context.bestProviderName },
+        { label: 'Recipient gets', value: formatPkr(context.amountReceived) },
+      ],
+      action: { label: 'See this rate', url: goLink(context) },
+      note: 'Quotes can change. The provider confirms the final rate before you pay.',
+      manageUrl: `${siteUrl()}/alerts/manage/${context.token}`,
+      unsubscribeUrl: `${siteUrl()}/alerts/unsubscribe/${context.token}`,
+    }),
+    headers: unsubscribeHeaders(`${siteUrl()}/alerts/unsubscribe/${context.token}`),
   }
 }
 
@@ -104,12 +128,24 @@ export function composeConfirmMessage(context: {
       `You asked us to tell you when ${context.fromCurrency} → PKR ${condition} ` +
         `${context.targetRate.toFixed(2)}.`,
       '',
-      `Confirm it here: ${SITE}/alerts/confirm/${context.token}`,
+      `Confirm it here: ${siteUrl()}/alerts/confirm/${context.token}`,
       '',
       'We will not send anything until you do. If this was not you, ignore this ' +
         'message and nothing further will arrive — the unconfirmed alert is ' +
         'deleted automatically.',
+      '',
+      `Remove this request now: ${siteUrl()}/alerts/unsubscribe/${context.token}`,
     ].join('\n'),
+    html: renderAlertEmail({
+      preview: `Confirm your ${context.fromCurrency} to PKR rate alert`,
+      label: 'One quick step',
+      title: 'Confirm your rate alert',
+      body: `You asked us to email you when ${context.fromCurrency} to PKR ${condition} ${context.targetRate.toFixed(2)}.`,
+      action: { label: 'Confirm alert', url: `${siteUrl()}/alerts/confirm/${context.token}` },
+      note: 'If you did not request this, ignore this email. We will not send any alerts unless you confirm.',
+      unsubscribeUrl: `${siteUrl()}/alerts/unsubscribe/${context.token}`,
+    }),
+    headers: unsubscribeHeaders(`${siteUrl()}/alerts/unsubscribe/${context.token}`),
   }
 }
 
@@ -137,9 +173,21 @@ export function composeDigestMessage(context: {
         ? ['', `Paying the most right now: ${context.bestProviderName}.`]
         : []),
       '',
-      `Full comparison: ${SITE}/${context.fromCurrency.toLowerCase()}-to-pkr`,
+      `Full comparison: ${siteUrl()}/${context.fromCurrency.toLowerCase()}-to-pkr`,
       '',
-      `Stop the digest: ${SITE}/alerts/manage/${context.token}`,
+      `Manage this alert: ${siteUrl()}/alerts/manage/${context.token}`,
+      `Unsubscribe from this alert: ${siteUrl()}/alerts/unsubscribe/${context.token}`,
     ].join('\n'),
+    html: renderAlertEmail({
+      preview: `${context.fromCurrency} to PKR is ${context.currentRate.toFixed(2)} this week`,
+      label: 'Weekly rate update',
+      title: `${context.fromCurrency} to PKR: ${context.currentRate.toFixed(2)}`,
+      body: direction ? `The rate is ${direction}.` : 'See how this week’s rates compare.',
+      facts: context.bestProviderName ? [{ label: 'Leading provider', value: context.bestProviderName }] : [],
+      action: { label: 'Compare rates', url: `${siteUrl()}/${context.fromCurrency.toLowerCase()}-to-pkr` },
+      manageUrl: `${siteUrl()}/alerts/manage/${context.token}`,
+      unsubscribeUrl: `${siteUrl()}/alerts/unsubscribe/${context.token}`,
+    }),
+    headers: unsubscribeHeaders(`${siteUrl()}/alerts/unsubscribe/${context.token}`),
   }
 }

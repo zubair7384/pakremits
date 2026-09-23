@@ -5,10 +5,20 @@ primary_region = "sin"
 [build]
   dockerfile = "Dockerfile"
 
+[build.args]
+  NEXT_PUBLIC_SITE_URL = "https://stage.pakremits.com"
+  NEXT_PUBLIC_TURNSTILE_SITE_KEY = "0x4AAAAAAE_350mcTdqSXIkb"
+  NEXT_PUBLIC_GTM_ID = "GTM-N4ZV897G"
+  ROBOTS_ALLOW_INDEXING = "false"
+
 [env]
   HOSTNAME = "0.0.0.0"
   NODE_ENV = "production"
-  NEXT_PUBLIC_SITE_URL = "https://pakremits-staging.fly.dev"
+  ROBOTS_ALLOW_INDEXING = "false"
+  NEXT_PUBLIC_SITE_URL = "https://stage.pakremits.com"
+  NEXT_PUBLIC_TURNSTILE_SITE_KEY = "0x4AAAAAAE_350mcTdqSXIkb"
+  NEXT_PUBLIC_GTM_ID = "GTM-N4ZV897G"
+  RESEND_FROM = "PakRemits alerts <alerts@pakremits.com>"
   PORT = "3000"
 
 [http_service]

@@ -3,26 +3,25 @@
 import { useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { SEND_CURRENCIES } from '@/lib/db/schema'
+import { TurnstileWidget } from './turnstile-widget'
 
 /**
  * The rate alert form from the design.
  *
- * Channel is a segmented control because it changes what the contact field
- * means; the label and placeholder follow it, so the field is never ambiguous.
- * Validation is server-side only — duplicating the phone rules on the client
- * would mean two implementations that disagree — but the response surfaces the
- * offending field so the error lands next to the input.
+ * Email is the supported launch channel. The response surfaces validation
+ * errors beside the field so the user can correct them.
  */
-type Channel = 'whatsapp' | 'email'
 type Status = { kind: 'idle' } | { kind: 'sending' } | { kind: 'ok'; needsConfirmation: boolean } | { kind: 'error'; message: string }
 
-export function RateAlertForm({ defaultRate }: { defaultRate?: number }) {
+export function RateAlertForm({ defaultRate, turnstileSiteKey }: { defaultRate?: number; turnstileSiteKey: string }) {
   const t = useTranslations('alerts')
-  const [channel, setChannel] = useState<Channel>('whatsapp')
   const [status, setStatus] = useState<Status>({ kind: 'idle' })
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
+  const [resetNonce, setResetNonce] = useState(0)
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (!turnstileToken) return
     const form = new FormData(event.currentTarget)
     setStatus({ kind: 'sending' })
 
@@ -31,7 +30,7 @@ export function RateAlertForm({ defaultRate }: { defaultRate?: number }) {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
-          channel,
+          channel: 'email',
           contact: form.get('contact'),
           fromCurrency: form.get('fromCurrency'),
           targetRate: form.get('targetRate'),
@@ -41,6 +40,7 @@ export function RateAlertForm({ defaultRate }: { defaultRate?: number }) {
           // rather than dropped from the contract.
           direction: 'above',
           wantsDigest: form.get('wantsDigest') === 'on',
+          turnstileToken,
         }),
       })
 
@@ -51,12 +51,16 @@ export function RateAlertForm({ defaultRate }: { defaultRate?: number }) {
       }
 
       if (!response.ok || !payload.ok) {
+        setTurnstileToken(null)
+        setResetNonce((value) => value + 1)
         setStatus({ kind: 'error', message: payload.error ?? t('genericError') })
         return
       }
 
       setStatus({ kind: 'ok', needsConfirmation: Boolean(payload.needsConfirmation) })
     } catch {
+      setTurnstileToken(null)
+      setResetNonce((value) => value + 1)
       setStatus({ kind: 'error', message: t('genericError') })
     }
   }
@@ -108,55 +112,34 @@ export function RateAlertForm({ defaultRate }: { defaultRate?: number }) {
       </div>
 
       <div className="mt-3.5">
-        <span className="mb-1.5 block text-[13px] text-[#B2C6BC]">{t('sendBy')}</span>
-        <div
-          className="grid grid-cols-2 gap-1 rounded-[12px] border-[1.5px] border-green-3 bg-green p-1"
-          role="group"
-          aria-label={t('sendBy')}
-        >
-          {(['whatsapp', 'email'] as const).map((option) => (
-            <button
-              key={option}
-              type="button"
-              onClick={() => setChannel(option)}
-              aria-pressed={channel === option}
-              className={`h-10 rounded-[9px] text-sm ${
-                channel === option ? 'bg-green-3 font-medium text-white' : 'text-[#B2C6BC]'
-              }`}
-            >
-              {option === 'whatsapp' ? t('whatsapp') : t('email')}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="mt-3.5">
         <label htmlFor="alert-contact" className="mb-1.5 block text-[13px] text-[#B2C6BC]">
-          {channel === 'whatsapp' ? t('whatsappNumber') : t('emailAddress')}
+          {t('emailAddress')}
         </label>
         <input
           id="alert-contact"
           name="contact"
+          type="email"
           required
-          // Not type="email": the same input holds a phone number when the
-          // channel is WhatsApp, and the browser would reject it.
-          inputMode={channel === 'whatsapp' ? 'tel' : 'email'}
-          autoComplete={channel === 'whatsapp' ? 'tel' : 'email'}
-          placeholder={channel === 'whatsapp' ? '+44 7700 900123' : 'you@example.com'}
+          autoComplete="email"
+          placeholder="you@example.com"
           className={fieldClass}
         />
       </div>
 
-      {channel === 'email' && (
-        <label className="mt-3.5 flex items-start gap-2.5 text-[14px] text-[#C9D9D0]">
-          <input type="checkbox" name="wantsDigest" className="mt-1 h-4 w-4 accent-[#E9B44C]" />
-          {t('digestOptIn')}
-        </label>
-      )}
+      <label className="mt-3.5 flex items-start gap-2.5 text-[14px] text-[#C9D9D0]">
+        <input type="checkbox" name="wantsDigest" className="mt-1 h-4 w-4 accent-[#E9B44C]" />
+        {t('digestOptIn')}
+      </label>
+
+      {turnstileSiteKey ? (
+        <div className="mt-5">
+          <TurnstileWidget siteKey={turnstileSiteKey} onToken={setTurnstileToken} resetNonce={resetNonce} />
+        </div>
+      ) : <p className="mt-3 text-sm text-[#F5A3A3]">Alerts are temporarily unavailable.</p>}
 
       <button
         type="submit"
-        disabled={status.kind === 'sending'}
+        disabled={status.kind === 'sending' || !turnstileToken}
         className="mt-4.5 flex h-[54px] w-full items-center justify-center rounded-[12px] bg-gold
                    px-6 font-medium text-[#4A3608] hover:bg-[#D9A43E] disabled:opacity-60"
       >

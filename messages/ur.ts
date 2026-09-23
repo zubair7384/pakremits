@@ -284,6 +284,9 @@ export const ur: Messages = {
     // TODO: native review
     compareButton: 'ریٹ کا موازنہ کریں',
     resultsHeading: 'دستیاب ریٹ',
+    // TODO: native review
+    bankAccountRateNote:
+      '{account} کے لیے عام PKR بینک ڈپازٹ ریٹ دکھائے گئے ہیں، مخصوص اکاؤنٹ کے ریٹ نہیں۔ رقم بھیجنے سے پہلے سروس سے تصدیق کریں کہ وہ اس اکاؤنٹ میں رقم جمع کر سکتی ہے۔',
     // TODO: native review — PKT stays in Latin script, it is read that way
     capturedAt: 'ریٹ {time} PKT پر لیے گئے',
     // TODO: native review

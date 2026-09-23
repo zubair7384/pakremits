@@ -1,12 +1,11 @@
 import type { Metadata } from 'next'
+import { publicPageMetadata } from '@/lib/seo'
 
-export const metadata: Metadata = {
-  title: 'Privacy — PakRemits',
-  description:
-    'What PakRemits collects, what it does not, and how to have your rate-alert contact details ' +
-    'deleted.',
-  alternates: { canonical: '/privacy' },
-}
+export const metadata: Metadata = publicPageMetadata({
+  title: 'PakRemits privacy policy | Rate alerts and data',
+  description: 'Read what PakRemits stores when you set a rate alert, how comparison visits are handled and how to delete your alert and contact details.',
+  path: '/privacy',
+})
 
 export default function PrivacyPage() {
   return (
@@ -38,9 +37,10 @@ export default function PrivacyPage() {
           paid and how we know which comparisons are useful.
         </p>
         <p>
-          <b className="text-ink">Analytics are aggregate and cookieless.</b> We use a
-          privacy-focused analytics tool that does not set cookies or build a profile of you, which
-          is why this site has no cookie banner interrupting you.
+          <b className="text-ink">Site measurement.</b> We load Google Tag Manager on public pages
+          to manage measurement tags. Any tags enabled through that container may have their own
+          data and cookie practices. We review those tags before enabling them and update this
+          notice when our measurement changes.
         </p>
       </div>
 

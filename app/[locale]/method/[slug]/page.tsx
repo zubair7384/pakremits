@@ -2,9 +2,8 @@
  * Delivery-method pages, reached via rewrites from /send-money-to-[slug] and
  * /roshan-digital-account-transfer.
  *
- * The comparison panel is pre-set to the relevant rail, so a reader who lands
- * here from "send money to jazzcash" sees wallet rates immediately rather than
- * bank rates they would have to switch away from.
+ * The comparison panel is pre-set to the relevant choice. RDA keeps its label
+ * while using general bank-deposit quotes, with a qualification in the panel.
  */
 import type { Metadata } from 'next'
 import Link from 'next/link'
@@ -18,6 +17,7 @@ import { METHOD_CONTENT, methodBySlug } from '@/lib/content/methods'
 import { methodPath } from '@/lib/routes'
 import { getComparison } from '@/lib/quotes'
 import { corridorPath } from '@/lib/routes'
+import { publicPageMetadata } from '@/lib/seo'
 
 export const revalidate = 900
 
@@ -38,12 +38,13 @@ export async function generateMetadata({
   if (!content) return {}
 
   const path = methodPath(slug)
-  return {
+  return publicPageMetadata({
     title: `${content.title} | PakRemits`,
     description: content.metaDescription,
+    path,
     alternates: alternatesFor(path),
-    openGraph: { url: `${SITE}${path}`, type: 'article' },
-  }
+    type: 'article',
+  })
 }
 
 export default async function MethodPage({ params }: { params: Promise<{ locale: string; slug: string }> }) {
@@ -101,7 +102,11 @@ export default async function MethodPage({ params }: { params: Promise<{ locale:
 
         <div className="mx-auto max-w-[1120px] px-6">
           {comparison && hasQuotes ? (
-            <ComparePanel initial={comparison} corridors={corridorOptions} />
+            <ComparePanel
+              initial={comparison}
+              corridors={corridorOptions}
+              initialPayout={slug === 'rda' ? 'rda' : undefined}
+            />
           ) : (
             <section className="relative -mt-20 rounded-panel-lg border border-line bg-white p-10">
               <h2 className="font-display text-xl font-semibold">

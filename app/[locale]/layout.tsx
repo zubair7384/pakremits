@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { NextIntlClientProvider } from 'next-intl'
 import { setRequestLocale } from 'next-intl/server'
+import { GoogleTagManager } from '@next/third-parties/google'
 import { fonts } from '@/lib/fonts'
 import { LOCALES, LOCALE_DIR, LOCALE_TAG, isLocale } from '@/i18n/routing'
 import { getMessages } from '@/i18n/messages'
@@ -64,6 +65,13 @@ export default async function LocaleLayout({
     alerts: all.alerts,
   }
 
+  // The same public layout serves every comparison and information page. Keep
+  // GTM out of the separate admin and alert-management document layouts.
+  const configuredGtmId = process.env.NEXT_PUBLIC_GTM_ID
+  const gtmId = configuredGtmId && /^GTM-[A-Z0-9]+$/.test(configuredGtmId)
+    ? configuredGtmId
+    : undefined
+
   return (
     <html
       lang={LOCALE_TAG[locale]}
@@ -73,7 +81,19 @@ export default async function LocaleLayout({
       // rather than per-component keeps it out of every layout calculation.
       data-locale={locale}
     >
+      {gtmId && <GoogleTagManager gtmId={gtmId} />}
       <body>
+        {gtmId && (
+          <noscript>
+            <iframe
+              src={`https://www.googletagmanager.com/ns.html?id=${gtmId}`}
+              height="0"
+              width="0"
+              style={{ display: 'none', visibility: 'hidden' }}
+              title="Google Tag Manager"
+            />
+          </noscript>
+        )}
         <NextIntlClientProvider locale={locale} messages={messages}>
           {children}
         </NextIntlClientProvider>

@@ -4,19 +4,19 @@ import { notFound } from 'next/navigation'
 import { eq } from 'drizzle-orm'
 import { setRequestLocale } from 'next-intl/server'
 import { SiteFooter, SiteHeader } from '@/components/site-chrome'
+import { ProviderLogo } from '@/components/provider-logo'
 import { isLocale } from '@/i18n/routing'
 import { db } from '@/lib/db'
 import { providers } from '@/lib/db/schema'
+import { publicPageMetadata } from '@/lib/seo'
 
 export const revalidate = 3600
 
-export const metadata: Metadata = {
-  title: 'Every service we compare — PakRemits',
-  description:
-    'The money transfer services PakRemits tracks for Pakistan, what each supports, and which ' +
-    'ones we cannot quote and why.',
-  alternates: { canonical: '/providers' },
-}
+export const metadata: Metadata = publicPageMetadata({
+  title: 'Money transfer providers to Pakistan | PakRemits',
+  description: 'Explore providers that send money to Pakistan. Compare available rates and see which support bank deposits, cash pickup and Pakistani mobile wallets.',
+  path: '/providers',
+})
 
 const RAILS = [
   { key: 'supportsBank', label: 'Bank account' },
@@ -71,11 +71,11 @@ export default async function ProvidersPage({
         </nav>
 
         <h1 className="mt-5 text-[clamp(34px,4.6vw,52px)] leading-[1.05] font-semibold">
-          Every service we compare
+          Money transfer providers we track
         </h1>
         <p className="mt-4 max-w-[62ch] text-[17px] text-muted">
-          We list a provider only where we can fetch a genuine live quote without working around
-          their site. Some well-known services are missing for that reason —{' '}
+          We show verified services that send money to Pakistan. A provider enters the live ranking
+          only where we can fetch a genuine rate and fee without working around its site —{' '}
           <Link href="/how-we-rank" className="text-leaf underline underline-offset-2">
             how we rank
           </Link>{' '}
@@ -91,13 +91,12 @@ export default async function ProvidersPage({
                          hover:-translate-y-px hover:border-leaf"
             >
               <div className="flex items-center gap-3.5">
-                <span
-                  className="grid h-11 w-11 place-items-center rounded-[12px] font-display text-[15px] font-bold"
-                  style={{ background: provider.brandColor, color: provider.brandTextColor }}
-                  aria-hidden="true"
-                >
-                  {provider.name.charAt(0)}
-                </span>
+                <ProviderLogo
+                  providerSlug={provider.slug}
+                  providerName={provider.name}
+                  brandColor={provider.brandColor}
+                  brandTextColor={provider.brandTextColor}
+                />
                 <span className="text-[17px] font-medium text-ink">{provider.name}</span>
               </div>
 

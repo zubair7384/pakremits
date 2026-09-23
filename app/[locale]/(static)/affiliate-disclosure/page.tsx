@@ -1,12 +1,12 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { publicPageMetadata } from '@/lib/seo'
 
-export const metadata: Metadata = {
-  title: 'Affiliate disclosure — PakRemits',
-  description:
-    'How PakRemits makes money, which providers pay us, and why it has no effect on the ranking.',
-  alternates: { canonical: '/affiliate-disclosure' },
-}
+export const metadata: Metadata = publicPageMetadata({
+  title: 'Affiliate disclosure | How PakRemits earns money',
+  description: 'See how PakRemits earns commissions from some provider links and why payments do not change the ranking of transfer rates to Pakistan.',
+  path: '/affiliate-disclosure',
+})
 
 export default function AffiliateDisclosurePage() {
   return (

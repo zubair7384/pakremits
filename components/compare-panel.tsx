@@ -40,6 +40,8 @@ interface CorridorOption {
 interface Props {
   initial: Comparison
   corridors: CorridorOption[]
+  /** Preserve the named account selection when its quote uses the bank rail. */
+  initialPayout?: PayoutOption
 }
 
 const PAYOUT_OPTIONS: PayoutOption[] = [
@@ -56,10 +58,10 @@ const PAYOUT_METHOD: Record<PayoutOption, DeliveryMethod> = {
   bank: 'bank',
   jazzcash: 'wallet',
   easypaisa: 'wallet',
-  sadapay: 'neobank',
-  nayapay: 'neobank',
+  sadapay: 'bank',
+  nayapay: 'bank',
   cash: 'cash',
-  rda: 'rda',
+  rda: 'bank',
 }
 
 function initialPayoutOption(method: DeliveryMethod): PayoutOption {
@@ -96,7 +98,7 @@ function BoltIcon() {
   )
 }
 
-export function ComparePanel({ initial, corridors }: Props) {
+export function ComparePanel({ initial, corridors, initialPayout }: Props) {
   const t = useTranslations('panel')
   const tm = useTranslations('methods')
   const locale = useLocale()
@@ -124,7 +126,7 @@ export function ComparePanel({ initial, corridors }: Props) {
     note === 'New-customer rate' ? t('promoNewCustomer') : note
   const [corridor, setCorridor] = useState(initial.corridorSlug)
   const [payoutOption, setPayoutOption] = useState<PayoutOption>(() =>
-    initialPayoutOption(initial.deliveryMethod),
+    initialPayout ?? initialPayoutOption(initial.deliveryMethod),
   )
   const method = PAYOUT_METHOD[payoutOption]
   const [amountText, setAmountText] = useState(String(initial.amount))
@@ -330,7 +332,14 @@ export function ComparePanel({ initial, corridors }: Props) {
           className="flex flex-col items-start justify-between gap-3 border-b border-line bg-mist
                      px-7 py-3.5 text-[13px] text-muted sm:flex-row sm:items-center"
         >
-          <h3 className="font-display text-lg font-semibold text-ink">{t('resultsHeading')}</h3>
+          <div>
+            <h3 className="font-display text-lg font-semibold text-ink">{t('resultsHeading')}</h3>
+            {(payoutOption === 'sadapay' || payoutOption === 'nayapay' || payoutOption === 'rda') && (
+              <p className="mt-1 max-w-[62ch] text-xs text-muted">
+                {t('bankAccountRateNote', { account: payoutLabels[payoutOption] })}
+              </p>
+            )}
+          </div>
 
           <div
             // flex-wrap on the group, nowrap inside each pill: Urdu labels are
@@ -346,7 +355,7 @@ export function ComparePanel({ initial, corridors }: Props) {
                 type="button"
                 onClick={() => setSort(value)}
                 aria-pressed={sort === value}
-                className={`rounded-full px-3 py-[5px] text-[13px] whitespace-nowrap transition-colors ${
+                className={`cursor-pointer rounded-full px-3 py-[5px] text-[13px] whitespace-nowrap transition-colors ${
                   sort === value ? 'bg-ink text-white' : 'text-muted hover:text-ink'
                 }`}
               >

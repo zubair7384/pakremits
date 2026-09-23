@@ -23,6 +23,7 @@ export const AlertInputSchema = z
       .max(10_000, { message: 'That target looks too high. Rates to PKR top out under 400.' }),
     direction: z.enum(['above', 'below']),
     wantsDigest: z.coerce.boolean().default(false),
+    turnstileToken: z.string().min(1).max(2048),
   })
   .superRefine((input, ctx) => {
     if (input.channel === 'email') {

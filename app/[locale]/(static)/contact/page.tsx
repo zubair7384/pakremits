@@ -1,10 +1,11 @@
 import type { Metadata } from 'next'
+import { publicPageMetadata } from '@/lib/seo'
 
-export const metadata: Metadata = {
-  title: 'Contact — PakRemits',
-  description: 'How to report a wrong rate, ask about a provider listing, or request data deletion.',
-  alternates: { canonical: '/contact' },
-}
+export const metadata: Metadata = publicPageMetadata({
+  title: 'Contact PakRemits | Rate corrections and support',
+  description: 'Contact PakRemits to report an incorrect transfer rate, ask about a provider listing or request deletion of your rate-alert details.',
+  path: '/contact',
+})
 
 /**
  * No form here on purpose. A contact form needs spam handling, storage, and a

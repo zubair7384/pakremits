@@ -11,8 +11,8 @@ English and Urdu. 26 pages prerender.
 
 Lighthouse mobile is **92** against the brief's target of 95. Desktop is 100
 across all four categories. The gap and what is left to close it are in
-[Performance](#performance) below. Two of the fourteen providers in the original brief are live; see
-[Provider access](#provider-access-as-surveyed-on-2-sep-2026) for why the rest
+[Performance](#performance) below. Six providers now have live collectors; see
+[Provider access](#provider-access-as-verified-on-19-sep-2026) for why the rest
 are not, which is the main open question for the project.
 
 ---
@@ -97,6 +97,13 @@ addresses and phone numbers — would be readable by anyone with the anon key.
 npm run seed      # providers, corridors, 30 days of mid-market history
 npm run refresh   # walks the full grid and writes live quotes
 ```
+
+SadaPay, NayaPay, and Roshan Digital Account remain separate account choices in
+the comparison selector. They display the existing `bank` quote and benchmark
+rows, not separate account-specific prices. The UI labels these as general PKR
+bank-deposit quotes and asks users to confirm account eligibility with the
+provider. Legacy `neobank` and `rda` quote requests also resolve to the `bank`
+rail; no new quote-collection jobs or database migration are needed.
 
 The seed pulls real 30-day history from Wise. If that call fails it writes a
 deterministic synthetic walk marked `source: 'synthetic'`, so the charts render
@@ -198,6 +205,37 @@ will ask the Fly app to revalidate its cached quote pages.
 Fly's official [Next.js guide](https://fly.io/nextjs/) documents the detector,
 generated files, standalone output, and the build-time/runtime environment split.
 
+### Staging and production URLs, sitemap, and crawling
+
+`fly.staging.toml` sets `NEXT_PUBLIC_SITE_URL=https://stage.pakremits.com`
+both at build time and at runtime. Canonical links, Open Graph URLs, alert
+confirmation links, redirects, and `/sitemap.xml` all use that value. For the
+production Fly app, set it to `https://pakremits.com` in **both** `[build.args]`
+and `[env]`, then redeploy; `NEXT_PUBLIC_*` values are compiled into the site.
+Also change the GitHub Actions repository variable `SITE_URL` to the production
+URL when the scheduled job should revalidate production pages.
+
+Staging sets `ROBOTS_ALLOW_INDEXING=false` at build and runtime. Its
+`/robots.txt` says
+`User-agent: *` and `Disallow: /`, and pages emit `noindex`. The sitemap remains
+available for inspection but is not advertised in staging robots.txt. At
+production launch, set `ROBOTS_ALLOW_INDEXING=true` in **both** `[build.args]`
+and `[env]` on the production app, redeploy, and verify `/robots.txt`,
+`/sitemap.xml`, page canonicals, and alert email links use `pakremits.com`.
+Configure a separate production
+Turnstile widget for the root domain before switching traffic. The sitemap
+lists canonical public pages; private alert/admin/API URLs and internal rewrite
+targets are intentionally excluded. Robots directives guide cooperative
+crawlers; they do not password-protect staging.
+
+Public pages load the Google Tag Manager container configured by
+`NEXT_PUBLIC_GTM_ID` using Next.js's `GoogleTagManager` integration, with a
+`noscript` fallback. The staging config uses `GTM-N4ZV897G`. Set the same
+variable in both build args and runtime env for the production Fly app and
+redeploy. Admin and private alert-management pages do not load GTM, so their
+URLs and alert tokens are not sent to the container. Review the tags enabled in
+GTM and the privacy notice before publishing new tracking tags.
+
 ## Deploying to Vercel
 
 1. Push to GitHub, import the repo at [vercel.com/new](https://vercel.com/new).
@@ -209,14 +247,16 @@ generated files, standalone output, and the build-time/runtime environment split
 Vercel's Hobby plan **caps cron jobs at once per day** and rejects any more
 frequent expression at deploy time
 ([docs](https://vercel.com/docs/cron-jobs/usage-and-pricing)). A 15-minute
-refresh therefore runs from GitHub Actions instead, which also gives us a place
-to run Playwright adapters later — Vercel functions have no Chromium.
+refresh therefore runs from GitHub Actions, which provides Chromium for the
+Western Union browser adapter.
 
 The job also does not call the site over HTTP. A full refresh across the grid
 takes about four minutes with polite per-host throttling, well past the 60s
 function limit, so `.github/workflows/refresh-rates.yml` runs `npm run refresh`
 directly against the database and then pings `/api/cron/revalidate` to drop the
-cached pages. `/api/cron/refresh-rates` still exists for manual triggering.
+cached pages. It first runs `npm run providers:sync`, so newly collected
+providers exist in the database before quotes are written.
+`/api/cron/refresh-rates` still exists for manual triggering.
 
 In your GitHub repo:
 
@@ -243,12 +283,12 @@ which is why `/admin` surfaces the last successful run.
 | Colour contrast AA | done — 33 assertions in `test/unit/contrast.test.ts`, Lighthouse a11y 100 |
 | `aria-live` on the results panel | done — asserted in e2e |
 | Fonts self-hosted via `next/font` | done |
-| Unit tests for `computeReceived` and each adapter parser | done — 156 unit tests |
+| Unit tests for `computeReceived` and each adapter parser | done — 190 unit tests |
 | One Playwright e2e for the home comparison flow | done — 18 specs × 2 form factors |
 | Seed script with providers, corridors and 30 days of history | done |
 | README a stranger can deploy from | done |
 | Lighthouse mobile ≥ 95 | **92** — see below |
-| Providers: 14 in the brief | **2 live** — see [Provider access](#provider-access-as-surveyed-on-2-sep-2026) |
+| Providers: 14 in the brief | **7 live** — see [Provider access](#provider-access-as-verified-on-19-sep-2026) |
 
 ### Accessibility
 
@@ -404,7 +444,7 @@ leaves the rotation immediately with no deploy.
 
 ---
 
-## Provider access, as surveyed on 2 Sep 2026
+## Provider access, as verified on 19 Sep 2026
 
 Every provider in the original brief was checked against two gates: what its
 `robots.txt` permits, and whether the quote flow sits behind bot protection.
@@ -416,6 +456,14 @@ The result is that **the 14-provider target is not reachable by scraping.**
 | --- | --- | --- |
 | **Wise** | Explicitly *allows* it: `Allow: *gateway*sourceCurrency=*` | None |
 | **Remitly** | No `robots.txt` on `api.remitly.io` (404 → unrestricted) | None |
+| **Careem Pay** | Public anonymous remittance-widget endpoint | None |
+| **BOTIM** | Public anonymous remittance calculator endpoint | None |
+| **Al Ansari Exchange** | Allow-all policy for its public calculator and WordPress action | None; IPv4 is forced because one advertised IPv6 edge is unreachable |
+| **Western Union** | Public send flow and catalog path are allowed | Requires the first-party page session, so Playwright runs only in GitHub Actions |
+| **Xoom** | Public consumer page and first-party guest quote endpoint | Requires the first-party page session, so Playwright runs only in GitHub Actions |
+
+Western Union's Qatar route remains catalogue-only: it works interactively but
+the localized pricing page times out from GitHub-hosted runners.
 
 ### Buildable, not yet written
 
@@ -425,20 +473,20 @@ The result is that **the 14-provider target is not reachable by scraping.**
 | Small World | `Disallow:` (allow-all), but returns 403 to a plain fetch. Likely geo or UA gating; worth a second look. |
 | ACE Money Transfer | robots only excludes `/?utm=` and `/cdn-cgi/`. Also 403 to a plain fetch. |
 | Paysend | No `robots.txt` at all. Server-rendered; needs URL discovery. |
-| Taptap Send | Mobile-app API. Returns `BAD_HEADER` without app headers I do not have. |
+| Taptap Send | Its anonymous website feed returns valid Pakistan rates, but the API host returns HTTP 403 for `robots.txt`. It remains catalogue-only because PakRemits refuses automated collection when a provider policy cannot be read. |
+| TeleMoney | Pakistan bank and cash services are verified. ANB offers a credentialed exchange-rate API with PKR, but its rate must be checked against the consumer remittance quote before publication. |
+| Enjaz Pay | Pakistan bank and cash services are verified. Bank Albilad's production APIs require onboarding, IP allowlisting, and mutual TLS; no anonymous consumer quote is published. |
 
 ### Excluded, and why
 
 | Provider | Reason |
 | --- | --- |
 | **Xe** | `robots.txt` disallows `/currencytransfers/` — which is exactly where the money-transfer quote flow lives. The currency *converter* is allowed, but that is a mid-market rate, not a send quote. |
-| **MoneyGram** | `robots.txt` names AI agents individually and disallows them site-wide, sets `Content-Signal: ai-train=no, use=reference`, and applies `Crawl-delay: 5`. The operator has opted out explicitly. |
+| **MoneyGram** | Its current policy permits the public corridor, with `Crawl-delay: 5`, but the quote endpoint returns a DataDome CAPTCHA/HTTP 403 to automated sessions. Use the authenticated developer API or provider allowlisting. |
 | **WorldRemit** | PerimeterX. GraphQL introspection is disabled and the API requires a bot-detection token. |
-| **Western Union** | Akamai bot protection. |
 | **Lycaremit** | Cloudflare challenge. |
 
-The last three are excluded on a rule, not a difficulty judgement: getting quotes
-from them means defeating bot detection, and this project does not do that. The
+Blocked providers require defeating bot detection, and this project does not do that. The
 legitimate routes to those providers are, in order of preference:
 
 1. **Affiliate network data feeds.** Impact and CJ often expose a product/rate
@@ -571,6 +619,24 @@ value against a fee-deducted one silently favours the former.
 - **Phase 4** — affiliate redirects with click tracking, `/admin` dashboard.
 - **Phase 5** — trust and launch: stale badges, accessibility pass, Playwright
   e2e, Lighthouse.
+
+---
+
+## Alert form bot protection and email
+
+The alert signup uses Cloudflare Turnstile in Managed mode. Create a widget for
+the site's hostname, set `NEXT_PUBLIC_TURNSTILE_SITE_KEY` at build and runtime, and keep
+`TURNSTILE_SECRET_KEY` as a server-side secret. Both are required in production;
+signup fails closed if verification is missing or invalid. For local development,
+Cloudflare's official test keys are used automatically when these variables are
+unset. Use a separate real widget for staging and production.
+
+Confirmation, rate alert, and weekly digest emails share a branded HTML template
+and include matching plain-text content. Set `RESEND_API_KEY`, `RESEND_FROM`, and
+`NEXT_PUBLIC_SITE_URL`; verify the sender domain's SPF, DKIM, and DMARC records
+with your email provider. Rate alerts and digests include one-click unsubscribe
+headers. These practices support deliverability, but inbox placement cannot be
+guaranteed.
 
 ---
 

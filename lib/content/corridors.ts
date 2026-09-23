@@ -69,8 +69,7 @@ export const CORRIDOR_CONTENT: Record<SendCurrency, CorridorContent> = {
   GBP: {
     title: 'Best way to send money from the UK to Pakistan',
     metaDescription:
-      'Live comparison of every major service sending pounds to Pakistan, ranked by the exact ' +
-      'rupee amount that lands. Rates, fees and delivery times, refreshed every 15 minutes.',
+      'Compare GBP to PKR transfer rates from the UK to Pakistan. See provider fees, delivery options and the rupees received for the amount you send.',
     intro: [
       'The UK is one of the three largest sources of remittances to Pakistan, and it is also one ' +
         'of the most competitive corridors, which is good news if you compare and expensive if you ' +
@@ -135,8 +134,7 @@ export const CORRIDOR_CONTENT: Record<SendCurrency, CorridorContent> = {
   AED: {
     title: 'Best way to send money from the UAE to Pakistan',
     metaDescription:
-      'Compare live AED to PKR rates from every major UAE remittance service, ranked by the ' +
-      'rupees your family actually receives. Updated every 15 minutes.',
+      'Compare AED to PKR rates for transfers from the UAE to Pakistan, including exchange houses and apps. Check fees and how many rupees reach your recipient.',
     intro: [
       'The UAE is the single largest source of remittances to Pakistan, and the corridor works ' +
         'differently from the UK or US ones. Exchange houses with physical branches still handle ' +
@@ -199,8 +197,7 @@ export const CORRIDOR_CONTENT: Record<SendCurrency, CorridorContent> = {
   SAR: {
     title: 'Best way to send money from Saudi Arabia to Pakistan',
     metaDescription:
-      'Live SAR to PKR comparison across the major Saudi remittance services, ranked by rupees ' +
-      'received. Rates, fees and delivery times refreshed every 15 minutes.',
+      'Compare SAR to PKR transfer options from Saudi Arabia to Pakistan. See available provider rates, fees and payout methods, ranked by rupees received.',
     intro: [
       'Saudi Arabia hosts one of the largest Pakistani communities anywhere and is consistently ' +
         'among the top two sources of remittances to Pakistan. The corridor is dominated by bank ' +
@@ -262,8 +259,7 @@ export const CORRIDOR_CONTENT: Record<SendCurrency, CorridorContent> = {
   USD: {
     title: 'Best way to send money from the USA to Pakistan',
     metaDescription:
-      'Compare live USD to PKR rates from the major US remittance services, ranked by the exact ' +
-      'rupee amount received. Updated every 15 minutes.',
+      'Compare USD to PKR transfer rates from the USA to Pakistan. Check provider fees, bank and wallet delivery options, and the rupees your recipient gets.',
     intro: [
       'The US corridor has a different shape from the Gulf ones. Transfers tend to be larger and ' +
         'less frequent, more of them go to bank accounts than to cash pickup, and a much higher ' +
@@ -324,8 +320,7 @@ export const CORRIDOR_CONTENT: Record<SendCurrency, CorridorContent> = {
   CAD: {
     title: 'Best way to send money from Canada to Pakistan',
     metaDescription:
-      'Live CAD to PKR comparison across the major Canadian remittance services, ranked by ' +
-      'rupees received. Rates and fees refreshed every 15 minutes.',
+      'Compare CAD to PKR rates for sending money from Canada to Pakistan. See available provider fees, delivery options and the amount received in rupees.',
     intro: [
       'Canada is a mid-sized but fast-growing corridor into Pakistan, concentrated in the Greater ' +
         'Toronto Area and around Calgary and Vancouver. It is also a corridor where the big banks ' +
@@ -384,8 +379,7 @@ export const CORRIDOR_CONTENT: Record<SendCurrency, CorridorContent> = {
   AUD: {
     title: 'Best way to send money from Australia to Pakistan',
     metaDescription:
-      'Compare live AUD to PKR rates from the major Australian remittance services, ranked by ' +
-      'the rupees your family receives. Updated every 15 minutes.',
+      'Compare AUD to PKR transfer rates from Australia to Pakistan. Check fees, exchange rates and how many rupees arrive with each available provider.',
     intro: [
       'Australia is a smaller corridor into Pakistan than the Gulf or the UK, but a growing one, ' +
         'and the time-zone difference shapes it more than anything else. Australia runs several ' +
@@ -441,8 +435,7 @@ export const CORRIDOR_CONTENT: Record<SendCurrency, CorridorContent> = {
   QAR: {
     title: 'Best way to send money from Qatar to Pakistan',
     metaDescription:
-      'Live QAR to PKR comparison across the services available from Qatar, ranked by rupees ' +
-      'received. Rates and fees refreshed every 15 minutes.',
+      'Compare QAR to PKR rates for sending money from Qatar to Pakistan. Check available transfer services, fees and the rupees your recipient receives.',
     intro: [
       'Qatar hosts a substantial Pakistani workforce and the corridor is served mainly by ' +
         'exchange houses and bank remittance products rather than by the global digital brands. ' +
@@ -497,8 +490,7 @@ export const CORRIDOR_CONTENT: Record<SendCurrency, CorridorContent> = {
   EUR: {
     title: 'Best way to send money from the Eurozone to Pakistan',
     metaDescription:
-      'Compare live EUR to PKR rates across the major European remittance services, ranked by ' +
-      'the rupee amount received. Updated every 15 minutes.',
+      'Compare EUR to PKR rates for sending money from the Eurozone to Pakistan. See provider fees, payout methods and the final amount received in rupees.',
     intro: [
       'The Eurozone is not really one corridor — Pakistani communities in Spain, Italy, France, ' +
         'Germany and Greece each have their own established providers — but the euro rate is the ' +

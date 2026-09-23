@@ -1,13 +1,12 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { publicPageMetadata } from '@/lib/seo'
 
-export const metadata: Metadata = {
-  title: 'About PakRemits',
-  description:
-    'Why PakRemits exists, what it does differently from other remittance comparison sites, and ' +
-    'what it deliberately does not do.',
-  alternates: { canonical: '/about' },
-}
+export const metadata: Metadata = publicPageMetadata({
+  title: 'About PakRemits | Compare transfers to Pakistan',
+  description: 'Learn how PakRemits compares money transfers to Pakistan by the rupees received after fees and exchange rates, and why we show our working.',
+  path: '/about',
+})
 
 export default function AboutPage() {
   return (
@@ -49,9 +48,9 @@ export default function AboutPage() {
         </p>
         <p>
           <b className="text-ink">We cover Pakistani rails properly.</b> JazzCash, Easypaisa,
-          Sadapay, Nayapay, Roshan Digital Accounts and cash pickup all have different rates and
-          different delivery times, and global comparison sites tend to flatten them into one
-          number or skip them.
+          cash pickup and mobile wallets can have different rates and delivery times. We keep
+          SadaPay, NayaPay and Roshan Digital Accounts visible as familiar destinations, while
+          showing general bank-deposit quotes for those accounts.
         </p>
         <p>
           <b className="text-ink">We show our working.</b> Every quote carries a capture time,

@@ -50,8 +50,8 @@ export default async function AdminQuotesPage() {
       <h1 className="font-display text-3xl font-semibold">Quote overrides</h1>
       <p className="mt-2 max-w-[60ch] text-muted">
         Manual rows are written with source <code>manual</code> and rank exactly like live quotes.
-        Use this to correct a bad scrape, or to enter rates for providers with no sending API —
-        Sadapay, Nayapay, and the bank benchmark.
+        Use this to correct a bad scrape or enter a provider quote when automated collection is
+        unavailable. Named account destinations use general bank-deposit quotes in the public comparison.
       </p>
 
       <OverrideForm providers={options.providers} corridors={options.corridors} />

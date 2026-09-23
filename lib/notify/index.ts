@@ -8,16 +8,16 @@ export type { Channel, Message, Notifier, SendResult }
 /**
  * Pick a notifier for a channel.
  *
- * Falls back to the console notifier when credentials are missing rather than
- * failing, so a fresh clone can exercise the entire alert pipeline before
- * anyone signs up to Resend. The fallback is loud in the logs — it is not
- * something you could ship to production without noticing.
+ * Local development can log simulated sends. Production must fail closed when
+ * delivery credentials are absent, rather than accepting undeliverable alerts.
  */
 export function notifierFor(channel: Channel): Notifier {
   if (channel === 'email') {
     return process.env.RESEND_API_KEY && process.env.RESEND_FROM
       ? resendNotifier
-      : consoleNotifier
+      : process.env.NODE_ENV === 'production'
+        ? resendNotifier
+        : consoleNotifier
   }
 
   const twilioReady =
@@ -25,7 +25,8 @@ export function notifierFor(channel: Channel): Notifier {
     process.env.TWILIO_AUTH_TOKEN &&
     (channel === 'whatsapp' ? process.env.TWILIO_WHATSAPP_FROM : process.env.TWILIO_SMS_FROM)
 
-  return twilioReady ? twilioNotifier : consoleNotifier
+  if (twilioReady || process.env.NODE_ENV === 'production') return twilioNotifier
+  return consoleNotifier
 }
 
 /** Send through whichever notifier serves the message's channel. */

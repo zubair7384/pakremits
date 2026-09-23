@@ -8,7 +8,8 @@
  *
  * Two real cases from the 2 Sep 2026 survey that this catches automatically:
  *   - xe.com disallows /currencytransfers/, which is where its quote flow lives.
- *   - moneygram.com disallows our user-agent site-wide and sets ai-train=no.
+ * Provider policies are re-read every six hours because they can change
+ * independently of this codebase.
  *
  * Implements the subset of the spec that matters here: User-agent grouping with
  * a `*` fallback, Allow/Disallow with `*` and `$` wildcards, longest-match-wins
@@ -17,6 +18,28 @@
 
 /** What we identify as. Kept honest: a real contact URL, no browser spoofing. */
 export const PAKREMITS_USER_AGENT = 'PakRemitsBot'
+
+async function fetchRobotsIPv4(url: string): Promise<{ status: number; text: string }> {
+  const { get } = await import('node:https')
+  return new Promise((resolve, reject) => {
+    const request = get(
+      url,
+      {
+        family: 4,
+        headers: { 'user-agent': PAKREMITS_USER_AGENT, accept: 'text/plain' },
+        timeout: 8_000,
+      },
+      (response) => {
+        let text = ''
+        response.setEncoding('utf8')
+        response.on('data', (chunk) => (text += chunk))
+        response.on('end', () => resolve({ status: response.statusCode ?? 0, text }))
+      },
+    )
+    request.on('timeout', () => request.destroy(new Error('robots.txt timed out')))
+    request.on('error', reject)
+  })
+}
 
 interface RobotsRule {
   allow: boolean
@@ -178,7 +201,20 @@ async function loadPolicy(origin: string): Promise<RobotsPolicy> {
       policy = parseRobots(await response.text(), PAKREMITS_USER_AGENT)
     }
   } catch {
-    policy = { rules: [], crawlDelaySeconds: null, unavailable: true }
+    // A few provider CDNs advertise an unreachable IPv6 edge. Retry with IPv4
+    // before treating robots.txt as unavailable and suppressing valid quotes.
+    try {
+      const response = await fetchRobotsIPv4(`${origin}/robots.txt`)
+      if (response.status === 404 || response.status === 410) {
+        policy = { rules: [], crawlDelaySeconds: null, unavailable: false }
+      } else if (response.status >= 200 && response.status < 300) {
+        policy = parseRobots(response.text, PAKREMITS_USER_AGENT)
+      } else {
+        policy = { rules: [], crawlDelaySeconds: null, unavailable: true }
+      }
+    } catch {
+      policy = { rules: [], crawlDelaySeconds: null, unavailable: true }
+    }
   }
 
   cache.set(origin, { policy, expiresAt: Date.now() + CACHE_TTL_MS })
