@@ -1,4 +1,4 @@
-import { Bricolage_Grotesque, IBM_Plex_Sans, Noto_Nastaliq_Urdu } from 'next/font/google'
+import { Bricolage_Grotesque, Inter, Noto_Nastaliq_Urdu } from 'next/font/google'
 import localFont from 'next/font/local'
 
 /**
@@ -25,10 +25,11 @@ const bricolage = Bricolage_Grotesque({
   display: 'swap',
 })
 
-const plex = IBM_Plex_Sans({
+/** All text except the home hero headline, which keeps Bricolage. */
+const inter = Inter({
   subsets: ['latin'],
-  weight: ['400', '500'],
-  variable: '--font-plex',
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-inter',
   display: 'swap',
 })
 
@@ -84,4 +85,4 @@ const nastaliqSubset = localFont({
 })
 
 export const fonts =
-  `${bricolage.variable} ${plex.variable} ${nastaliq.variable} ${nastaliqSubset.variable}`
+  `${bricolage.variable} ${inter.variable} ${nastaliq.variable} ${nastaliqSubset.variable}`

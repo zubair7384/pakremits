@@ -50,8 +50,9 @@ export async function RateMarquee({
         key={`${duplicate ? 'dup-' : ''}${item.slug}`}
         href={corridorPath(item.slug, locale)}
         tabIndex={duplicate ? -1 : undefined}
-        className="group/mq flex items-center gap-3.5 border-r border-line-2 px-7 py-4.5
-                   whitespace-nowrap text-ink no-underline transition-colors hover:bg-mist"
+        className="group/mq flex items-center gap-3.5 border-r-[3px] border-line px-7 py-6
+                   whitespace-nowrap text-ink no-underline transition-colors
+                   hover:bg-[#EEF3E3] hover:text-[#2F520B]"
       >
         <span className="flex h-8.5 w-10 flex-none items-center justify-center rounded-[8px] bg-line-2">
           <CountryFlag countryCode={item.countryCode} />
@@ -100,7 +101,7 @@ export async function RateMarquee({
           stroke="currentColor"
           strokeWidth="2.2"
           className="h-4 w-4 -translate-x-1 text-faint opacity-0 transition-all
-                     group-hover/mq:translate-x-0 group-hover/mq:text-leaf group-hover/mq:opacity-100"
+                     group-hover/mq:translate-x-0 group-hover/mq:text-[#2F520B] group-hover/mq:opacity-100"
           aria-hidden="true"
         >
           <path d="M5 12h14M13 6l6 6-6 6" />
@@ -111,7 +112,7 @@ export async function RateMarquee({
 
   return (
     <section
-      className="relative mt-10 ml-[calc(50%-50vw)] w-screen"
+      className="relative mt-10 ms-[calc(50%-50vw)] w-screen"
       aria-label={t('marqueeLabel')}
     >
       <div
@@ -126,7 +127,7 @@ export async function RateMarquee({
         <span className="hidden sm:inline">{t('marqueeHint')}</span>
       </div>
 
-      <div className="marquee-viewport relative overflow-hidden border-y border-line bg-white">
+      <div className="marquee-viewport relative overflow-hidden border-y-[3px] border-line bg-white">
         <div className="marquee-track flex w-max">
           {items.map((item) => row(item, { duplicate: false }))}
           <span className="marquee-dup contents" aria-hidden="true">

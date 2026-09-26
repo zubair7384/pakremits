@@ -165,6 +165,7 @@ const nextConfig: NextConfig = {
         { source: '/how-we-rank', destination: '/en/how-we-rank' },
         { source: '/providers', destination: '/en/providers' },
         { source: '/providers/:slug', destination: '/en/providers/:slug' },
+        { source: '/compare', destination: '/en/compare' },
         { source: '/compare/:pair', destination: '/en/compare/:pair' },
         { source: '/about', destination: '/en/about' },
         { source: '/contact', destination: '/en/contact' },

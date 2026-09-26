@@ -168,6 +168,15 @@ export const en = {
     alertSetBody:
       'We will message you the moment the rate crosses your target, with the best provider at ' +
       'that moment. At most once every 12 hours.',
+    dialogTitle: 'Tell me when the rate hits my target',
+    dialogBody:
+      'We watch the market every 15 minutes and email you the moment it crosses, with the best ' +
+      'provider at that moment.',
+    previewSender: 'PakRemits alerts',
+    // <strong> wraps the headline of the sample message.
+    previewLine: '<strong>{pair} just crossed {rate}</strong>. Open PakRemits to see who is paying it.',
+    close: 'Close',
+    unavailable: 'Alerts are temporarily unavailable.',
   },
 
   panel: {
@@ -226,6 +235,25 @@ export const en = {
     speedVaries: 'Varies',
 
     promoNewCustomer: 'New-customer rate',
+    to: 'To',
+    currency: 'Sending currency',
+    receiveCurrency: 'Recipient currency',
+    amountIn: 'Amount in {currency}',
+    compareShort: 'Compare',
+    recipientGetsShort: 'Recipient gets',
+  },
+
+  compare: {
+    titleBank: 'Transfer to a bank account',
+    titleCash: 'Send for cash pickup',
+    titleNamed: 'Transfer to {name}',
+    providers: '{count} providers',
+    pakistan: 'Pakistan',
+    quotesRefreshed: 'Quotes refreshed {time} PKT',
+    midMarket: 'Mid-market exchange rate',
+    thisWeek: 'this week',
+    flatThisWeek: 'Flat this week',
+    getAlerts: 'Get alerts',
   },
 
   methods: {

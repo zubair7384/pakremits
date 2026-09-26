@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useEffect, useId, useRef, useState } from 'react'
 
 /**
- * The header's nav below the md breakpoint.
+ * The header's nav below the lg breakpoint.
  *
  * A client component because a disclosure needs state. `<details>`/`<summary>`
  * would have kept the header JS-free, but every link in here is a same-page
@@ -46,7 +46,7 @@ export function MobileNav({
   }, [open])
 
   return (
-    <div className="md:hidden">
+    <div className="lg:hidden">
       <button
         ref={buttonRef}
         type="button"
@@ -54,8 +54,8 @@ export function MobileNav({
         aria-expanded={open}
         aria-controls={panelId}
         aria-label={open ? closeLabel : openLabel}
-        className="flex h-10 w-10 items-center justify-center rounded-full
-                   border border-green-3 text-white"
+        className="flex h-10 w-10 items-center justify-center rounded-[10px]
+                   border border-line text-ink"
       >
         <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true" fill="none">
           {open ? (
@@ -78,22 +78,22 @@ export function MobileNav({
 
       {/* Anchored to the header bar, not the button: full-bleed, so the panel
           reads as the bar growing downwards rather than as a floating card.
-          top-[72px] matches the bar's fixed height. */}
+          top-[86px] matches the bar's fixed height. */}
       <div
         id={panelId}
         hidden={!open}
-        className="absolute inset-x-0 top-[72px] border-b border-green-3 bg-green-2"
+        className="absolute inset-x-0 top-[86px] border-b border-line bg-white"
       >
         <nav aria-label={label} className="mx-auto max-w-[1120px] px-6 py-2">
           <ul className="grid">
             {items.map((item) => (
-              <li key={item.href} className="border-b border-green-3/60 last:border-0">
+              <li key={item.href} className="border-b border-line-2 last:border-0">
                 <Link
                   href={item.href}
                   // Hash links do not remount this component, so the panel has
                   // to be closed by hand on the way out.
                   onClick={() => setOpen(false)}
-                  className="block py-3.5 text-[15px] text-[#C9D9D0] no-underline hover:text-white"
+                  className="block py-3.5 text-[15px] text-ink no-underline hover:text-green"
                 >
                   {item.label}
                 </Link>

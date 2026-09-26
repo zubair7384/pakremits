@@ -7,6 +7,7 @@
  * path should never be linked directly.
  */
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ComparePanel } from '@/components/compare-panel'
@@ -98,9 +99,27 @@ export default async function CorridorPage({ params }: { params: Promise<{ local
       <SiteHeader locale={locale} />
 
       <main>
-        <div className="bg-green px-0 pt-10 pb-28 text-mist">
-          <div className="mx-auto max-w-[1120px] px-6">
-            <nav aria-label="Breadcrumb" className="text-[13px] text-[#99B3A6]">
+        {/* Same gradient band as the home hero, with a straight bottom edge; the
+            live search bar straddles its lower edge. */}
+        <div className="relative pt-10 pb-24 text-white sm:pt-14 sm:pb-28">
+          <div
+            aria-hidden="true"
+            className="hero-gradient absolute inset-0"
+          />
+          <div className="relative mx-auto max-w-[1120px] px-6 lg:min-h-[420px]">
+            {/* Mascot stands beside the intro, feet on the search bar top edge (48px below
+                this box, plus the PNG's ~6px bottom padding); lg+ only. The min height
+                keeps its horns inside the band when a corridor's intro is short. */}
+            <Image
+              src="/pakrimits-mascot.png"
+              alt=""
+              width={762}
+              height={1661}
+              priority
+              sizes="230px"
+              className="pointer-events-none absolute end-6 -bottom-[54px] hidden h-[480px] w-auto drop-shadow-[0_12px_24px_rgba(0,0,0,.25)] select-none lg:block"
+            />
+            <nav aria-label="Breadcrumb" className="text-[13px] text-white/70">
               <ol className="flex flex-wrap items-center gap-2">
                 <li>
                   <Link href="/" className="no-underline hover:text-white">
@@ -108,43 +127,45 @@ export default async function CorridorPage({ params }: { params: Promise<{ local
                   </Link>
                 </li>
                 <li aria-hidden="true">/</li>
-                <li className="text-[#C9D9D0]">{corridor.fromCountryName} to Pakistan</li>
+                <li className="text-white/90">{corridor.fromCountryName} to Pakistan</li>
               </ol>
             </nav>
 
-            <h1 className="mt-5 max-w-[18ch] text-[clamp(34px,4.6vw,54px)] leading-[1.05] font-semibold">
+            <h1 className="mt-5 max-w-[18ch] font-hero text-[clamp(34px,4.6vw,54px)] leading-[1.06] font-bold tracking-[-0.03em]">
               {content.title}
             </h1>
 
-            <div className="mt-5 max-w-[58ch] space-y-4 text-[17px] text-[#C9D9D0]">
+            <div className="mt-5 max-w-[60ch] space-y-4 text-[17px] text-white/85">
               {content.intro.map((paragraph) => (
                 <p key={paragraph.slice(0, 32)}>{paragraph}</p>
               ))}
             </div>
 
             {saving !== null && (
-              <p className="mt-6 text-[15px] text-[#B2C6BC]">
+              <p className="mt-6 text-[15px] text-white/85">
                 Right now the best service on this page beats a typical high-street bank by{' '}
-                <b className="font-medium text-gold">{formatPkr(saving)}</b> on{' '}
+                <b className="font-bold text-white">{formatPkr(saving)}</b> on{' '}
                 {formatSend(symbol, comparison?.amount ?? 0)}.
               </p>
             )}
           </div>
         </div>
 
-        <div className="mx-auto max-w-[1120px] px-6">
+        <div className="relative mx-auto -mt-14 max-w-[1120px] px-6 sm:-mt-16">
           {comparison ? (
             <ComparePanel initial={comparison} corridors={corridorOptions} />
           ) : (
-            <section className="relative -mt-20 rounded-panel-lg border border-line bg-white p-10">
-              <h2 className="font-display text-xl font-semibold">No quotes yet</h2>
+            <section className="relative rounded-[22px] bg-white p-10 shadow-[0_6px_20px_-10px_rgba(20,32,27,.12),0_1px_2px_rgba(20,32,27,.04)]">
+              <h2 className="text-xl font-bold">No quotes yet</h2>
               <p className="mt-2 text-muted">
                 We have no live quotes for this corridor at the moment. The refresh runs every 15
                 minutes.
               </p>
             </section>
           )}
+        </div>
 
+        <div className="mx-auto max-w-[1120px] px-6">
           {/* 30-day chart */}
           <section className="mt-16">
             <RateChart

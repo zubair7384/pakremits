@@ -7,7 +7,7 @@ type TurnstileApi = {
   render: (element: HTMLElement, options: {
     sitekey: string
     appearance: 'interaction-only'
-    theme: 'dark'
+    theme: 'dark' | 'light'
     callback: (token: string) => void
     'expired-callback': () => void
     'error-callback': () => void
@@ -20,8 +20,10 @@ declare global {
   interface Window { turnstile?: TurnstileApi }
 }
 
-export function TurnstileWidget({ siteKey, onToken, resetNonce }: {
+export function TurnstileWidget({ siteKey, onToken, resetNonce, theme = 'dark' }: {
   siteKey: string
+  /** Match the surface the widget sits on. */
+  theme?: 'dark' | 'light'
   onToken: (token: string | null) => void
   resetNonce: number
 }) {
@@ -36,7 +38,7 @@ export function TurnstileWidget({ siteKey, onToken, resetNonce }: {
     widgetId.current = window.turnstile.render(container.current, {
       sitekey: siteKey,
       appearance: 'interaction-only',
-      theme: 'dark',
+      theme,
       callback: (token) => callback.current(token),
       'expired-callback': () => callback.current(null),
       'error-callback': () => callback.current(null),
@@ -45,7 +47,7 @@ export function TurnstileWidget({ siteKey, onToken, resetNonce }: {
       if (widgetId.current && window.turnstile) window.turnstile.remove(widgetId.current)
       widgetId.current = null
     }
-  }, [ready, siteKey])
+  }, [ready, siteKey, theme])
 
   useEffect(() => {
     if (resetNonce && widgetId.current && window.turnstile) window.turnstile.reset(widgetId.current)

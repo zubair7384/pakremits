@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 
 /**
- * The home comparison flow.
+ * The live comparison panel (corridor pages).
  *
  * Asserts behaviour, never a specific rate. Which provider wins changes hourly,
  * so a test pinned to "Remitly is first" would go red the moment a promotional
@@ -19,26 +19,29 @@ function parsePkr(text: string): number {
 /**
  * The results region, scoped to the panel.
  *
- * A bare `[aria-live]` matches two elements — the results and the alert form's
- * status line — which trips Playwright's strict mode. Two live regions is
- * correct for accessibility; the selector just has to say which one it means.
+ * Scoped to the panel so any other live region on the page (the rate alert
+ * dialog's status line) cannot trip Playwright's strict mode.
  */
 const results = '#compare [aria-live]'
 
 async function chooseOption(page: Page, controlId: string, optionName: string) {
   await page.locator(`#${controlId}`).click()
-  await page.getByRole('option', { name: optionName, exact: true }).click()
+  // An option's name can carry its hint ("United Arab Emirates AED"), so match
+  // on the leading label.
+  await page.getByRole('option', { name: new RegExp(`^${optionName}\\b`) }).click()
 }
 
 test.beforeEach(async ({ page }) => {
-  await page.goto('/')
+  // The live panel moved off the home page, which now has a search form that
+  // hands off to /compare. Corridor pages still carry it in full.
+  await page.goto('/send-money-from-uk-to-pakistan')
   // Wait for the server-rendered table rather than a fixed sleep.
   await expect(page.locator(`${results} >> text=/Recipient gets|₨|Rs/`).first()).toBeVisible()
 })
 
 test('ranks providers by rupees received, highest first', async ({ page }) => {
   const amounts = await page
-    .locator(`${results} > div b`)
+    .locator(`${results} li b`)
     .allTextContents()
     .then((texts) => texts.map(parsePkr).filter((n) => Number.isFinite(n)))
 
@@ -55,7 +58,7 @@ test('marks exactly one best deal, and it is the largest amount', async ({ page 
   const best = page.locator(`${results} >> text="Best deal"`)
   await expect(best).toHaveCount(1)
 
-  const rows = page.locator(`${results} > div`)
+  const rows = page.locator(`${results} li`)
   const bestRowAmount = parsePkr(
     (await rows.filter({ hasText: 'Best deal' }).locator('b').first().textContent()) ?? '',
   )
@@ -68,7 +71,7 @@ test('marks exactly one best deal, and it is the largest amount', async ({ page 
 })
 
 test('recomputes when the amount changes', async ({ page }) => {
-  const first = page.locator(`${results} > div b`).first()
+  const first = page.locator(`${results} li b`).first()
   const before = parsePkr((await first.textContent()) ?? '')
 
   await page.fill('#amt', '1000')
@@ -84,7 +87,7 @@ test('recomputes when the amount changes', async ({ page }) => {
 
 test('resets the amount to the corridor default when the country changes', async ({ page }) => {
   await page.fill('#amt', '137')
-  await chooseOption(page, 'from', 'United Arab Emirates · AED')
+  await chooseOption(page, 'from', 'United Arab Emirates')
 
   // £137 must not carry over as د.إ137 — the currencies differ by an order of
   // magnitude and the rates were captured at a different band.
@@ -94,26 +97,26 @@ test('resets the amount to the corridor default when the country changes', async
 
 test('drops providers that do not serve the chosen delivery method', async ({ page }) => {
   const namesFor = async () =>
-    (await page.locator(`${results} > div .font-medium`).allTextContents()).join(' ')
+    (await page.locator(`${results} li`).allTextContents()).join(' ')
 
   await chooseOption(page, 'method', 'Bank account')
   await expect.poll(namesFor, { timeout: 15_000 }).toContain('Wise')
 
   // Wise pays out to Pakistani bank accounts only.
-  await chooseOption(page, 'method', 'JazzCash or Easypaisa')
+  await chooseOption(page, 'method', 'JazzCash')
   await expect.poll(namesFor, { timeout: 15_000 }).not.toContain('Wise')
 })
 
 test('named bank accounts keep their labels and show bank-deposit quotes', async ({ page }) => {
   await chooseOption(page, 'method', 'Bank account')
-  const bankRows = await page.locator(`${results} > div b`).allTextContents()
+  const bankRows = await page.locator(`${results} li b`).allTextContents()
   expect(bankRows.length).toBeGreaterThan(0)
 
   for (const account of ['SadaPay', 'NayaPay', 'Roshan Digital Account']) {
     await chooseOption(page, 'method', account)
     await expect(page.getByText(/general PKR bank-deposit quotes/i)).toBeVisible()
     await expect(page.locator('#method')).toContainText(account === 'Roshan Digital Account' ? 'RDA' : account)
-    expect(await page.locator(`${results} > div b`).allTextContents()).toEqual(bankRows)
+    expect(await page.locator(`${results} li b`).allTextContents()).toEqual(bankRows)
   }
 })
 
@@ -121,9 +124,9 @@ test('the fastest sort reorders rows but the gold highlight stays on the most ru
   page,
 }) => {
   const bestBefore = await page
-    .locator(`${results} > div`)
+    .locator(`${results} li`)
     .filter({ hasText: 'Best deal' })
-    .locator('.font-medium')
+    .locator('.font-display')
     .first()
     .textContent()
 
@@ -131,9 +134,9 @@ test('the fastest sort reorders rows but the gold highlight stays on the most ru
   await page.waitForTimeout(1500)
 
   const bestAfter = await page
-    .locator(`${results} > div`)
+    .locator(`${results} li`)
     .filter({ hasText: 'Best deal' })
-    .locator('.font-medium')
+    .locator('.font-display')
     .first()
     .textContent()
 

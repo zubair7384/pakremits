@@ -9,8 +9,11 @@ import { expect, test } from '@playwright/test'
  * user would.
  */
 
+/** The live panel lives on the corridor pages; home hands off to /compare. */
+const PANEL_PAGE = '/send-money-from-uk-to-pakistan'
+
 test('the comparison panel is fully operable by keyboard', async ({ page }) => {
-  await page.goto('/')
+  await page.goto(PANEL_PAGE)
   await expect(page.locator('#compare')).toBeVisible()
 
   // Tab from the top until focus reaches the corridor select.
@@ -28,7 +31,8 @@ test('the comparison panel is fully operable by keyboard', async ({ page }) => {
   await page.keyboard.press('Enter')
   await page.keyboard.press('ArrowDown')
   await page.keyboard.press('Enter')
-  await expect(page.locator('#from')).toContainText('United Arab Emirates')
+  // The one-row bar shows the short name once selected.
+  await expect(page.locator('#from')).toContainText(/UAE|United Arab Emirates/)
   await expect
     .poll(async () => page.inputValue('#amt'), { timeout: 15_000 })
     .not.toBe('500')
@@ -72,7 +76,7 @@ test('keyboard focus is visible, not just present', async ({ page }) => {
 })
 
 test('the sort control is operable by keyboard and reports its state', async ({ page }) => {
-  await page.goto('/')
+  await page.goto(PANEL_PAGE)
   const fastest = page.getByRole('button', { name: 'Fastest' })
 
   await fastest.focus()
@@ -87,7 +91,7 @@ test('the sort control is operable by keyboard and reports its state', async ({ 
 })
 
 test('results are announced through a live region', async ({ page }) => {
-  await page.goto('/')
+  await page.goto(PANEL_PAGE)
   const live = page.locator('#compare [aria-live]')
   await expect(live).toHaveAttribute('aria-live', 'polite')
   // aria-busy flips while a fetch is in flight so a screen reader is not read

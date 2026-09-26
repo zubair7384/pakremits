@@ -74,9 +74,14 @@ export default async function MethodPage({ params }: { params: Promise<{ locale:
       <SiteHeader locale={locale} />
 
       <main>
-        <div className="bg-green px-0 pt-10 pb-28 text-mist">
-          <div className="mx-auto max-w-[1120px] px-6">
-            <nav aria-label="Breadcrumb" className="text-[13px] text-[#99B3A6]">
+        {/* Same gradient band as the home and corridor heroes. */}
+        <div className="relative pt-10 pb-24 text-white sm:pt-14 sm:pb-28">
+          <div
+            aria-hidden="true"
+            className="hero-gradient absolute inset-0 [clip-path:polygon(0_0,100%_0,100%_86%,0_100%)]"
+          />
+          <div className="relative mx-auto max-w-[1120px] px-6">
+            <nav aria-label="Breadcrumb" className="text-[13px] text-white/70">
               <ol className="flex items-center gap-2">
                 <li>
                   <Link href="/" className="no-underline hover:text-white">
@@ -84,15 +89,15 @@ export default async function MethodPage({ params }: { params: Promise<{ locale:
                   </Link>
                 </li>
                 <li aria-hidden="true">/</li>
-                <li className="text-[#C9D9D0]">{content.title}</li>
+                <li className="text-white/90">{content.title}</li>
               </ol>
             </nav>
 
-            <h1 className="mt-5 max-w-[18ch] text-[clamp(32px,4.4vw,50px)] leading-[1.05] font-semibold">
+            <h1 className="mt-5 max-w-[18ch] font-hero text-[clamp(32px,4.4vw,50px)] leading-[1.06] font-bold tracking-[-0.03em]">
               {content.title}
             </h1>
 
-            <div className="mt-5 max-w-[58ch] space-y-4 text-[17px] text-[#C9D9D0]">
+            <div className="mt-5 max-w-[60ch] space-y-4 text-[17px] text-white/85">
               {content.intro.map((paragraph) => (
                 <p key={paragraph.slice(0, 32)}>{paragraph}</p>
               ))}
@@ -100,7 +105,7 @@ export default async function MethodPage({ params }: { params: Promise<{ locale:
           </div>
         </div>
 
-        <div className="mx-auto max-w-[1120px] px-6">
+        <div className="relative mx-auto -mt-14 max-w-[1120px] px-6 sm:-mt-16">
           {comparison && hasQuotes ? (
             <ComparePanel
               initial={comparison}
@@ -108,7 +113,7 @@ export default async function MethodPage({ params }: { params: Promise<{ locale:
               initialPayout={slug === 'rda' ? 'rda' : undefined}
             />
           ) : (
-            <section className="relative -mt-20 rounded-panel-lg border border-line bg-white p-10">
+            <section className="relative rounded-[22px] bg-white p-10 shadow-[0_6px_20px_-10px_rgba(20,32,27,.12),0_1px_2px_rgba(20,32,27,.04)]">
               <h2 className="font-display text-xl font-semibold">
                 No live quotes for this method yet
               </h2>
