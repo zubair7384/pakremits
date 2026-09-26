@@ -186,7 +186,7 @@ export default async function ComparePairPage({
         <section className="mt-10">
           <h2 className="text-[26px] leading-tight font-semibold">Corridor by corridor</h2>
 
-          <div className="mt-4 overflow-x-auto rounded-panel border border-line bg-white">
+          <div className="mt-4 overflow-x-auto rounded-panel border border-line bg-surface">
             <table className="w-full min-w-[760px] border-collapse text-[15px]">
               <thead>
                 <tr className="border-b border-line text-left text-xs text-faint">

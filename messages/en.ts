@@ -15,6 +15,8 @@ export const en = {
     main: 'Main',
     openMenu: 'Open menu',
     closeMenu: 'Close menu',
+    themeDark: 'Switch to dark mode',
+    themeLight: 'Switch to light mode',
   },
 
   home: {
@@ -45,7 +47,7 @@ export const en = {
     corridorsLede:
       'Every corridor has its own page with live rates, delivery times, and limits.',
     bestToday: 'Best today',
-    whyTitle: 'Why our ranking looks different from other comparison sites',
+    whyTitle: 'Why our ranking looks different from other <br></br>comparison sites',
     faqTitle: 'Common questions',
 
     statComparedBody:
@@ -177,6 +179,9 @@ export const en = {
     previewLine: '<strong>{pair} just crossed {rate}</strong>. Open PakRemits to see who is paying it.',
     close: 'Close',
     unavailable: 'Alerts are temporarily unavailable.',
+    ctaBody:
+      'Pick a target rate. We watch the market every 15 minutes and email you the moment it ' +
+      'crosses, with the best provider at that moment.',
   },
 
   panel: {
@@ -207,7 +212,14 @@ export const en = {
     perUnit: 'per {symbol}',
     moreThanBank: '{amount} more than your bank',
     lessThanBest: '{amount} less than best',
+    lowestInList: 'Lowest in this list: {amount}',
     bestAvailable: 'Best available',
+    transferTime: 'Transfer time',
+    feeAndRate: 'Fee & rate',
+    free: 'Free',
+    rateLine: 'Rate {rate}',
+    // Non-breaking hyphen so a narrow card wraps before "mid-market", not inside it.
+    vsMidMarket: '{percent} vs mid\u2011market',
     sendWith: 'Send with {provider}',
     whySoLow: 'Why so low?',
     emptyState: 'No provider we track delivers to Pakistan this way from {currency} yet.',

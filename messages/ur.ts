@@ -40,6 +40,10 @@ export const ur: Messages = {
     openMenu: 'مینو کھولیں',
     // TODO: native review — accessibility label on the mobile menu button
     closeMenu: 'مینو بند کریں',
+    // TODO: native review — accessibility label on the theme switch
+    themeDark: 'ڈارک موڈ پر جائیں',
+    // TODO: native review
+    themeLight: 'لائٹ موڈ پر جائیں',
   },
 
   home: {
@@ -282,6 +286,9 @@ export const ur: Messages = {
     close: 'بند کریں',
     // TODO: native review
     unavailable: 'الرٹ عارضی طور پر دستیاب نہیں۔',
+    // TODO: native review
+    ctaBody:
+      'اپنا مطلوبہ ریٹ چنیں۔ ہم ہر 15 منٹ میں مارکیٹ دیکھتے ہیں اور جیسے ہی ریٹ وہاں پہنچے، اس وقت کے بہترین ادارے کے ساتھ آپ کو ای میل کرتے ہیں۔',
   },
 
   panel: {
@@ -338,7 +345,19 @@ export const ur: Messages = {
     // TODO: native review
     lessThanBest: 'بہترین سے {amount} کم',
     // TODO: native review
+    lowestInList: 'اس فہرست میں سب سے کم: {amount}',
+    // TODO: native review
     bestAvailable: 'سب سے بہتر',
+    // TODO: native review
+    transferTime: 'ٹرانسفر کا وقت',
+    // TODO: native review
+    feeAndRate: 'فیس اور ریٹ',
+    // TODO: native review
+    free: 'مفت',
+    // TODO: native review
+    rateLine: 'ریٹ {rate}',
+    // TODO: native review
+    vsMidMarket: 'مڈ مارکیٹ سے {percent}',
     // TODO: native review
     sendWith: '{provider} سے بھیجیں',
     // TODO: native review

@@ -87,7 +87,7 @@ export default async function ProvidersPage({
             <Link
               key={provider.slug}
               href={`/providers/${provider.slug}`}
-              className="rounded-panel border border-line bg-white p-6 no-underline transition-all
+              className="rounded-panel border border-line bg-surface p-6 no-underline transition-all
                          hover:-translate-y-px hover:border-leaf"
             >
               <div className="flex items-center gap-3.5">

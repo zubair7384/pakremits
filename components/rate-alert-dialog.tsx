@@ -174,7 +174,7 @@ export function RateAlertDialog({
         if (event.target === event.currentTarget) close()
       }}
       className="m-auto max-h-[calc(100dvh-32px)] w-[calc(100vw-32px)] max-w-[560px] overflow-y-auto
-                 rounded-[20px] bg-white p-0 text-ink shadow-[0_30px_80px_-20px_rgba(20,32,27,.35)]
+                 rounded-[20px] bg-surface p-0 text-ink shadow-[0_30px_80px_-20px_rgba(20,32,27,.35)]
                  backdrop:bg-[rgba(20,32,27,.45)]"
     >
       {open && (
@@ -201,8 +201,8 @@ export function RateAlertDialog({
           </div>
 
           {status.kind === 'ok' ? (
-            <div className="mt-6 rounded-[12px] border-s-4 border-[#85A61C] bg-[#EEF3E3] px-5 py-4" role="status">
-              <h3 className="text-[18px] font-bold text-[#2F520B]">
+            <div className="mt-6 rounded-[12px] border-s-4 border-[#85A61C] bg-tint px-5 py-4" role="status">
+              <h3 className="text-[18px] font-bold text-tint-ink">
                 {status.needsConfirmation ? t('checkInbox') : t('alertSet')}
               </h3>
               <p className="mt-1.5 text-[15px] text-ink">
@@ -264,17 +264,17 @@ export function RateAlertDialog({
                   required
                   autoComplete="email"
                   placeholder="you@example.com"
-                  className="h-[58px] w-full rounded-[8px] border-[3px] border-line bg-white px-5
-                             text-[20px] font-medium text-ink placeholder:text-[#8A958F]
+                  className="h-[58px] w-full rounded-[8px] border-[3px] border-line bg-surface px-5
+                             text-[20px] font-medium text-ink placeholder:text-faint
                              focus:outline-none focus-visible:outline-none"
                 />
 
                 {/* What the alert will look like when it lands. */}
                 <div
-                  className="mt-5 rounded-[12px] border-s-4 border-[#85A61C] bg-[#EEF3E3] px-5 py-3.5"
+                  className="mt-5 rounded-[12px] border-s-4 border-[#85A61C] bg-tint px-5 py-3.5"
                   aria-hidden="true"
                 >
-                  <div className="text-[14px] font-medium text-[#4E7A12]">{t('previewSender')}</div>
+                  <div className="text-[14px] font-medium text-tint-ink">{t('previewSender')}</div>
                   <p className="mt-1 text-[15px] leading-snug text-ink">
                     {t.rich('previewLine', {
                       pair: `${currency} → PKR`,
@@ -303,14 +303,14 @@ export function RateAlertDialog({
                     />
                   </div>
                 ) : (
-                  <p className="mt-3 text-sm text-[#A32D2D]">{t('unavailable')}</p>
+                  <p className="mt-3 text-sm text-danger">{t('unavailable')}</p>
                 )}
 
                 <button
                   type="submit"
                   disabled={status.kind === 'sending' || !turnstileToken}
                   className="mt-4 h-[58px] w-full cursor-pointer rounded-[8px] bg-gold text-[20px] font-bold
-                             text-ink transition-colors hover:bg-[#DDA73C] disabled:cursor-not-allowed
+                             text-on-gold transition-colors hover:bg-[#DDA73C] disabled:cursor-not-allowed
                              disabled:opacity-60"
                 >
                   {status.kind === 'sending' ? t('creating') : t('createAlert')}
@@ -318,7 +318,7 @@ export function RateAlertDialog({
 
                 <p aria-live="polite" className="mt-4 min-h-[1.25rem] text-center text-[13px]">
                   {status.kind === 'error' ? (
-                    <span className="text-[#A32D2D]">{status.message}</span>
+                    <span className="text-danger">{status.message}</span>
                   ) : (
                     <span className="text-muted">{t('fineprint')}</span>
                   )}

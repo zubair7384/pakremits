@@ -50,32 +50,32 @@ export async function RateMarquee({
         key={`${duplicate ? 'dup-' : ''}${item.slug}`}
         href={corridorPath(item.slug, locale)}
         tabIndex={duplicate ? -1 : undefined}
-        className="group/mq flex items-center gap-3.5 border-r-[3px] border-line px-7 py-6
+        className="group/mq flex items-center gap-2.5 border-r-[3px] border-line px-4 py-3.5 sm:gap-3.5 sm:px-7 sm:py-6
                    whitespace-nowrap text-ink no-underline transition-colors
-                   hover:bg-[#EEF3E3] hover:text-[#2F520B]"
+                   hover:bg-tint hover:text-tint-ink"
       >
-        <span className="flex h-8.5 w-10 flex-none items-center justify-center rounded-[8px] bg-line-2">
+        <span className="flex h-7 w-8 flex-none items-center justify-center rounded-[7px] bg-line-2 sm:h-8.5 sm:w-10 sm:rounded-[8px] [&_svg]:max-sm:h-3.5 [&_svg]:max-sm:w-5">
           <CountryFlag countryCode={item.countryCode} />
         </span>
 
-        <span className="text-[15px] leading-[1.2] font-medium">
+        <span className="text-[13px] leading-[1.2] font-medium sm:text-[15px]">
           {item.countryName}
-          <small className="mt-0.5 block text-[12px] leading-[1.2] font-normal text-faint">
+          <small className="mt-0.5 block text-[11px] leading-[1.2] font-normal text-faint sm:text-[12px]">
             → PKR
           </small>
         </span>
 
-        <span className="money ml-2 font-display text-xl font-semibold tracking-[-0.02em] tabular-nums">
+        <span className="money ml-1 font-display text-[17px] font-semibold tracking-[-0.02em] tabular-nums sm:ml-2 sm:text-xl">
           {item.bestRate?.toFixed(2) ?? '—'}
         </span>
 
         {item.changePercent !== null && (
           <span
-            className={`rounded-full px-1.75 py-0.5 text-[12px] ${
+            className={`rounded-full px-1.5 py-0.5 text-[11px] sm:px-1.75 sm:text-[12px] ${
               trend === 'up'
-                ? 'bg-[#E4F3EB] text-[#1C6B4A]'
+                ? 'bg-icon-bg text-ok'
                 : trend === 'down'
-                  ? 'bg-[#FBE9E9] text-[#A32D2D]'
+                  ? 'bg-danger-bg text-danger'
                   : 'bg-line-2 text-muted'
             }`}
             aria-label={
@@ -100,8 +100,8 @@ export async function RateMarquee({
           fill="none"
           stroke="currentColor"
           strokeWidth="2.2"
-          className="h-4 w-4 -translate-x-1 text-faint opacity-0 transition-all
-                     group-hover/mq:translate-x-0 group-hover/mq:text-[#2F520B] group-hover/mq:opacity-100"
+          className="hidden h-4 w-4 -translate-x-1 text-faint opacity-0 transition-all sm:block
+                     group-hover/mq:translate-x-0 group-hover/mq:text-tint-ink group-hover/mq:opacity-100"
           aria-hidden="true"
         >
           <path d="M5 12h14M13 6l6 6-6 6" />
@@ -116,8 +116,8 @@ export async function RateMarquee({
       aria-label={t('marqueeLabel')}
     >
       <div
-        className="mx-auto mb-3.5 flex max-w-[1120px] items-baseline justify-between gap-4
-                   px-6 text-[13px] text-muted"
+        className="mx-auto mb-3 flex max-w-[1120px] items-baseline justify-between gap-4
+                   px-6 text-[12px] text-muted sm:mb-3.5 sm:text-[13px]"
       >
         <span>
           {t.rich('marqueeHead', {
@@ -127,7 +127,7 @@ export async function RateMarquee({
         <span className="hidden sm:inline">{t('marqueeHint')}</span>
       </div>
 
-      <div className="marquee-viewport relative overflow-hidden border-y-[3px] border-line bg-white">
+      <div className="marquee-viewport relative overflow-hidden border-y-[3px] border-line bg-surface">
         <div className="marquee-track flex w-max">
           {items.map((item) => row(item, { duplicate: false }))}
           <span className="marquee-dup contents" aria-hidden="true">

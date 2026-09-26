@@ -123,7 +123,7 @@ export default async function RatePage({ params }: { params: Promise<{ locale: s
       <SiteHeader locale={locale} />
 
       <main>
-        <div className="bg-green px-0 pt-10 pb-24 text-mist">
+        <div className="bg-[#0b3d2e] px-0 pt-10 pb-24 text-[#f3f6f4]">
           <div className="mx-auto max-w-[1120px] px-6">
             <nav aria-label="Breadcrumb" className="text-[13px] text-[#99B3A6]">
               <ol className="flex items-center gap-2">
@@ -181,7 +181,7 @@ export default async function RatePage({ params }: { params: Promise<{ locale: s
         <div className="mx-auto max-w-[1120px] px-6">
           {/* Best right now */}
           {best && comparison && (
-            <section className="relative -mt-14 rounded-panel-lg border border-line bg-white p-7 shadow-[0_40px_80px_-40px_rgba(11,61,46,.35)]">
+            <section className="relative -mt-14 rounded-panel-lg border border-line bg-surface p-7 shadow-[0_40px_80px_-40px_rgba(11,61,46,.35)]">
               <h2 className="text-[13px] font-medium text-faint">Best right now</h2>
               <div className="mt-3 flex flex-wrap items-center justify-between gap-5">
                 <div className="flex items-center gap-4">
@@ -211,7 +211,7 @@ export default async function RatePage({ params }: { params: Promise<{ locale: s
 
                 <Link
                   href={corridorPath(corridor.slug)}
-                  className="flex h-11 items-center rounded-control bg-leaf px-5 font-medium text-white no-underline hover:bg-leaf-dark"
+                  className="flex h-11 items-center rounded-control bg-[#1c7c54] px-5 font-medium text-white no-underline hover:bg-[#166944]"
                 >
                   Compare all services
                 </Link>

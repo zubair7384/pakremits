@@ -141,10 +141,11 @@ export default async function ComparePage({
         </div>
       </div>
 
-      <main className="mx-auto max-w-[1120px] px-6 pt-12">
-        {/* Title and details on the left, rate and alert cards on the right —
-            one row on desktop, stacked below lg. */}
-        <div className="flex flex-col gap-7 lg:flex-row lg:items-center lg:justify-between lg:gap-8">
+      <main className="mx-auto flex max-w-[1120px] flex-col px-6 pt-12 lg:block">
+        {/* Desktop: title and details on the left, rate and alert cards on the
+            right. Below lg the row dissolves (`contents`) so the cards can drop
+            under the results — on a phone the list is what matters. */}
+        <div className="contents lg:flex lg:flex-row lg:items-center lg:justify-between lg:gap-8">
         <div className="min-w-0">
         <h1 className="flex items-center gap-3 text-[clamp(28px,3.2vw,34px)] leading-tight font-bold">
           <span className="text-green [&_svg]:h-7 [&_svg]:w-7 [&_svg]:text-green">
@@ -175,8 +176,10 @@ export default async function ComparePage({
         )}
         </div>
 
-        <div className="flex shrink-0 flex-wrap gap-3">
-          <div className="flex items-center gap-5 rounded-[14px] border border-line bg-white px-5 py-4">
+        <div className="order-last mt-10 flex shrink-0 flex-wrap gap-3 lg:order-none lg:mt-0">
+          {/* min-w-0 on the card and sparkline lets the chart shrink on narrow
+              phones instead of pushing the page wider than the screen. */}
+          <div className="flex min-w-0 items-center gap-3 rounded-[14px] border border-line bg-surface px-5 py-4 sm:gap-5">
             <div>
               <div className="text-[13px] text-muted">{tc('midMarket')}</div>
               <div className="mt-0.5 font-display text-[19px] font-semibold whitespace-nowrap tabular-nums">
@@ -190,7 +193,7 @@ export default async function ComparePage({
                     tc('flatThisWeek')
                   ) : (
                     <>
-                      <span className={trend === 'down' ? 'text-[#C0392B]' : 'text-leaf'}>
+                      <span className={trend === 'down' ? 'text-danger' : 'text-leaf'}>
                         {trend === 'down' ? '▼' : '▲'} {Math.abs(series.changePercent).toFixed(1)}%
                       </span>{' '}
                       {tc('thisWeek')}
@@ -204,14 +207,14 @@ export default async function ComparePage({
               width={110}
               height={44}
               trend={trend}
-              className={trend === 'down' ? '[&_polyline]:stroke-[#C0392B]' : '[&_polyline]:stroke-leaf'}
+              className={`h-auto min-w-0 shrink ${trend === 'down' ? '[&_polyline]:stroke-[#C0392B]' : '[&_polyline]:stroke-leaf'}`}
             />
           </div>
 
           <Link
             href={`${localePath(locale, '/')}#alerts`}
             className="flex min-w-[120px] flex-col items-center justify-center gap-1.5 rounded-[14px]
-                       border border-line bg-white px-5 py-4 text-[15px] font-medium text-ink
+                       border border-line bg-surface px-5 py-4 text-[15px] font-medium text-ink
                        no-underline transition-[border-color,box-shadow] hover:border-[#85A61C] hover:shadow-[0_0_0_2px_#85A61C]"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-6 w-6" aria-hidden="true">
@@ -228,7 +231,7 @@ export default async function ComparePage({
             key={`${corridor.slug}-${payout}-${amount}`}
             initial={comparison} payout={payout} payoutLabel={payoutLabels[payout]} />
         ) : (
-          <p className="mt-12 rounded-[14px] border border-line bg-white p-8 text-muted">
+          <p className="mt-12 rounded-[14px] border border-line bg-surface p-8 text-muted">
             {t('noQuotesYet')}
           </p>
         )}

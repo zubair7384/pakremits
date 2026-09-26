@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { getTranslations } from 'next-intl/server'
 import { MobileNav } from '@/components/mobile-nav'
 import { ScrollTopLink } from '@/components/scroll-top-link'
+import { ThemeToggle } from '@/components/theme-toggle'
 import { type Locale, localePath } from '@/i18n/routing'
 import { corridorPath, methodPath, ratePath, staticPath } from '@/lib/routes'
 
@@ -47,9 +48,9 @@ export async function SiteHeader({
   return (
     /* Sticky and fully opaque, so the bar never reads as a tint of whatever
        scrolls beneath it. */
-    <div className="sticky top-0 z-50 border-b border-line bg-white text-ink">
-      <div className="mx-auto flex h-[86px] max-w-[1120px] items-center justify-between gap-6 px-6">
-        <div className="flex items-center gap-8">
+    <div className="sticky top-0 z-50 border-b border-line bg-header text-ink">
+      <div className="mx-auto flex h-[86px] max-w-[1120px] items-center justify-between gap-4 px-6 lg:gap-6">
+        <div className="flex min-w-0 items-center gap-5 xl:gap-6">
           <ScrollTopLink href={localePath(locale, '/')} className="flex shrink-0 items-center no-underline">
             {/* Inked in the hero greens for a white bar. See public/pakrimits-new-logo.svg.
 
@@ -62,7 +63,16 @@ export async function SiteHeader({
               alt="PakRemits"
               width={182}
               height={50}
-              className="h-10 w-auto sm:h-[50px]"
+              className="h-8 w-auto sm:h-[50px] lg:h-10 xl:h-[50px] dark:hidden"
+            />
+            {/* Dark theme: same mark, light wordmark. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/pakrimits-new-logo-dark.svg"
+              alt="PakRemits"
+              width={182}
+              height={50}
+              className="hidden h-8 w-auto sm:h-[50px] lg:h-10 xl:h-[50px] dark:block"
             />
           </ScrollTopLink>
 
@@ -76,11 +86,11 @@ export async function SiteHeader({
                   <ScrollTopLink
                     href={item.href}
                     aria-current={item.key === active ? 'page' : undefined}
-                    className={`flex items-center gap-2 rounded-[10px] px-3 py-2.5 text-[16px] whitespace-nowrap xl:px-3.5
+                    className={`flex items-center gap-1.5 rounded-[10px] px-2 py-2.5 text-[15px] whitespace-nowrap xl:px-3 xl:text-[16px]
                                 font-medium no-underline transition-colors ${
                                   item.key === active
-                                    ? 'bg-[#E9F2EC] text-green'
-                                    : 'text-[#4A5A52] hover:bg-[#E9F2EC] hover:text-green'
+                                    ? 'bg-nav-tint text-green'
+                                    : 'text-ink-2 hover:bg-tint hover:text-tint-ink'
                                 }`}
                   >
                     <svg
@@ -104,10 +114,18 @@ export async function SiteHeader({
         </div>
 
         <div className="flex items-center gap-2.5 sm:gap-3.5">
+          {/* No room in the phone bar; there it sits in the menu instead. */}
+          <ThemeToggle
+            toDarkLabel={t('themeDark')}
+            toLightLabel={t('themeLight')}
+            className="hidden sm:grid"
+          />
+          {/* Dropped below 360px, where it would run over the logo; "Rate
+              alerts" in the menu reaches the same dialog. */}
           <Link
             href={`${localePath(locale, '/')}#alerts`}
-            className="flex h-12 items-center rounded-[10px] border border-line bg-white px-4
-                       text-[15px] font-semibold whitespace-nowrap text-ink no-underline
+            className="flex h-12 items-center rounded-[10px] border border-line bg-surface px-3.5 max-[359px]:hidden
+                       text-[14px] font-semibold sm:text-[15px] whitespace-nowrap text-ink no-underline
                        transition-[border-color,box-shadow] hover:border-[#85A61C] hover:shadow-[0_0_0_2px_#85A61C] sm:px-6"
           >
             {t('setAlert')}
@@ -118,6 +136,9 @@ export async function SiteHeader({
             label={t('main')}
             openLabel={t('openMenu')}
             closeLabel={t('closeMenu')}
+            footer={
+              <ThemeToggle toDarkLabel={t('themeDark')} toLightLabel={t('themeLight')} />
+            }
           />
         </div>
       </div>
@@ -162,7 +183,7 @@ export async function SiteFooter({ locale = 'en' }: { locale?: Locale }) {
   ]
 
   return (
-    <footer className="mt-24 border-t border-line bg-[#F1F2EF] px-0 pt-14 pb-10 text-ink">
+    <footer className="mt-24 border-t border-line bg-footer px-0 pt-14 pb-10 text-ink">
       <div className="mx-auto max-w-[1120px] px-6">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.6fr_1fr_1fr_1fr]">
           <div>
@@ -173,7 +194,15 @@ export async function SiteFooter({ locale = 'en' }: { locale?: Locale }) {
                 alt="PakRemits"
                 width={182}
                 height={50}
-                className="h-[50px] w-auto"
+                className="h-[50px] w-auto dark:hidden"
+              />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/pakrimits-new-logo-dark.svg"
+                alt="PakRemits"
+                width={182}
+                height={50}
+                className="hidden h-[50px] w-auto dark:block"
               />
             </Link>
             {/* Affiliate disclosure. Required on every page carrying provider
@@ -187,7 +216,7 @@ export async function SiteFooter({ locale = 'en' }: { locale?: Locale }) {
               <ul className="grid gap-2.5 text-[14.5px]">
                 {column.links.map((link) => (
                   <li key={link.href}>
-                    <Link href={link.href} className="text-[#3C4A43] no-underline hover:text-green">
+                    <Link href={link.href} className="text-ink-2 no-underline hover:text-green">
                       {link.label}
                     </Link>
                   </li>
