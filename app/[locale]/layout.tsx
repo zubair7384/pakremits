@@ -9,6 +9,7 @@ import { LOCALES, LOCALE_DIR, LOCALE_TAG, isLocale } from '@/i18n/routing'
 import { getMessages } from '@/i18n/messages'
 import { NavigationScrollReset } from '@/components/navigation-scroll-reset'
 import { RateAlertDialog } from '@/components/rate-alert-dialog'
+import { THEME_SCRIPT } from '@/lib/theme'
 import { CORRIDORS } from '@/lib/corridors'
 import { latestMidMarket } from '@/lib/quotes'
 import '../globals.css'
@@ -103,9 +104,15 @@ export default async function LocaleLayout({
       // Urdu needs the larger line-height Nastaliq requires; setting it here
       // rather than per-component keeps it out of every layout calculation.
       data-locale={locale}
+      // THEME_SCRIPT sets data-theme before hydration, so React must not
+      // treat the extra attribute as a mismatch.
+      suppressHydrationWarning
     >
       {gtmId && <GoogleTagManager gtmId={gtmId} />}
       <body>
+        {/* First in <body> and blocking on purpose: it must set the theme
+            before anything paints. */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
         {gtmId && (
           <noscript>
             <iframe

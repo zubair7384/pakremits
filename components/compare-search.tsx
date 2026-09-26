@@ -49,6 +49,9 @@ interface Props {
 
 const DEFAULT_IDS = { from: 'search-from', method: 'search-method', amount: 'search-amount' }
 
+/** Short names for the one-row bar, where the full ones do not fit at lg. */
+const ROW_SHORT_NAMES: Record<string, string> = { GB: 'UK', AE: 'UAE', SA: 'KSA', US: 'USA' }
+
 export function compareHref(
   locale: Locale,
   corridor: string,
@@ -61,7 +64,7 @@ export function compareHref(
 
 function PayoutBadge({ method }: { method: PayoutOption }) {
   return (
-    <span className="grid h-9 w-9 place-items-center rounded-[9px] bg-[#E4F3EB]">
+    <span className="grid h-9 w-9 place-items-center rounded-[9px] bg-icon-bg">
       <PayoutMethodIcon method={method} />
     </span>
   )
@@ -138,14 +141,7 @@ export function CompareSearch({
     value: option.slug,
     label: option.countryName,
     // The one-row layout is narrow; use the short names the live panel uses.
-    selectedLabel:
-      layout === 'row'
-        ? option.countryCode === 'GB'
-          ? 'UK'
-          : option.countryCode === 'AE'
-            ? 'UAE'
-            : undefined
-        : undefined,
+    selectedLabel: layout === 'row' ? ROW_SHORT_NAMES[option.countryCode] : undefined,
     hint: option.currency,
     icon: <CountryFlag countryCode={option.countryCode} />,
   }))
@@ -260,7 +256,7 @@ export function CompareSearch({
   const submitButton = (
     <button
       type="submit"
-      className={`${fieldHeight} w-full cursor-pointer rounded-[8px] bg-gold font-display font-bold text-ink
+      className={`${fieldHeight} w-full cursor-pointer rounded-[8px] bg-gold font-display font-bold text-on-gold
                   transition-colors hover:bg-[#DDA73C] focus:outline-none focus-visible:outline-none
                   active:scale-[.985] lg:w-auto ${row ? 'px-8 text-[19px]' : 'px-10 text-[20px]'}`}
     >
@@ -270,7 +266,7 @@ export function CompareSearch({
 
   // The hero card floats over the gradient; the one-row bar sits on the page
   // background and only needs a faint lift.
-  const formClass = `relative z-20 rounded-[22px] bg-white ${
+  const formClass = `relative z-20 rounded-[22px] bg-surface ${
     row
       ? 'shadow-[0_6px_20px_-10px_rgba(20,32,27,.12),0_1px_2px_rgba(20,32,27,.04)]'
       : 'shadow-[0_30px_70px_-35px_rgba(20,32,27,.35),0_2px_8px_rgba(20,32,27,.06)]'
@@ -281,18 +277,18 @@ export function CompareSearch({
       <form
         onSubmit={onSubmit}
         className={`${formClass} grid items-end gap-4 p-5 sm:grid-cols-2 lg:px-6 lg:py-4
-                    lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,1fr)_96px_auto]`}
+                    lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.25fr)_minmax(0,1.2fr)_96px_auto]`}
       >
         {/* Vertical rules after the first two fields, desktop only. -my-4/py-4
             (and -ms-6/ps-6 on the first) cancel the form's padding so the rules
             and the hover tint run to the card's edges. */}
-        <div className="min-w-0 rounded-[12px] lg:-my-4 lg:-ms-6 lg:-me-4 lg:rounded-none lg:rounded-s-[22px] lg:border-e-[3px] lg:border-line lg:py-4 lg:ps-6 lg:pe-4 cursor-pointer transition-colors hover:bg-[#EEF3E3] [&:hover_button]:text-[#2F520B] [&:hover_label]:text-[#2F520B]" {...sectionProps(ids.from)}>
+        <div className="min-w-0 rounded-[12px] lg:-my-4 lg:-ms-6 lg:-me-4 lg:rounded-none lg:rounded-s-[22px] lg:border-e-[3px] lg:border-line lg:py-4 lg:ps-6 lg:pe-4 cursor-pointer transition-colors lg:hover:bg-tint lg:[&:hover_button]:text-tint-ink lg:[&:hover_label]:text-tint-ink" {...sectionProps(ids.from)}>
           <label htmlFor={ids.from} className={label}>
             {t('sendingFrom')}
           </label>
           <div className={fieldHeight}>{fromSelect(rowPlainTrigger)}</div>
         </div>
-        <div className="min-w-0 rounded-[12px] lg:-my-4 lg:-me-4 lg:rounded-none lg:border-e-[3px] lg:border-line lg:py-4 lg:ps-4 lg:pe-4 cursor-pointer transition-colors hover:bg-[#EEF3E3] [&:hover_button]:text-[#2F520B] [&:hover_label]:text-[#2F520B]" {...sectionProps(ids.method)}>
+        <div className="min-w-0 rounded-[12px] lg:-my-4 lg:-me-4 lg:rounded-none lg:border-e-[3px] lg:border-line lg:py-4 lg:ps-4 lg:pe-4 cursor-pointer transition-colors lg:hover:bg-tint lg:[&:hover_button]:text-tint-ink lg:[&:hover_label]:text-tint-ink" {...sectionProps(ids.method)}>
           <label htmlFor={ids.method} className={label}>
             {t('recipientGetsShort')}
           </label>
@@ -323,7 +319,9 @@ export function CompareSearch({
         </div>
       </div>
 
-      <div className="grid items-end gap-5 px-6 py-5 sm:px-7 sm:py-7 lg:grid-cols-[minmax(0,1fr)_170px_auto] lg:gap-6">
+      {/* "To" is only ever PKR, so its column hugs the text; the button takes
+          the width it frees up. */}
+      <div className="grid items-end gap-5 px-6 py-5 sm:px-7 sm:py-7 lg:grid-cols-[minmax(0,1fr)_auto_250px] lg:gap-6">
         {amountField}
         {receiveField}
         {submitButton}

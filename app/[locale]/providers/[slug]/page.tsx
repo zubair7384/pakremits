@@ -163,7 +163,7 @@ export default async function ProviderPage({ params }: { params: Promise<{ local
         <section className="mt-10">
           <h2 className="text-[26px] leading-tight font-semibold">Live rates by corridor</h2>
 
-          <div className="mt-4 overflow-x-auto rounded-panel border border-line bg-white">
+          <div className="mt-4 overflow-x-auto rounded-panel border border-line bg-surface">
             <table className="w-full min-w-[720px] border-collapse text-[15px]">
               <thead>
                 <tr className="border-b border-line text-left text-xs text-faint">
@@ -252,7 +252,7 @@ export default async function ProviderPage({ params }: { params: Promise<{ local
                   <li key={rail.key} className="flex items-center gap-2.5">
                     <span
                       className={`grid h-5 w-5 flex-none place-items-center rounded-full ${
-                        supported ? 'bg-[#E4F3EB] text-leaf' : 'bg-line-2 text-faint'
+                        supported ? 'bg-icon-bg text-leaf' : 'bg-line-2 text-faint'
                       }`}
                       aria-hidden="true"
                     >
@@ -293,7 +293,7 @@ export default async function ProviderPage({ params }: { params: Promise<{ local
               <a
                 href={`/go/${provider.slug}`}
                 rel="sponsored nofollow"
-                className="mt-6 inline-flex h-12 items-center rounded-control bg-ink px-6 font-medium text-white no-underline hover:bg-black"
+                className="mt-6 inline-flex h-12 items-center rounded-control bg-[#14201b] px-6 font-medium text-white no-underline hover:bg-black dark:bg-[#f2f2f0] dark:text-[#14201b] dark:hover:bg-white"
               >
                 Visit {provider.name}
               </a>

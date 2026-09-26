@@ -113,7 +113,7 @@ export default async function MethodPage({ params }: { params: Promise<{ locale:
               initialPayout={slug === 'rda' ? 'rda' : undefined}
             />
           ) : (
-            <section className="relative rounded-[22px] bg-white p-10 shadow-[0_6px_20px_-10px_rgba(20,32,27,.12),0_1px_2px_rgba(20,32,27,.04)]">
+            <section className="relative rounded-[22px] bg-surface p-10 shadow-[0_6px_20px_-10px_rgba(20,32,27,.12),0_1px_2px_rgba(20,32,27,.04)]">
               <h2 className="font-display text-xl font-semibold">
                 No live quotes for this method yet
               </h2>
@@ -134,7 +134,7 @@ export default async function MethodPage({ params }: { params: Promise<{ locale:
                 /* The long-form guidance is English-only for now. Machine
                    translating several thousand words of financial guidance
                    would be worse than saying so plainly. */
-                <p className="mb-6 rounded-panel border border-line bg-white p-4 text-[14.5px] text-muted">
+                <p className="mb-6 rounded-panel border border-line bg-surface p-4 text-[14.5px] text-muted">
                   {tCommon('translationPending')}
                 </p>
               )}

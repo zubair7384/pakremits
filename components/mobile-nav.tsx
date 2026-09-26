@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 
 /**
  * The header's nav below the lg breakpoint.
@@ -20,15 +20,21 @@ export function MobileNav({
   label,
   openLabel,
   closeLabel,
+  footer,
 }: {
   items: { href: string; label: string }[]
   label: string
   openLabel: string
   closeLabel: string
+  /** Shown under the links at phone widths only, for controls (the theme
+   *  switch) that the bar itself has room for from `sm` up. */
+  footer?: ReactNode
 }) {
   const [open, setOpen] = useState(false)
   const panelId = useId()
   const buttonRef = useRef<HTMLButtonElement>(null)
+  // Wraps both the toggle and the panel, so a tap on either is "inside".
+  const rootRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!open) return
@@ -41,12 +47,23 @@ export function MobileNav({
       buttonRef.current?.focus()
     }
 
+    // A tap anywhere else closes the panel, as the reader expects of a menu.
+    // The tap still goes through to whatever it landed on.
+    function onPointerDown(event: PointerEvent) {
+      if (rootRef.current?.contains(event.target as Node)) return
+      setOpen(false)
+    }
+
     document.addEventListener('keydown', onKeyDown)
-    return () => document.removeEventListener('keydown', onKeyDown)
+    document.addEventListener('pointerdown', onPointerDown)
+    return () => {
+      document.removeEventListener('keydown', onKeyDown)
+      document.removeEventListener('pointerdown', onPointerDown)
+    }
   }, [open])
 
   return (
-    <div className="lg:hidden">
+    <div ref={rootRef} className="lg:hidden">
       <button
         ref={buttonRef}
         type="button"
@@ -82,7 +99,7 @@ export function MobileNav({
       <div
         id={panelId}
         hidden={!open}
-        className="absolute inset-x-0 top-[86px] border-b border-line bg-white"
+        className="absolute inset-x-0 top-[86px] border-b border-line bg-header"
       >
         <nav aria-label={label} className="mx-auto max-w-[1120px] px-6 py-2">
           <ul className="grid">
@@ -100,6 +117,7 @@ export function MobileNav({
               </li>
             ))}
           </ul>
+          {footer && <div className="border-t border-line-2 py-3.5 sm:hidden">{footer}</div>}
         </nav>
       </div>
     </div>

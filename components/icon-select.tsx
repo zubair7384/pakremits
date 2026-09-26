@@ -155,12 +155,16 @@ export function IconSelect({
           aria-label={label}
           className={
             hero
-              ? `absolute top-full z-40 mt-3 w-max ${listMinWidth} max-w-[min(92vw,460px)] rounded-2xl
-                 bg-white p-2 shadow-[0_24px_60px_-20px_rgba(20,32,27,.35),0_2px_8px_rgba(20,32,27,.08)]
+              ? // Phones: centred under the trigger and 32px wider than it, so the
+                // list stays inside the card's padding instead of running off
+                // the right edge the way a left-pinned, content-width list did.
+                `absolute top-full z-40 mt-3 w-max ${listMinWidth} max-w-[min(92vw,460px)] rounded-2xl
+                 max-sm:left-1/2 max-sm:w-[calc(100%+32px)] max-sm:min-w-0 max-sm:max-w-none max-sm:-translate-x-1/2
+                 flex flex-col gap-1 bg-surface p-2 shadow-[0_24px_60px_-20px_rgba(20,32,27,.35),0_2px_8px_rgba(20,32,27,.08)]
                  before:absolute before:-top-1.5 before:left-10 before:h-3 before:w-3
-                 before:rotate-45 before:bg-white before:content-['']`
+                 before:rotate-45 before:bg-surface before:content-['']`
               : `absolute z-40 mt-2 max-h-80 w-full overflow-y-auto rounded-xl border
-                 border-line bg-white p-1.5`
+                 border-line bg-surface p-1.5`
           }
         >
           {options.map((option, index) => (
@@ -177,8 +181,8 @@ export function IconSelect({
               className={
                 hero
                   ? `relative flex cursor-pointer items-center gap-4 rounded-xl px-5 py-3.5
-                     text-[18px] font-medium text-ink
-                     ${option.value === value || index === activeIndex ? 'bg-gold-bg' : ''}`
+                     text-[18px] font-medium text-ink max-sm:gap-3 max-sm:px-3.5 max-sm:py-3 max-sm:text-[16px]
+                     ${option.value === value || index === activeIndex ? 'bg-tint' : ''}`
                   : `flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-[15px]
                      ${index === activeIndex ? 'bg-mist text-ink' : 'text-muted'}
                      ${option.value === value ? 'font-medium' : ''}`
@@ -189,9 +193,14 @@ export function IconSelect({
                   {option.icon}
                 </span>
               )}
-              <span className="min-w-0 flex-1 truncate">{option.label}</span>
+              {/* On a phone a long name wraps rather than losing its end. */}
+              <span className={`min-w-0 flex-1 truncate ${hero ? 'max-sm:whitespace-normal' : ''}`}>
+                {option.label}
+              </span>
               {option.hint && (
-                <span className="ml-6 shrink-0 text-[15px] font-normal text-muted">{option.hint}</span>
+                <span className="ml-6 shrink-0 text-[15px] font-normal text-muted max-sm:ml-3 max-sm:text-[14px]">
+                  {option.hint}
+                </span>
               )}
               {!hero && option.value === value && (
                 <svg

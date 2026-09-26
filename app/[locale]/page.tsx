@@ -9,6 +9,7 @@ import type { SendCurrency } from '@/lib/db/schema'
 import { notFound } from 'next/navigation'
 import { alternatesFor, isLocale } from '@/i18n/routing'
 import { corridorPath } from '@/lib/routes'
+import { RateAlertCta } from '@/components/rate-alert-cta'
 import { RateMarquee } from '@/components/rate-marquee'
 import { CountryFlag } from '@/components/select-icons'
 import { CLAIM_FIRST_PAKISTAN_ONLY_SITE } from '@/lib/proof/config'
@@ -59,6 +60,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   const t = await getTranslations({ locale, namespace: 'home' })
   const tProof = await getTranslations({ locale, namespace: 'proof' })
   const tPanel = await getTranslations({ locale, namespace: 'panel' })
+  const tAlerts = await getTranslations({ locale, namespace: 'alerts' })
+  const tNav = await getTranslations({ locale, namespace: 'nav' })
 
   const faqs = [
     { q: t('faq1Q'), a: t('faq1A') },
@@ -136,6 +139,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
         {/* Corridor marquee — full-bleed, so it sits outside the column above. */}
         <RateMarquee locale={locale} items={marqueeItems} />
 
+
         <section className="mt-16" aria-labelledby="trust-cards-title">
           <div className="max-w-[54ch]">
             <h2
@@ -176,9 +180,9 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
             ].map((card) => (
               <li
                 key={card.title}
-                className="flex min-h-60 flex-col rounded-panel border border-line bg-white p-6"
+                className="flex min-h-60 flex-col rounded-[10px] border border-line bg-surface p-6"
               >
-                <div className="grid h-10 w-10 place-items-center rounded-[11px] bg-[#E4F3EB] text-leaf">
+                <div className="grid h-10 w-10 place-items-center rounded-[11px] bg-icon-bg text-leaf">
                   <svg
                     viewBox="0 0 24 24"
                     fill="none"
@@ -202,50 +206,67 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           </ul>
         </section>
 
-        {/* Corridors */}
-        <section id="corridors" className="mt-24">
-          <div className="max-w-[44ch]">
-            <h2 className="text-[clamp(30px,4vw,36px)] leading-[1.1] font-semibold">
-              {t('corridorsTitle')}
-            </h2>
-            <p className="mt-3 text-[17px] text-muted">
-              {t('corridorsLede')}
-            </p>
-          </div>
+        {/* Corridors. Full-bleed like the marquee, so the dark theme's band
+            runs edge to edge; in light the band is transparent and the section
+            looks as it always did. */}
+        <section
+          id="corridors"
+          className="ms-[calc(50%-50vw)] mt-24 w-screen bg-band dark:mt-16 dark:py-16"
+        >
+          <div className="mx-auto max-w-[1120px] px-6">
+            <div className="max-w-[44ch]">
+              <h2 className="text-[clamp(30px,4vw,36px)] leading-[1.1] font-semibold">
+                {t('corridorsTitle')}
+              </h2>
+              <p className="mt-3 text-[17px] text-muted">
+                {t('corridorsLede')}
+              </p>
+            </div>
 
-          <div className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {chips.map((chip) => (
-              <Link
-                key={chip.slug}
-                href={corridorPath(chip.slug, locale)}
-                className="flex flex-col gap-3.5 rounded-[14px] border border-line bg-white p-4.5
-                           no-underline transition-[border-color,box-shadow] hover:border-[#85A61C]
-                           hover:shadow-[0_0_0_2px_#85A61C]"
-              >
-                <span className="flex items-center gap-3 text-[15px] font-medium">
-                  <span className="grid h-8 w-9 place-items-center" aria-hidden="true">
-                    <CountryFlag
-                      countryCode={COUNTRY_BY_CURRENCY.get(chip.currency as SendCurrency) ?? 'EU'}
-                    />
+            <div className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {chips.map((chip) => (
+                <Link
+                  key={chip.slug}
+                  href={corridorPath(chip.slug, locale)}
+                  className="flex flex-col gap-3.5 rounded-[14px] border border-line bg-surface p-4.5
+                             no-underline transition-[border-color,box-shadow] hover:border-[#85A61C]
+                             hover:shadow-[0_0_0_2px_#85A61C]"
+                >
+                  <span className="flex items-center gap-3 text-[15px] font-medium">
+                    <span className="grid h-8 w-9 place-items-center" aria-hidden="true">
+                      <CountryFlag
+                        countryCode={COUNTRY_BY_CURRENCY.get(chip.currency as SendCurrency) ?? 'EU'}
+                      />
+                    </span>
+                    {chip.countryName}
                   </span>
-                  {chip.countryName}
-                </span>
-                <span className="flex items-baseline justify-between border-t border-line-2 pt-3 text-[12.5px] text-muted">
-                  {t('bestToday')}
-                  <b className="font-display text-lg font-semibold tabular-nums text-ink">
-                    {chip.bestRate?.toFixed(2) ?? '—'}
-                  </b>
-                </span>
-              </Link>
-            ))}
+                  <span className="flex items-baseline justify-between border-t border-line-2 pt-3 text-[12.5px] text-muted">
+                    {t('bestToday')}
+                    <b className="font-display text-lg font-semibold tabular-nums text-ink">
+                      {chip.bestRate?.toFixed(2) ?? '—'}
+                    </b>
+                  </span>
+                </Link>
+              ))}
+            </div>
           </div>
         </section>
 
+        {/* Rate alerts, under the corridor picker. Opens the dialog. */}
+        <RateAlertCta
+          locale={locale}
+          title={tAlerts('dialogTitle')}
+          body={tAlerts('ctaBody')}
+          button={tNav('setAlert')}
+          className="mt-16"
+        />
+
         {/* Why our ranking is different */}
         <section id="how" className="mt-24">
-          <div className="max-w-[44ch]">
+          {/* Width cap only below lg; on desktop the <br> sets the two-line break. */}
+          <div className="max-w-[44ch] lg:max-w-none">
             <h2 className="text-[clamp(30px,4vw,36px)] leading-[1.1] font-semibold">
-              {t('whyTitle')}
+              {t.rich('whyTitle', { br: () => <br className="hidden lg:block" /> })}
             </h2>
           </div>
 
@@ -267,8 +288,8 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
                 path: 'M12 3l7 4v5c0 4.5-3 8-7 9-4-1-7-4.5-7-9V7z',
               },
             ].map((card) => (
-              <div key={card.title} className="rounded-panel border border-line bg-white p-7">
-                <div className="mb-4.5 grid h-11 w-11 place-items-center rounded-[12px] bg-[#E4F3EB] text-leaf">
+              <div key={card.title} className="rounded-panel border border-line bg-surface p-7">
+                <div className="mb-4.5 grid h-11 w-11 place-items-center rounded-[12px] bg-icon-bg text-leaf">
                   <svg
                     viewBox="0 0 24 24"
                     fill="none"

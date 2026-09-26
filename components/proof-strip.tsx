@@ -7,7 +7,7 @@ import { formatProofPkr, formatProofPkrFull } from '@/lib/proof/format'
 import type { ProofStats } from '@/lib/proof/stats'
 
 /** The card shell, shared with the cards callers pass in as `children`. */
-export const PROOF_CARD = 'rounded-panel border border-line bg-white px-7 py-6.5'
+export const PROOF_CARD = 'rounded-panel border border-line bg-surface px-7 py-6.5'
 
 /**
  * The proof strip: claims that are true right now, and nothing else.
