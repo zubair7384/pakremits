@@ -37,17 +37,20 @@
   --radius-panel: 18px;
   --radius-panel-lg: 22px;
 
-  --font-display: var(--font-bricolage), 'IBM Plex Sans', sans-serif;
-  --font-sans: var(--font-plex), system-ui, sans-serif;
+  /* Inter everywhere; Bricolage survives only as `font-hero` on the home
+     hero headline. */
+  --font-display: var(--font-inter), system-ui, sans-serif;
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-hero: var(--font-bricolage), var(--font-inter), sans-serif;
   --font-urdu: var(--font-nastaliq), serif;
 }
 
 html {
   scroll-behavior: smooth;
-  /* The header is sticky and 72px tall, so an anchor target scrolled to the
+  /* The header is sticky and 86px tall, so an anchor target scrolled to the
      very top of the viewport lands underneath it. Offset every jump by the
      bar's height plus a little breathing room. */
-  scroll-padding-top: 88px;
+  scroll-padding-top: 102px;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -64,11 +67,25 @@ body {
   overflow-x: clip;
 }
 
-h1,
-h2,
-h3 {
-  font-family: var(--font-display);
-  letter-spacing: -0.022em;
+/* Layered so a font utility such as `font-hero` can override it. */
+@layer base {
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    letter-spacing: -0.022em;
+  }
+}
+
+/* Home hero band. Values are the design's. */
+.hero-gradient {
+  background: #2f520b;
+  background: linear-gradient(
+    61deg,
+    rgba(47, 82, 11, 1) 0%,
+    rgba(83, 122, 14, 1) 53%,
+    rgba(133, 166, 28, 1) 100%
+  );
 }
 
 /* Chromium exposes a proprietary marker for <summary>. Keeping this as plain
@@ -169,7 +186,7 @@ h3 {
 }
 
 .marquee-track {
-  animation: marquee-scroll 48s linear infinite;
+  animation: marquee-scroll 96s linear infinite;
 }
 
 .marquee-viewport:hover .marquee-track,

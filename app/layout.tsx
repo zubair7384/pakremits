@@ -4,6 +4,8 @@ import { searchIndexingEnabled } from '@/lib/seo'
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'),
   robots: searchIndexingEnabled() ? undefined : { index: false, follow: false },
+  // Versioned so browsers drop a cached copy of the old icon; bump on change.
+  icons: { icon: '/favicon.ico?v=2' },
 }
 
 /**

@@ -270,6 +270,18 @@ export const ur: Messages = {
     alertSetBody:
       'جیسے ہی ریٹ آپ کی مقررہ حد کو پار کرے گا، ہم آپ کو اس وقت کی بہترین سروس کے ساتھ پیغام ' +
       'بھیج دیں گے۔ زیادہ سے زیادہ ہر 12 گھنٹے میں ایک بار۔',
+    // TODO: native review
+    dialogTitle: 'جب ریٹ میرے ہدف پر پہنچے تو مجھے بتائیں',
+    // TODO: native review
+    dialogBody:
+      'ہم ہر 15 منٹ بعد مارکیٹ دیکھتے ہیں اور ریٹ ہدف پار کرتے ہی آپ کو اس وقت کی بہترین سروس کے ساتھ ای میل کرتے ہیں۔',
+    previewSender: 'PakRemits alerts',
+    // TODO: native review
+    previewLine: '<strong>{pair} نے {rate} پار کر لیا</strong>۔ کون یہ ریٹ دے رہا ہے، دیکھنے کے لیے PakRemits کھولیں۔',
+    // TODO: native review
+    close: 'بند کریں',
+    // TODO: native review
+    unavailable: 'الرٹ عارضی طور پر دستیاب نہیں۔',
   },
 
   panel: {
@@ -363,6 +375,41 @@ export const ur: Messages = {
 
     // TODO: native review
     promoNewCustomer: 'نئے صارف کا ریٹ',
+    // TODO: native review
+    to: 'وصولی',
+    // TODO: native review
+    currency: 'بھیجنے کی کرنسی',
+    // TODO: native review
+    receiveCurrency: 'وصولی کی کرنسی',
+    // TODO: native review
+    amountIn: 'رقم {currency} میں',
+    // TODO: native review
+    compareShort: 'موازنہ کریں',
+    // TODO: native review
+    recipientGetsShort: 'وصول کنندہ کو ملے',
+  },
+
+  compare: {
+    // TODO: native review
+    titleBank: 'بینک اکاؤنٹ میں منتقلی',
+    // TODO: native review
+    titleCash: 'نقد وصولی کے لیے بھیجیں',
+    // TODO: native review
+    titleNamed: '{name} میں منتقلی',
+    // TODO: native review
+    providers: '{count} سروسز',
+    // TODO: native review
+    pakistan: 'پاکستان',
+    // TODO: native review — PKT stays in Latin script
+    quotesRefreshed: 'ریٹ {time} PKT پر تازہ کیے گئے',
+    // TODO: native review
+    midMarket: 'مڈ مارکیٹ ایکسچینج ریٹ',
+    // TODO: native review
+    thisWeek: 'اس ہفتے',
+    // TODO: native review
+    flatThisWeek: 'اس ہفتے کوئی تبدیلی نہیں',
+    // TODO: native review
+    getAlerts: 'الرٹ حاصل کریں',
   },
 
   methods: {

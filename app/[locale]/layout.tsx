@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import { notFound } from 'next/navigation'
 import { NextIntlClientProvider } from 'next-intl'
 import { setRequestLocale } from 'next-intl/server'
@@ -6,6 +7,10 @@ import { GoogleTagManager } from '@next/third-parties/google'
 import { fonts } from '@/lib/fonts'
 import { LOCALES, LOCALE_DIR, LOCALE_TAG, isLocale } from '@/i18n/routing'
 import { getMessages } from '@/i18n/messages'
+import { NavigationScrollReset } from '@/components/navigation-scroll-reset'
+import { RateAlertDialog } from '@/components/rate-alert-dialog'
+import { CORRIDORS } from '@/lib/corridors'
+import { latestMidMarket } from '@/lib/quotes'
 import '../globals.css'
 
 export const metadata: Metadata = {
@@ -21,6 +26,10 @@ export const metadata: Metadata = {
     'Compare every major service sending money to Pakistan, ranked by the exact amount that ' +
     'lands in the account. Not by rate, not by fee, not by who pays us.',
 }
+
+// The alert dialog shows live mid-market rates on every page, so no page under
+// this layout may cache them for longer than the 15-minute refresh.
+export const revalidate = 900
 
 export function generateStaticParams() {
   return LOCALES.map((locale) => ({ locale }))
@@ -46,6 +55,20 @@ export default async function LocaleLayout({
   setRequestLocale(locale)
 
   const all = await getMessages(locale)
+
+  // Rate alert dialog data. latestMidMarket degrades to null on a database
+  // outage, so the dialog still opens with the pairs listed.
+  const alertPairs = await Promise.all(
+    CORRIDORS.map(async (corridor) => ({
+      currency: corridor.fromCurrency,
+      countryCode: corridor.fromCountry,
+      rate: await latestMidMarket(corridor.fromCurrency),
+    })),
+  )
+  const turnstileSiteKey =
+    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ||
+    // Cloudflare's always-pass test key, so alerts work in development.
+    (process.env.NODE_ENV !== 'production' ? '1x00000000000000000000AA' : '')
 
   /**
    * Only the namespaces client components actually read.
@@ -96,6 +119,11 @@ export default async function LocaleLayout({
         )}
         <NextIntlClientProvider locale={locale} messages={messages}>
           {children}
+          <RateAlertDialog pairs={alertPairs} turnstileSiteKey={turnstileSiteKey} />
+          {/* Suspense: reading the query string must not opt pages out of static rendering. */}
+          <Suspense fallback={null}>
+            <NavigationScrollReset />
+          </Suspense>
         </NextIntlClientProvider>
       </body>
     </html>

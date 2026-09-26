@@ -7,6 +7,8 @@ export interface IconSelectOption {
   label: string
   /** Optional compact label used only while the option is selected. */
   selectedLabel?: string
+  /** Optional trailing text in the open list, e.g. a currency code. */
+  hint?: string
   icon: ReactNode
 }
 
@@ -17,6 +19,10 @@ interface IconSelectProps {
   options: readonly IconSelectOption[]
   onChange: (value: string) => void
   className?: string
+  /** `hero` is the larger popover used by the search form. */
+  variant?: 'default' | 'hero'
+  /** Hero only: overrides the list's minimum width (full trigger width). */
+  listMinWidth?: string
 }
 
 /**
@@ -31,7 +37,10 @@ export function IconSelect({
   options,
   onChange,
   className = '',
+  variant = 'default',
+  listMinWidth = 'min-w-full',
 }: IconSelectProps) {
+  const hero = variant === 'hero'
   const rootRef = useRef<HTMLDivElement>(null)
   const listboxId = useId()
   const selectedIndex = Math.max(0, options.findIndex((option) => option.value === value))
@@ -43,12 +52,17 @@ export function IconSelect({
     if (!open) return
 
     function closeOnOutsidePointer(event: PointerEvent) {
-      if (!rootRef.current?.contains(event.target as Node)) setOpen(false)
+      const target = event.target as Element
+      if (rootRef.current?.contains(target)) return
+      // A wrapper marked `data-select-area={id}` counts as part of the select:
+      // it toggles the list itself, so closing here would only reopen it.
+      if (target.closest?.(`[data-select-area="${id}"]`)) return
+      setOpen(false)
     }
 
     document.addEventListener('pointerdown', closeOnOutsidePointer)
     return () => document.removeEventListener('pointerdown', closeOnOutsidePointer)
-  }, [open])
+  }, [open, id])
 
   function openList() {
     setActiveIndex(selectedIndex)
@@ -100,7 +114,7 @@ export function IconSelect({
   }
 
   return (
-    <div ref={rootRef} className="relative min-w-0 w-full">
+    <div ref={rootRef} data-icon-select="" className="relative h-full min-w-0 w-full">
       <button
         id={id}
         type="button"
@@ -112,18 +126,22 @@ export function IconSelect({
         aria-activedescendant={open ? `${listboxId}-${activeIndex}` : undefined}
         onClick={() => (open ? setOpen(false) : openList())}
         onKeyDown={handleKeyDown}
-        className={`${className} flex max-w-full items-center gap-3 text-left`}
+        className={`${className} flex max-w-full cursor-pointer items-center gap-3 text-left`}
       >
-        <span className="flex shrink-0 items-center" aria-hidden="true">
-          {selected?.icon}
-        </span>
+        {selected?.icon && (
+          <span className="flex shrink-0 items-center" aria-hidden="true">
+            {selected.icon}
+          </span>
+        )}
         <span className="min-w-0 flex-1 truncate">{selected?.selectedLabel ?? selected?.label}</span>
         <svg
           viewBox="0 0 16 16"
           fill="none"
           stroke="currentColor"
           strokeWidth="1.8"
-          className={`h-4 w-4 shrink-0 text-muted transition-transform ${open ? 'rotate-180' : ''}`}
+          className={`shrink-0 transition-transform ${
+            hero ? 'h-5 w-5 text-ink' : 'h-4 w-4 text-muted'
+          } ${open ? 'rotate-180' : ''}`}
           aria-hidden="true"
         >
           <path d="M4 6l4 4 4-4" />
@@ -135,8 +153,15 @@ export function IconSelect({
           id={listboxId}
           role="listbox"
           aria-label={label}
-          className="absolute z-40 mt-2 max-h-80 w-full overflow-y-auto rounded-xl border
-                     border-line bg-white p-1.5"
+          className={
+            hero
+              ? `absolute top-full z-40 mt-3 w-max ${listMinWidth} max-w-[min(92vw,460px)] rounded-2xl
+                 bg-white p-2 shadow-[0_24px_60px_-20px_rgba(20,32,27,.35),0_2px_8px_rgba(20,32,27,.08)]
+                 before:absolute before:-top-1.5 before:left-10 before:h-3 before:w-3
+                 before:rotate-45 before:bg-white before:content-['']`
+              : `absolute z-40 mt-2 max-h-80 w-full overflow-y-auto rounded-xl border
+                 border-line bg-white p-1.5`
+          }
         >
           {options.map((option, index) => (
             <li
@@ -149,15 +174,26 @@ export function IconSelect({
                 event.preventDefault()
                 choose(index)
               }}
-              className={`flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-[15px]
-                          ${index === activeIndex ? 'bg-mist text-ink' : 'text-muted'}
-                          ${option.value === value ? 'font-medium' : ''}`}
+              className={
+                hero
+                  ? `relative flex cursor-pointer items-center gap-4 rounded-xl px-5 py-3.5
+                     text-[18px] font-medium text-ink
+                     ${option.value === value || index === activeIndex ? 'bg-gold-bg' : ''}`
+                  : `flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-[15px]
+                     ${index === activeIndex ? 'bg-mist text-ink' : 'text-muted'}
+                     ${option.value === value ? 'font-medium' : ''}`
+              }
             >
-              <span className="flex shrink-0 items-center" aria-hidden="true">
-                {option.icon}
-              </span>
+              {option.icon && (
+                <span className="flex shrink-0 items-center" aria-hidden="true">
+                  {option.icon}
+                </span>
+              )}
               <span className="min-w-0 flex-1 truncate">{option.label}</span>
-              {option.value === value && (
+              {option.hint && (
+                <span className="ml-6 shrink-0 text-[15px] font-normal text-muted">{option.hint}</span>
+              )}
+              {!hero && option.value === value && (
                 <svg
                   viewBox="0 0 16 16"
                   fill="none"
