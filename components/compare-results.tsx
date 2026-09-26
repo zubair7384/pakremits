@@ -273,7 +273,7 @@ export function ResultsView({
                   providerName={q.providerName}
                   brandColor={q.brandColor}
                   brandTextColor={q.brandTextColor}
-                  size="large"
+                  size="small"
                 />
                 <div className="min-w-0">
                   <div className="font-display text-[19px] leading-tight font-semibold">

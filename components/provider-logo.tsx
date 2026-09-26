@@ -3,7 +3,7 @@ interface ProviderLogoProps {
   providerName: string
   brandColor: string
   brandTextColor: string
-  size?: 'default' | 'large' | 'hero'
+  size?: 'small' | 'default' | 'large' | 'hero'
 }
 
 /**
@@ -19,7 +19,14 @@ export function ProviderLogo({
   brandTextColor,
   size = 'default',
 }: ProviderLogoProps) {
-  const sizeClass = size === 'hero' ? 'h-16 w-16' : size === 'large' ? 'h-12 w-12' : 'h-11 w-11'
+  const sizeClass =
+    size === 'hero'
+      ? 'h-16 w-16'
+      : size === 'large'
+        ? 'h-12 w-12'
+        : size === 'small'
+          ? 'h-10 w-10'
+          : 'h-11 w-11'
 
   if (providerSlug === 'remitly') {
     return (
